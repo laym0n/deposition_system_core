@@ -43,7 +43,7 @@
             </dependency>
             <dependency>
                 <groupId>com.deposition</groupId>
-                <artifactId>infra</artifactId>
+                <artifactId>infra-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
