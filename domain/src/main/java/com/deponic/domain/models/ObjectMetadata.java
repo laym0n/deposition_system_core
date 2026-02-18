@@ -22,6 +22,6 @@ public class ObjectMetadata {
     private ObjectCategory category;
     private String originalName;
     private List<Characteristics> characteristics;
-    private Storage storage;
+    private List<Storage> storages;
     private List<Identifier> identifiers;
 }

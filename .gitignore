@@ -47,7 +47,6 @@ tmp/
 *.iws
 *.iml
 *.ipr
-out/
 artifacts/
 
 # NetBeans

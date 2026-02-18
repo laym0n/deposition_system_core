@@ -1,4 +1,4 @@
-package com.deponic.domain.in.port;
+package com.deponic.domain.port.in;
 
 import java.util.List;
 
