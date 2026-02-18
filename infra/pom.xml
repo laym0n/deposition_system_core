@@ -15,5 +15,6 @@
 
     <modules>
         <module>infra-api</module>
+        <module>infra-s3</module>
     </modules>
 </project>

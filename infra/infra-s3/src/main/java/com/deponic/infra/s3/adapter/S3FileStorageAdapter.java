@@ -1,0 +1,60 @@
+package com.deponic.infra.s3.adapter;
+
+import java.io.IOException;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
+
+import com.deponic.domain.models.valueobject.ContentLocation;
+import com.deponic.domain.models.valueobject.Storage;
+import com.deponic.domain.port.out.FileStorageOutPort;
+
+import lombok.RequiredArgsConstructor;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+
+@Component
+@RequiredArgsConstructor
+public class S3FileStorageAdapter implements FileStorageOutPort {
+
+    private static final String CONTENT_LOCATION_TYPE = "s3";
+
+    private final S3Client s3Client;
+    private final String bucketName;
+
+    @Override
+    public Storage persist(Resource resource) {
+        try {
+            var objectKey = buildObjectKey(resource);
+            var putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .contentType(resource.getContentType())
+                    .build();
+
+            s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(resource.getInputStream(), resource.contentLength()));
+
+            return Storage.builder()
+                    .contentLocation(ContentLocation.builder()
+                            .contentLocationType(CONTENT_LOCATION_TYPE)
+                            .contentLocationValue("s3://" + bucketName + "/" + objectKey)
+                            .build())
+                    .build();
+        } catch (IOException | SdkException exception) {
+            throw new IllegalStateException("Failed to persist resource in S3", exception);
+        }
+    }
+
+    private String buildObjectKey(Resource resource) {
+        var filename = resource.getFilename();
+        if (filename == null || filename.isBlank()) {
+            return UUID.randomUUID().toString();
+        }
+
+        return UUID.randomUUID() + "-" + filename;
+    }
+}
