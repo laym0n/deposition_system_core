@@ -37,8 +37,8 @@ public class DeponeAdapter implements DeponeInPort {
             var calculatedHash = calculateHash(fileParam.resource());
             var metadata = new ObjectMetadata();
             metadata.getCharacteristics().getFirst().getFixity()
-            .add(new FixityBlock(HASH_ALGORITHM, calculatedHash.hash()));
-            
+                    .add(new FixityBlock(HASH_ALGORITHM, calculatedHash.hash()));
+
             var storage = fileStorage.persist(fileParam.resource());
             metadata.setStorages(fileParam.storages());
             metadata.getStorages().add(storage);
