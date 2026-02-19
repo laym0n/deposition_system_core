@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: deposition-system
+
+server:
+  port: 8080
+
+integration:
+  ethereum:
+    rpc-url: ${ntegration.ethereum.rpc-url}
+    gas-limit-integer: ${integration.ethereum.gas-limit-integer}

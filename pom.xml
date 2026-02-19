@@ -59,6 +59,11 @@
                 <artifactId>infra-s3</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.deposition</groupId>
+                <artifactId>infra-ethereum</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
