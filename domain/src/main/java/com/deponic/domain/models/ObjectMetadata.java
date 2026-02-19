@@ -1,6 +1,7 @@
 package com.deponic.domain.models;
 
 import java.util.List;
+import java.util.UUID;
 
 import com.deponic.domain.models.enums.ObjectCategory;
 import com.deponic.domain.models.valueobject.Characteristics;
@@ -18,7 +19,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ObjectMetadata {
 
-    private String id;
+    private UUID id;
     private ObjectCategory category;
     private String originalName;
     private List<Characteristics> characteristics;

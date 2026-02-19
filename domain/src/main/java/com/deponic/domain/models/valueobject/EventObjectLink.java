@@ -1,4 +1,6 @@
 package com.deponic.domain.models.valueobject;
+import java.util.UUID;
+
 import com.deponic.domain.models.enums.EventObjectLinkRole;
 
 import lombok.AllArgsConstructor;
@@ -12,6 +14,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EventObjectLink {
 
-    private String objectId;
+    private UUID objectId;
     private EventObjectLinkRole role;
 }

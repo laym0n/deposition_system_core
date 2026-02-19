@@ -2,6 +2,7 @@ package com.deponic.domain.models;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import com.deponic.domain.models.enums.EventType;
 import com.deponic.domain.models.valueobject.EventAgentLink;
@@ -21,7 +22,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Event {
 
-    private String id;
+    private UUID id;
     private EventType type;
     private OffsetDateTime dateTime;
     private List<EventOutcomeInformation> outcome;

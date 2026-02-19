@@ -1,9 +1,9 @@
 package com.deponic.infra.s3.adapter;
 
 import java.io.IOException;
+import java.net.URLConnection;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +33,7 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
             var putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(objectKey)
-                    .contentType(resource.getContentType())
+                    .contentType(resolveContentType(resource))
                     .build();
 
             s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(resource.getInputStream(), resource.contentLength()));
@@ -56,5 +56,15 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
         }
 
         return UUID.randomUUID() + "-" + filename;
+    }
+
+    private String resolveContentType(Resource resource) {
+        var filename = resource.getFilename();
+        var contentType = URLConnection.guessContentTypeFromName(filename);
+        if (contentType == null || contentType.isBlank()) {
+            return "application/octet-stream";
+        }
+
+        return contentType;
     }
 }
