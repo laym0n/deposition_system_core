@@ -22,6 +22,18 @@
             <artifactId>domain</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.deposition</groupId>
+            <artifactId>infra-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.deposition</groupId>
+            <artifactId>infra-s3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.deposition</groupId>
+            <artifactId>infra-ethereum</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>

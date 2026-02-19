@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import com.deponic.domain.models.valueobject.ContentLocation;
 import com.deponic.domain.models.valueobject.Storage;
 import com.deponic.domain.port.out.FileStorageOutPort;
+import com.deponic.infra.s3.config.S3Properties;
 
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -24,12 +25,13 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
     private static final String CONTENT_LOCATION_TYPE = "s3";
 
     private final S3Client s3Client;
-    private final String bucketName;
+    private final S3Properties s3Properties;
 
     @Override
     public Storage persist(Resource resource) {
         try {
             var objectKey = buildObjectKey(resource);
+            var bucketName = s3Properties.getBucketName();
             var putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(objectKey)

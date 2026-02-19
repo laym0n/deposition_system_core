@@ -7,5 +7,11 @@ server:
 
 integration:
   ethereum:
-    rpc-url: ${ntegration.ethereum.rpc-url}
+    rpc-url: ${integration.ethereum.rpc-url}
     gas-limit-integer: ${integration.ethereum.gas-limit-integer}
+  s3:
+    endpoint: ${integration.s3.endpoint}
+    region: ${integration.s3.region}
+    access-key: ${integration.s3.access-key}
+    secret-key: ${integration.s3.secret-key}
+    bucket-name: ${integration.s3.bucket-name}
