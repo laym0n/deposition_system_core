@@ -8,11 +8,11 @@ import org.springframework.core.io.Resource;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
-public class XmlFileBuilder {
+class XmlUtils {
 
     private static final XmlMapper XML_MAPPER = new XmlMapper();
 
-    private XmlFileBuilder() {
+    private XmlUtils() {
     }
 
     public static Resource createXmlResource(Object object, String sourceFilename) {
@@ -22,13 +22,7 @@ public class XmlFileBuilder {
         return createXmlResourceInternal(xmlPayload, metadataFilename);
     }
 
-    public static Resource createXmlResource(byte[] xmlPayload, String sourceFilename) {
-        var metadataFilename = buildMetadataFilename(sourceFilename);
-
-        return createXmlResourceInternal(xmlPayload, metadataFilename);
-    }
-
-    public static byte[] buildXmlBytes(Object object) {
+    private static byte[] buildXmlBytes(Object object) {
         return build(object).getBytes(StandardCharsets.UTF_8);
     }
 

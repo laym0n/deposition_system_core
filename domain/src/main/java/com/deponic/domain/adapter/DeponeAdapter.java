@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import com.deponic.domain.models.AnchorRecord;
@@ -37,8 +38,8 @@ public class DeponeAdapter implements DeponeInPort {
         var depositedFileObjectIds = new ArrayList<UUID>();
         var allObjectManifestIds = new ArrayList<String>();
         var allEventIds = new ArrayList<String>();
-        var allObjectManifestXmlPayloads = new ArrayList<byte[]>();
-        var allEventXmlPayloads = new ArrayList<byte[]>();
+        var allObjectManifestResources = new ArrayList<Resource>();
+        var allEventResources = new ArrayList<Resource>();
 
         for (var fileParam : params.files()) {
             if (fileParam == null || fileParam.resource() == null) {
@@ -56,8 +57,8 @@ public class DeponeAdapter implements DeponeInPort {
             depositedFileObjectIds.add(persistedFileMetadata.objectManifestId());
             allObjectManifestIds.add(persistedFileMetadata.objectManifestId().toString());
             allEventIds.add(persistedFileMetadata.eventId().toString());
-            allObjectManifestXmlPayloads.add(persistedFileMetadata.objectManifestXmlPayload());
-            allEventXmlPayloads.add(persistedFileMetadata.eventXmlPayload());
+            allObjectManifestResources.add(persistedFileMetadata.objectManifestResource());
+            allEventResources.add(persistedFileMetadata.eventResource());
         }
 
         if (depositedFileObjectIds.isEmpty()) {
@@ -68,8 +69,8 @@ public class DeponeAdapter implements DeponeInPort {
         var persistedRepresentationMetadata = persistMetadataSet(representationMetadataStructure, "representation");
         allObjectManifestIds.add(persistedRepresentationMetadata.objectManifestId().toString());
         allEventIds.add(persistedRepresentationMetadata.eventId().toString());
-        allObjectManifestXmlPayloads.add(persistedRepresentationMetadata.objectManifestXmlPayload());
-        allEventXmlPayloads.add(persistedRepresentationMetadata.eventXmlPayload());
+        allObjectManifestResources.add(persistedRepresentationMetadata.objectManifestResource());
+        allEventResources.add(persistedRepresentationMetadata.eventResource());
 
         var intellectualEntityMetadataStructure = MetadataBuilder.buildForIntellectualEntity(
                 params.intellectualEntityMetadata(),
@@ -77,18 +78,17 @@ public class DeponeAdapter implements DeponeInPort {
         var persistedIntellectualEntityMetadata = persistMetadataSet(intellectualEntityMetadataStructure, "intellectual-entity");
         allObjectManifestIds.add(persistedIntellectualEntityMetadata.objectManifestId().toString());
         allEventIds.add(persistedIntellectualEntityMetadata.eventId().toString());
-        allObjectManifestXmlPayloads.add(persistedIntellectualEntityMetadata.objectManifestXmlPayload());
-        allEventXmlPayloads.add(persistedIntellectualEntityMetadata.eventXmlPayload());
+        allObjectManifestResources.add(persistedIntellectualEntityMetadata.objectManifestResource());
+        allEventResources.add(persistedIntellectualEntityMetadata.eventResource());
 
-        var objectRootHash = MerkleProof.calculateRootHash(allObjectManifestXmlPayloads);
-        var eventRootHash = MerkleProof.calculateRootHash(allEventXmlPayloads);
+        var objectRootHash = ResourceHashCalculator.calculateMerkleRootHash(allObjectManifestResources);
+        var eventRootHash = ResourceHashCalculator.calculateMerkleRootHash(allEventResources);
 
         var snapshotManifest = buildSnapshotManifest(allObjectManifestIds, allEventIds, objectRootHash, eventRootHash);
-        var snapshotXmlPayload = XmlFileBuilder.buildXmlBytes(snapshotManifest);
-        var snapshotResource = XmlFileBuilder.createXmlResource(snapshotXmlPayload, "snapshot-manifest");
+        var snapshotResource = XmlUtils.createXmlResource(snapshotManifest, "snapshot-manifest");
         fileStorage.persist(snapshotResource);
 
-        var anchorRecord = buildAnchorRecord(snapshotXmlPayload);
+        var anchorRecord = buildAnchorRecord(snapshotResource);
         anchorRecord = blockchain.persistAnchorRecord(anchorRecord);
         var snapshotPointer = SnapshotPointer.builder()
                 .anchorRecordId(anchorRecord.getId())
@@ -98,24 +98,22 @@ public class DeponeAdapter implements DeponeInPort {
     }
 
     private PersistedMetadataSet persistMetadataSet(MetadataBuilder.MetadataStructure metadataStructure, String sourceFilename) {
-        var metadataXmlPayload = XmlFileBuilder.buildXmlBytes(metadataStructure.objectMetadata());
-        var metadataResource = XmlFileBuilder.createXmlResource(metadataXmlPayload, sourceFilename);
+        var metadataResource = XmlUtils.createXmlResource(metadataStructure.objectMetadata(), sourceFilename);
         var metadataStorage = fileStorage.persist(metadataResource);
         metadataStructure.objectManifest().setObjectMetadataCids(List.of(metadataStorage));
 
-        var eventXmlPayload = XmlFileBuilder.buildXmlBytes(metadataStructure.creationEvent());
-        var eventResource = XmlFileBuilder.createXmlResource(eventXmlPayload, sourceFilename + ".event-creation");
+        var eventResource = XmlUtils.createXmlResource(metadataStructure.creationEvent(), sourceFilename + ".event-creation");
         fileStorage.persist(eventResource);
 
-        var objectManifestXmlPayload = XmlFileBuilder.buildXmlBytes(metadataStructure.objectManifest());
-        var objectManifestResource = XmlFileBuilder.createXmlResource(objectManifestXmlPayload, sourceFilename + ".object-manifest");
+        var objectManifestResource = XmlUtils.createXmlResource(metadataStructure.objectManifest(),
+                sourceFilename + ".object-manifest");
         fileStorage.persist(objectManifestResource);
 
         return new PersistedMetadataSet(
                 metadataStructure.objectManifest().getId(),
                 metadataStructure.creationEvent().getId(),
-                objectManifestXmlPayload,
-                eventXmlPayload);
+                objectManifestResource,
+                eventResource);
     }
 
     private Snapshot buildSnapshotManifest(
@@ -144,8 +142,8 @@ public class DeponeAdapter implements DeponeInPort {
                 .build();
     }
 
-    private AnchorRecord buildAnchorRecord(byte[] snapshotXmlPayload) {
-        var snapshotHash = MerkleProof.calculateRootHash(List.of(snapshotXmlPayload));
+    private AnchorRecord buildAnchorRecord(Resource snapshotResource) {
+        var snapshotHash = ResourceHashCalculator.sha256(snapshotResource);
 
         return AnchorRecord.builder()
                 .id(UUID.randomUUID().toString())
@@ -157,8 +155,7 @@ public class DeponeAdapter implements DeponeInPort {
     private record PersistedMetadataSet(
             UUID objectManifestId,
             UUID eventId,
-            byte[] objectManifestXmlPayload,
-            byte[] eventXmlPayload) {
-
+            Resource objectManifestResource,
+            Resource eventResource) {
     }
 }

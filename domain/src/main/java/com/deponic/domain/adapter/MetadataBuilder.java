@@ -1,10 +1,7 @@
 package com.deponic.domain.adapter;
 
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -26,8 +23,6 @@ import com.deponic.domain.models.valueobject.Storage;
 import com.deponic.domain.port.in.DeponeFileParam;
 
 public final class MetadataBuilder {
-
-    private static final String HASH_ALGORITHM = "SHA-256";
 
     private MetadataBuilder() {
 
@@ -85,9 +80,9 @@ public final class MetadataBuilder {
     }
 
     private static ObjectMetadata buildFilePremisMetadata(DeponeFileParam fileParam) {
-        var calculatedHash = calculateHash(fileParam, HASH_ALGORITHM);
+        var calculatedHash = calculateHash(fileParam, ResourceHashCalculator.DEFAULT_HASH_ALGORITHM);
         var fixity = new FixityBlock();
-        fixity.setAlgorithm(HASH_ALGORITHM);
+        fixity.setAlgorithm(ResourceHashCalculator.DEFAULT_HASH_ALGORITHM);
         fixity.setDigest(calculatedHash.hash());
 
         var characteristics = new Characteristics();
@@ -151,22 +146,10 @@ public final class MetadataBuilder {
 
     private static HashCalculationResult calculateHash(DeponeFileParam fileParam, String hashAlgorithm) {
         try {
-            var messageDigest = MessageDigest.getInstance(hashAlgorithm);
-            var totalBytes = 0L;
-
-            try (var inputStream = fileParam.resource().getInputStream()) {
-                var buffer = new byte[8192];
-                var bytesRead = inputStream.read(buffer);
-                while (bytesRead != -1) {
-                    messageDigest.update(buffer, 0, bytesRead);
-                    totalBytes += bytesRead;
-                    bytesRead = inputStream.read(buffer);
-                }
-            }
-
-            var hash = HexFormat.of().formatHex(messageDigest.digest());
+            var hash = ResourceHashCalculator.calculateHash(fileParam.resource(), hashAlgorithm);
+            var totalBytes = fileParam.resource().contentLength();
             return new HashCalculationResult(hash, totalBytes);
-        } catch (IOException | NoSuchAlgorithmException exception) {
+        } catch (IOException exception) {
             throw new IllegalStateException("Failed to calculate hash for deposition file", exception);
         }
     }
