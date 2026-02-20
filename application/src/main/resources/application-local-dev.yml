@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: deposition-system
+
+server:
+  port: 8080
+
+integration:
+  ethereum:
+    rpc-url: http://localhost:8545
+    gas-limit-integer: 3000000
+  s3:
+    endpoint: http://localhost:7480
+    region: us-east-1
+    access-key: local-dev-access-key
+    secret-key: local-dev-secret-key
+    bucket-name: deposition-local-bucket

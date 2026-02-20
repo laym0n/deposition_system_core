@@ -29,5 +29,34 @@ services:
     volumes:
       - besu-data:/var/lib/besu
 
+  ceph:
+    image: ceph/daemon:latest-octopus
+    container_name: ceph-rgw-node
+    restart: unless-stopped
+    command: demo
+    environment:
+      MON_IP: 172.28.0.10
+      CEPH_PUBLIC_NETWORK: 172.28.0.0/16
+      RGW_NAME: client.rgw.gateway
+      RGW_CIVETWEB_PORT: 7480
+      CEPH_DEMO_UID: local-dev
+      CEPH_DEMO_ACCESS_KEY: local-dev-access-key
+      CEPH_DEMO_SECRET_KEY: local-dev-secret-key
+    ports:
+      - "7480:7480"
+    volumes:
+      - ceph-data:/var/lib/ceph
+    networks:
+      deposition-network:
+        ipv4_address: 172.28.0.10
+
 volumes:
   besu-data:
+  ceph-data:
+
+networks:
+  deposition-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

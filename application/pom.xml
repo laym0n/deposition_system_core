@@ -13,9 +13,6 @@
     <artifactId>application</artifactId>
     <packaging>jar</packaging>
 
-    <name>Application Module</name>
-    <description>Application layer - use cases and services</description>
-
     <dependencies>
         <dependency>
             <groupId>com.deposition</groupId>
