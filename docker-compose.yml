@@ -21,7 +21,7 @@ services:
       - "8546:8546"
       - "30303:30303"
     volumes:
-      - besu-data:/var/lib/besu
+      - ./data/besu:/var/lib/besu
     networks:
       - deposition-network
 
@@ -37,7 +37,7 @@ services:
       - "9000:9000"   # S3 API
       - "9001:9001"   # Web Console
     volumes:
-      - minio-data:/data
+      - ./data/minio:/data
     networks:
       - deposition-network
 
@@ -54,10 +54,6 @@ services:
       "
     networks:
       - deposition-network
-
-volumes:
-  besu-data:
-  minio-data:
 
 networks:
   deposition-network:

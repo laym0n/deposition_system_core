@@ -28,9 +28,9 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
     private final S3Properties s3Properties;
 
     @Override
-    public Storage persist(Resource resource) {
+    public Storage persist(Resource resource, FileCategory category, String entityId) {
         try {
-            var objectKey = buildObjectKey(resource);
+            var objectKey = buildObjectKey(resource, category, entityId);
             var bucketName = s3Properties.getBucketName();
             var putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
@@ -52,13 +52,30 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
         }
     }
 
-    private String buildObjectKey(Resource resource) {
+    private String buildObjectKey(Resource resource, FileCategory category, String entityId) {
+        var normalizedId = normalizeEntityId(entityId);
+        return switch (category) {
+            case FILE, OBJECT_METADATA, OBJECT_MANIFEST -> "object/" + normalizedId + "/" + resolveFileName(resource);
+            case EVENT -> "event/" + normalizedId;
+            case SNAPSHOT -> "snapshot/" + normalizedId;
+        };
+    }
+
+    private String resolveFileName(Resource resource) {
         var filename = resource.getFilename();
         if (filename == null || filename.isBlank()) {
             return UUID.randomUUID().toString();
         }
 
-        return UUID.randomUUID() + "-" + filename;
+        return filename.replace("\\", "_").replace("/", "_");
+    }
+
+    private String normalizeEntityId(String entityId) {
+        if (entityId == null || entityId.isBlank()) {
+            return UUID.randomUUID().toString();
+        }
+
+        return entityId;
     }
 
     private String resolveContentType(Resource resource) {

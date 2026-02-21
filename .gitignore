@@ -75,6 +75,8 @@ temp/
 *.war
 *.ear
 
+data
+
 # Application specific
 application-local.properties
 application-*.properties
