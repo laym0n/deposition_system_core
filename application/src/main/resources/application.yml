@@ -9,6 +9,9 @@ integration:
   ethereum:
     rpc-url: ${integration.ethereum.rpc-url}
     gas-limit-integer: ${integration.ethereum.gas-limit-integer}
+    chain-id: ${integration.ethereum.chain-id}
+    private-key: ${integration.ethereum.private-key}
+    gas-price-wei: ${integration.ethereum.gas-price-wei:0}
   s3:
     endpoint: ${integration.s3.endpoint}
     region: ${integration.s3.region}

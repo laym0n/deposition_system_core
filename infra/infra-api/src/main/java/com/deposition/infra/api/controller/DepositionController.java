@@ -1,7 +1,10 @@
 package com.deposition.infra.api.controller;
 
+import java.io.IOException;
 import java.util.List;
 
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,10 +46,24 @@ public class DepositionController {
                 var resolvedStorages = storages == null ? List.<Storage>of() : List.copyOf(storages);
 
                 var deponeFiles = files.stream()
-                                .map(file -> new DeponeFileParam(file.getResource(), resolvedStorages))
+                                .map(file -> new DeponeFileParam(convertToReusableResource(file), resolvedStorages))
                                 .toList();
 
                 deponeInPort.depone(new DeponeObjectParams(intellectualEntityMetadata, deponeFiles));
                 return ResponseEntity.ok().build();
+        }
+
+        private Resource convertToReusableResource(MultipartFile file) {
+                try {
+                        byte[] bytes = file.getBytes();
+                        return new ByteArrayResource(bytes) {
+                                @Override
+                                public String getFilename() {
+                                        return file.getOriginalFilename();
+                                }
+                        };
+                } catch (IOException e) {
+                        throw new IllegalStateException("Failed to read multipart file: " + file.getOriginalFilename(), e);
+                }
         }
 }

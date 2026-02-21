@@ -24,7 +24,11 @@ public class S3Configuration {
                         AwsBasicCredentials.create(properties.getAccessKey(), properties.getSecretKey())));
 
         if (StringUtils.hasText(properties.getEndpoint())) {
-            builder = builder.endpointOverride(URI.create(properties.getEndpoint()));
+            builder = builder
+                    .endpointOverride(URI.create(properties.getEndpoint()))
+                    .serviceConfiguration(software.amazon.awssdk.services.s3.S3Configuration.builder()
+                            .pathStyleAccessEnabled(true)
+                            .build());
         }
 
         return builder.build();

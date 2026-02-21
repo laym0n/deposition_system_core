@@ -38,7 +38,8 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
                     .contentType(resolveContentType(resource))
                     .build();
 
-            s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(resource.getInputStream(), resource.contentLength()));
+            s3Client.putObject(putObjectRequest,
+                    RequestBody.fromInputStream(resource.getInputStream(), resource.contentLength()));
 
             return Storage.builder()
                     .contentLocation(ContentLocation.builder()
