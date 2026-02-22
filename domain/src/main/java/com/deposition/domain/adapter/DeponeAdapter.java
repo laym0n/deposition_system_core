@@ -37,6 +37,7 @@ public class DeponeAdapter implements DeponeInPort {
                 }
 
                 var depositedFileObjectIds = new ArrayList<UUID>();
+                var metadataStructures = new ArrayList<MetadataBuilder.MetadataStructure>();
                 var allObjectManifestIds = new ArrayList<String>();
                 var allEventIds = new ArrayList<String>();
                 var allObjectManifestResources = new ArrayList<Resource>();
@@ -51,25 +52,16 @@ public class DeponeAdapter implements DeponeInPort {
                                         fileParam.resource(),
                                         fileParam.storages() == null ? List.of() : fileParam.storages());
                         var metadataStructure = MetadataBuilder.buildForFile(depositionFileParam);
-                        var objectId = metadataStructure.objectManifest().getId().toString();
+                        var objectId = metadataStructure.objectId().toString();
 
                         var fileStorageLocation = fileStorage.persist(
                                         fileParam.resource(),
                                         FileCategory.FILE,
                                         objectId);
-                        if (metadataStructure.objectMetadata().getStorages() == null) {
-                                metadataStructure.objectMetadata().setStorages(new ArrayList<>());
-                        }
-                        metadataStructure.objectMetadata().getStorages().add(fileStorageLocation);
+                        MetadataBuilder.appendStorage(metadataStructure.objectMetadata(), fileStorageLocation);
 
-                        var persistedFileMetadata = persistMetadataSet(metadataStructure,
-                                        fileParam.resource().getFilename());
-
-                        depositedFileObjectIds.add(persistedFileMetadata.objectManifestId());
-                        allObjectManifestIds.add(persistedFileMetadata.objectManifestId().toString());
-                        allEventIds.add(persistedFileMetadata.eventId().toString());
-                        allObjectManifestResources.add(persistedFileMetadata.objectManifestResource());
-                        allEventResources.add(persistedFileMetadata.eventResource());
+                        depositedFileObjectIds.add(metadataStructure.objectId());
+                        metadataStructures.add(metadataStructure);
                 }
 
                 if (depositedFileObjectIds.isEmpty()) {
@@ -77,22 +69,19 @@ public class DeponeAdapter implements DeponeInPort {
                 }
 
                 var representationMetadataStructure = MetadataBuilder.buildForRepresentation(depositedFileObjectIds);
-                var persistedRepresentationMetadata = persistMetadataSet(representationMetadataStructure,
-                                "representation");
-                allObjectManifestIds.add(persistedRepresentationMetadata.objectManifestId().toString());
-                allEventIds.add(persistedRepresentationMetadata.eventId().toString());
-                allObjectManifestResources.add(persistedRepresentationMetadata.objectManifestResource());
-                allEventResources.add(persistedRepresentationMetadata.eventResource());
+                metadataStructures.add(representationMetadataStructure);
 
                 var intellectualEntityMetadataStructure = MetadataBuilder.buildForIntellectualEntity(
                                 params.intellectualEntityMetadata(),
-                                representationMetadataStructure.objectManifest().getId());
-                var persistedIntellectualEntityMetadata = persistMetadataSet(intellectualEntityMetadataStructure,
-                                "intellectual-entity");
-                allObjectManifestIds.add(persistedIntellectualEntityMetadata.objectManifestId().toString());
-                allEventIds.add(persistedIntellectualEntityMetadata.eventId().toString());
-                allObjectManifestResources.add(persistedIntellectualEntityMetadata.objectManifestResource());
-                allEventResources.add(persistedIntellectualEntityMetadata.eventResource());
+                                representationMetadataStructure.objectId());
+                metadataStructures.add(intellectualEntityMetadataStructure);
+
+                persistMetadataAndCollect(
+                                metadataStructures,
+                                allObjectManifestIds,
+                                allEventIds,
+                                allObjectManifestResources,
+                                allEventResources);
 
                 var objectRootHash = ResourceHashCalculator.calculateMerkleRootHash(allObjectManifestResources);
                 var eventRootHash = ResourceHashCalculator.calculateMerkleRootHash(allEventResources);
@@ -111,36 +100,36 @@ public class DeponeAdapter implements DeponeInPort {
                 blockchain.persistSnapshotPoint(snapshotPointer);
         }
 
-        private PersistedMetadataSet persistMetadataSet(MetadataBuilder.MetadataStructure metadataStructure,
-                        String sourceFilename) {
-                var objectId = metadataStructure.objectManifest().getId().toString();
-
-                var metadataResource = XmlUtils.createXmlResource(metadataStructure.objectMetadata(), sourceFilename);
-                var metadataStorage = fileStorage.persist(
+        private void persistMetadataAndCollect(
+                        List<MetadataBuilder.MetadataStructure> metadataStructures,
+                        List<String> allObjectManifestIds,
+                        List<String> allEventIds,
+                        List<Resource> allObjectManifestResources,
+                        List<Resource> allEventResources) {
+                var metadataPremis = MetadataBuilder.buildPremis(metadataStructures);
+                var metadataObjectId = UUID.randomUUID().toString();
+                var metadataResource = XmlUtils.createXmlResource(metadataPremis, "deposition-metadata");
+                fileStorage.persist(
                                 metadataResource,
                                 FileCategory.OBJECT_METADATA,
-                                objectId);
-                metadataStructure.objectManifest().setObjectMetadataCids(List.of(metadataStorage));
+                                metadataObjectId);
 
-                var eventResource = XmlUtils.createXmlResource(metadataStructure.creationEvent(),
-                                sourceFilename + ".event-creation");
-                fileStorage.persist(
-                                eventResource,
-                                FileCategory.EVENT,
-                                metadataStructure.creationEvent().getId().toString());
+                for (var metadataStructure : metadataStructures) {
+                        var eventId = MetadataBuilder.extractEventId(metadataStructure.creationEvent());
+                        var eventResource = XmlUtils.createXmlResource(
+                                        metadataStructure.creationEvent(),
+                                        eventId + ".event-creation");
 
-                var objectManifestResource = XmlUtils.createXmlResource(metadataStructure.objectManifest(),
-                                sourceFilename + ".object-manifest");
-                fileStorage.persist(
-                                objectManifestResource,
-                                FileCategory.OBJECT_MANIFEST,
-                                objectId);
+                        var objectId = metadataStructure.objectId().toString();
+                        var objectResource = XmlUtils.createXmlResource(
+                                        metadataStructure.objectMetadata(),
+                                        objectId + ".object");
 
-                return new PersistedMetadataSet(
-                                metadataStructure.objectManifest().getId(),
-                                metadataStructure.creationEvent().getId(),
-                                objectManifestResource,
-                                eventResource);
+                        allObjectManifestIds.add(objectId);
+                        allEventIds.add(eventId);
+                        allObjectManifestResources.add(objectResource);
+                        allEventResources.add(eventResource);
+                }
         }
 
         private Snapshot buildSnapshotManifest(
@@ -179,10 +168,4 @@ public class DeponeAdapter implements DeponeInPort {
                                 .build();
         }
 
-        private record PersistedMetadataSet(
-                        UUID objectManifestId,
-                        UUID eventId,
-                        Resource objectManifestResource,
-                        Resource eventResource) {
-        }
 }
