@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
+import jakarta.validation.ConstraintViolationException;
+
 @RestControllerAdvice
 public class ControllerExceptionHandler {
 
@@ -23,7 +25,8 @@ public class ControllerExceptionHandler {
             BindException.class,
             HttpMessageNotReadableException.class,
             MethodArgumentTypeMismatchException.class,
-            ServletRequestBindingException.class
+            ServletRequestBindingException.class,
+            ConstraintViolationException.class
     })
     public ResponseEntity<Map<String, String>> handleBadRequestExceptions(Exception exception) {
         return ResponseEntity.badRequest().body(Map.of("reason", resolveReason(exception)));

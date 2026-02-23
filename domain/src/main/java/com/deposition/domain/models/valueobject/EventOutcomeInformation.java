@@ -1,17 +1,20 @@
 package com.deposition.domain.models.valueobject;
+
+import java.util.List;
+
 import com.deposition.domain.models.enums.EventOutcome;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventOutcomeInformation {
 
     private EventOutcome outcome;
-    private EventOutcomeInformationDetail outcomeDetail;
+    private List<EventOutcomeInformationDetail> outcomeDetail;
 }

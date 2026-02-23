@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jaxb:bindings
+    xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    version="3.0">
+
+    <jaxb:bindings schemaLocation="premis-v3-0.xsd" node="/xs:schema">
+        <jaxb:bindings
+            node="xs:complexType[@name='storageComplexType']/xs:choice/xs:sequence/xs:element[@ref='storageMedium']">
+            <jaxb:property name="storageMediumOptional" />
+        </jaxb:bindings>
+        <jaxb:bindings node="xs:complexType[@name='formatComplexType']">
+            <jaxb:bindings node="xs:sequence/xs:choice/xs:element[@ref='formatRegistry']">
+                <jaxb:property name="formatRegistryOptional" />
+            </jaxb:bindings>
+        </jaxb:bindings>
+        <jaxb:bindings node="xs:complexType[@name='eventOutcomeInformationComplexType']">
+            <jaxb:bindings node="xs:choice/xs:element[@ref='eventOutcomeDetail']">
+                <jaxb:property name="eventOutcomeDetailMandatory" />
+            </jaxb:bindings>
+        </jaxb:bindings>
+        <jaxb:bindings node="xs:complexType[@name='eventOutcomeDetailComplexType']">
+            <jaxb:bindings node="xs:choice/xs:element[@ref='eventOutcomeDetailExtension']">
+                <jaxb:property name="eventOutcomeDetailExtensionMandatory" />
+            </jaxb:bindings>
+        </jaxb:bindings>
+    </jaxb:bindings>
+
+
+</jaxb:bindings>

@@ -1,18 +1,20 @@
 package com.deposition.domain.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.deposition.domain.models.valueobject.RightsStatementAgentLink;
 import com.deposition.domain.models.valueobject.RightsStatementObjectLink;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder.Default;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class RightsStatementManifest {
@@ -21,6 +23,8 @@ public class RightsStatementManifest {
     private Long version;
     private OffsetDateTime createdAt;
     private String rightsStatementMetadataCID;
-    private List<RightsStatementAgentLink> rightsStatementAgentLinks;
-    private List<RightsStatementObjectLink> rightsStatementObjectLinks;
+    @Default
+    private List<RightsStatementAgentLink> rightsStatementAgentLinks = new ArrayList<>();
+    @Default
+    private List<RightsStatementObjectLink> rightsStatementObjectLinks = new ArrayList<>();
 }

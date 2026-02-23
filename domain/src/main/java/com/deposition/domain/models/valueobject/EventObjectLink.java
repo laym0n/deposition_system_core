@@ -1,19 +1,19 @@
 package com.deposition.domain.models.valueobject;
-import java.util.UUID;
+import java.util.List;
 
 import com.deposition.domain.models.enums.EventObjectLinkRole;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventObjectLink {
 
-    private UUID objectId;
-    private EventObjectLinkRole role;
+    private ObjectIdentifier objectIdentifier;
+    private List<EventObjectLinkRole> role;
 }

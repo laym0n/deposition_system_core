@@ -1,19 +1,16 @@
 package com.deposition.domain.models;
 
-import java.time.OffsetDateTime;
-
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class AnchorRecord {
 
-    private String id;
-    private String snapshotHash;
-    private OffsetDateTime timestamp;
+    private String txId;
+    private String premisMetadataHash;
 }

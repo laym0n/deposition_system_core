@@ -1,11 +1,13 @@
 package com.deposition.domain.port.in;
 
-import java.util.List;
-
 import org.springframework.core.io.Resource;
 
-import com.deposition.domain.models.valueobject.Storage;
+import jakarta.annotation.Nullable;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
-public record DeponeFileParam(Resource resource, List<Storage> storages) {
+public record DeponeFileParam(
+        @Nullable @Valid FileMetadataParam fileMetadata,
+        @NotNull Resource resource) {
 
 }

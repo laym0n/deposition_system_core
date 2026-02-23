@@ -3,14 +3,14 @@ spring:
     name: deposition-system
 
 server:
-  port: 8080
+  port: 8082
 
 integration:
   ethereum:
-    rpc-url: http://localhost:8545
+    rpc-url: http://localhost:18545
+    from-address: "0x9b790656b9ec0db1936ed84b3bea605873558198"
     gas-limit-integer: 3000000
     chain-id: 1337
-    private-key: "0x3ce6bb8ebb62b6bce60c0bf5cd0407d8f8fc34938e6440f9ebbd49dbf5f52250"
     gas-price-wei: 0
   s3:
     endpoint: http://localhost:9000

@@ -1,5 +1,6 @@
 package com.deposition.domain.models.enums;
-public enum ObjectLinkSubType {
+
+public enum ObjectRelationshipSubType {
     HAS_PART,
     INCLUDES,
     IS_INCLUDED_IN,

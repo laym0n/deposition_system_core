@@ -15,6 +15,6 @@ public class EthereumProperties {
     private String rpcUrl;
     private BigInteger gasLimitInteger;
     private Long chainId;
-    private String privateKey;
+    private String fromAddress;
     private BigInteger gasPriceWei;
 }

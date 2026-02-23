@@ -4,14 +4,14 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import com.deposition.domain.models.ObjectMetadata;
-import com.deposition.domain.models.valueobject.Storage;
+import com.deposition.domain.port.in.IntellectualEntityMetadataParam;
+import com.deposition.domain.port.in.RepresentationMetadataParam;
 
 public class DeponeMultipartRequest {
 
-    public ObjectMetadata intellectualEntityMetadata;
+    public IntellectualEntityMetadataParam intellectualEntityMetadata;
 
-    public List<Storage> storages;
+    public RepresentationMetadataParam representationMetadata;
 
     public List<MultipartFile> files;
 }

@@ -15,6 +15,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
             <groupId>jakarta.xml.bind</groupId>
             <artifactId>jakarta.xml.bind-api</artifactId>
         </dependency>
@@ -42,6 +46,10 @@
                             <schemaIncludes>
                                 <include>premis-v3-0.xsd</include>
                             </schemaIncludes>
+                            <bindingDirectory>${project.basedir}/src/main/resources/schema</bindingDirectory>
+                            <bindingIncludes>
+                                <include>premis-v3-0-bindings.xjb</include>
+                            </bindingIncludes>
                             <generatePackage>com.deposition.domain.dto.schema.premis.v3</generatePackage>
                         </configuration>
                     </execution>

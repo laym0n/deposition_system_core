@@ -1,18 +1,20 @@
 package com.deposition.domain.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.deposition.domain.models.valueobject.AgentEventLink;
 import com.deposition.domain.models.valueobject.AgentRightsStatementLink;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder.Default;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class AgentManifest {
@@ -20,7 +22,9 @@ public class AgentManifest {
     private String id;
     private Long version;
     private OffsetDateTime createdAt;
-    private List<AgentEventLink> agentEventLinks;
+    @Default
+    private List<AgentEventLink> agentEventLinks = new ArrayList<>();
     private String agentMetadataCid;
-    private List<AgentRightsStatementLink> agentRightsStatementLinks;
+    @Default
+    private List<AgentRightsStatementLink> agentRightsStatementLinks = new ArrayList<>();
 }
