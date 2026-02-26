@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -41,6 +42,7 @@ public class DepositionController {
                         @Encoding(name = "files", contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
         }))
         @PostMapping(value = "/depone", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        @SecurityRequirement(name = "bearerAuth")
         public ResponseEntity<DeponeResult> depone(
                         @RequestPart(name = "intellectualEntityMetadata", required = false) IntellectualEntityMetadataParam intellectualEntityMetadata,
                         @RequestPart(name = "representationMetadata", required = false) RepresentationMetadataParam representationMetadata,

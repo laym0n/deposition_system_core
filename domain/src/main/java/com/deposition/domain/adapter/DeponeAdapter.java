@@ -24,55 +24,55 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class DeponeAdapter implements DeponeInPort {
 
-        private final FileStorageOutPort fileStorage;
-        private final BlockchainOutPort blockchain;
-        private final PremisMetadataBuilder premisMetadataBuilder;
+    private final FileStorageOutPort fileStorage;
+    private final BlockchainOutPort blockchain;
+    private final PremisMetadataBuilder premisMetadataBuilder;
 
-        @Override
-        public DeponeResult depone(DeponeIntellectualEntityParams params) {
-                var intellectualEntityId = UUID.randomUUID();
+    @Override
+    public DeponeResult depone(DeponeIntellectualEntityParams params) {
+        var intellectualEntityId = UUID.randomUUID();
 
-                var persistedRepresentations = persistRepresentations(params.representations(), intellectualEntityId);
+        var persistedRepresentations = persistRepresentations(params.representations(), intellectualEntityId);
 
-                var metadataPremis = premisMetadataBuilder.buildPremisWithEntities(
-                                persistedRepresentations,
-                                params.intellectualEntityMetadata(),
-                                intellectualEntityId);
-                var premisMetadataResource = XmlUtils.createXmlResource(metadataPremis, "deposition-metadata");
-                fileStorage.persist(
-                                premisMetadataResource,
-                                intellectualEntityId.toString());
+        var metadataPremis = premisMetadataBuilder.buildPremisWithEntities(
+                persistedRepresentations,
+                params.intellectualEntityMetadata(),
+                intellectualEntityId);
+        var premisMetadataResource = XmlUtils.createXmlResource(metadataPremis, "deposition-metadata");
+        fileStorage.persist(
+                premisMetadataResource,
+                intellectualEntityId.toString());
 
-                var anchorRecord = buildAnchorRecord(premisMetadataResource);
-                anchorRecord = blockchain.persistAnchorRecord(anchorRecord);
-                return new DeponeResult(intellectualEntityId, anchorRecord.getTxId());
-        }
+        var anchorRecord = buildAnchorRecord(premisMetadataResource);
+        anchorRecord = blockchain.persistAnchorRecord(anchorRecord);
+        return new DeponeResult(intellectualEntityId, anchorRecord.getTxId());
+    }
 
-        private List<CommonMetadataBuilder.PersistedRepresentationMetadataInput> persistRepresentations(
-                        List<DeponeRepresentationParam> representations, UUID intellectualEntityId) {
-                return representations.stream()
-                                .map(representation -> {
-                                        var persistedFiles = representation.fileParams().stream()
-                                                        .map(fileParam -> {
-                                                                var fileResource = fileParam.resource();
-                                                                var storage = fileStorage.persist(fileResource,
-                                                                                intellectualEntityId.toString());
-                                                                return new CommonMetadataBuilder.PersistedFileMetadataInput(
-                                                                                fileParam, storage);
-                                                        }).toList();
-                                        return new CommonMetadataBuilder.PersistedRepresentationMetadataInput(
-                                                        representation.representationMetadata(),
-                                                        persistedFiles);
-                                })
-                                .toList();
-        }
+    private List<CommonMetadataBuilder.PersistedRepresentationMetadataInput> persistRepresentations(
+            List<DeponeRepresentationParam> representations, UUID intellectualEntityId) {
+        return representations.stream()
+                .map(representation -> {
+                    var persistedFiles = representation.fileParams().stream()
+                            .map(fileParam -> {
+                                var fileResource = fileParam.resource();
+                                var storage = fileStorage.persist(fileResource,
+                                        intellectualEntityId.toString());
+                                return new CommonMetadataBuilder.PersistedFileMetadataInput(
+                                        fileParam, storage);
+                            }).toList();
+                    return new CommonMetadataBuilder.PersistedRepresentationMetadataInput(
+                            representation.representationMetadata(),
+                            persistedFiles);
+                })
+                .toList();
+    }
 
-        private AnchorRecord buildAnchorRecord(Resource premisMetadata) {
-                var premisMetadataHash = ResourceHashCalculator.sha256(premisMetadata);
+    private AnchorRecord buildAnchorRecord(Resource premisMetadata) {
+        var premisMetadataHash = ResourceHashCalculator.sha256(premisMetadata);
 
-                return AnchorRecord.builder()
-                                .premisMetadataHash(premisMetadataHash)
-                                .build();
-        }
+        return AnchorRecord.builder()
+                .premisMetadataHash(premisMetadataHash)
+                .build();
+    }
 
 }

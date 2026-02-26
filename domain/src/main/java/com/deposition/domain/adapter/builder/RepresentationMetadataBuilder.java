@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import com.deposition.domain.adapter.converter.RepresentationParamConverter;
@@ -21,33 +22,35 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Component
 final class RepresentationMetadataBuilder {
-        private final RepresentationMetadataConverter representationMetadataConverter;
-        private final RepresentationParamConverter representationParamConverter;
-        private final CommonMetadataBuilder commonMetadataBuilder;
 
-        public CommonMetadataBuilder.MetadataStructure buildForRepresentation(List<UUID> fileObjectIds,
-                        RepresentationMetadataParam baseMetadata) {
-                var objectId = UUID.randomUUID();
-                var representation = RepresentationMetadata.builder()
-                                .id(objectId)
-                                .relationships(new ArrayList<>(List.of(
-                                                Relationship.builder()
-                                                                .type(ObjectRelationshipType.STRUCTURAL)
-                                                                .subType(ObjectRelationshipSubType.HAS_PART)
-                                                                .relatedObjects(
-                                                                                fileObjectIds.stream()
-                                                                                                .map(fileObjectId -> (RelationObjectIdentifier) RelationObjectIdentifier
-                                                                                                                .builder()
-                                                                                                                .type(ObjectIdentifierType.LOCAL)
-                                                                                                                .value(fileObjectId
-                                                                                                                                .toString())
-                                                                                                                .build())
-                                                                                                .toList())
-                                                                .build())))
-                                .build();
-                representationParamConverter.update(representation, baseMetadata);
+    private final RepresentationMetadataConverter representationMetadataConverter;
+    private final RepresentationParamConverter representationParamConverter;
+    private final CommonMetadataBuilder commonMetadataBuilder;
 
-                var premisRepresentationMetadata = representationMetadataConverter.map(representation);
-                return commonMetadataBuilder.toMetadataStructure(objectId, premisRepresentationMetadata);
-        }
+    public CommonMetadataBuilder.MetadataStructure buildForRepresentation(List<UUID> fileObjectIds,
+            RepresentationMetadataParam baseMetadata,
+            Authentication authentication) {
+        var objectId = UUID.randomUUID();
+        var representation = RepresentationMetadata.builder()
+                .id(objectId)
+                .relationships(new ArrayList<>(List.of(
+                        Relationship.builder()
+                                .type(ObjectRelationshipType.STRUCTURAL)
+                                .subType(ObjectRelationshipSubType.HAS_PART)
+                                .relatedObjects(
+                                        fileObjectIds.stream()
+                                                .map(fileObjectId -> (RelationObjectIdentifier) RelationObjectIdentifier
+                                                .builder()
+                                                .type(ObjectIdentifierType.LOCAL)
+                                                .value(fileObjectId
+                                                        .toString())
+                                                .build())
+                                                .toList())
+                                .build())))
+                .build();
+        representationParamConverter.update(representation, baseMetadata);
+
+        var premisRepresentationMetadata = representationMetadataConverter.map(representation);
+        return commonMetadataBuilder.toMetadataStructure(objectId, premisRepresentationMetadata, authentication);
+    }
 }

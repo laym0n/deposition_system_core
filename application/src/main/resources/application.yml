@@ -1,9 +1,14 @@
 spring:
   application:
     name: deposition-system
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}
 
 server:
-  port: 8080
+  port: ${server.port}
 
 integration:
   ethereum:

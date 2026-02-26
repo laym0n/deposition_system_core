@@ -5,6 +5,8 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
+
+import com.deposition.domain.dto.schema.premis.v3.AgentComplexType;
 import com.deposition.domain.dto.schema.premis.v3.EventComplexType;
 import com.deposition.domain.dto.schema.premis.v3.ObjectComplexType;
 import com.deposition.domain.dto.schema.premis.v3.PremisComplexType;
@@ -13,5 +15,5 @@ import com.deposition.domain.dto.schema.premis.v3.PremisComplexType;
 public interface PremisMetadataConverter {
 
     @Mapping(target = "version", constant = CommonConverter.PREMIS_VERSION)
-    PremisComplexType map(List<ObjectComplexType> object, List<EventComplexType> event);
+    PremisComplexType map(List<ObjectComplexType> object, List<EventComplexType> event, List<AgentComplexType> agent);
 }

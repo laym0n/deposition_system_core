@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.core.io.Resource;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import com.deposition.domain.adapter.ResourceHashCalculator;
@@ -25,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Component
 final class FileMetadataBuilder {
+
     private static final String DEFAULT_FORMAT_NAME = "application/octet-stream";
 
     private final FileMetadataConverter fileMetadataConverter;
@@ -32,10 +34,11 @@ final class FileMetadataBuilder {
     private final CommonMetadataBuilder commonMetadataBuilder;
 
     public CommonMetadataBuilder.MetadataStructure buildForFile(
-            CommonMetadataBuilder.PersistedFileMetadataInput persistedFile) {
+            CommonMetadataBuilder.PersistedFileMetadataInput persistedFile,
+            Authentication authentication) {
         var objectId = UUID.randomUUID();
         var objectMetadata = buildFileObject(persistedFile, objectId);
-        return commonMetadataBuilder.toMetadataStructure(objectId, objectMetadata);
+        return commonMetadataBuilder.toMetadataStructure(objectId, objectMetadata, authentication);
     }
 
     private File buildFileObject(CommonMetadataBuilder.PersistedFileMetadataInput persistedFile, UUID objectId) {

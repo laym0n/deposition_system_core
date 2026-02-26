@@ -30,6 +30,28 @@ services:
     networks:
       - deposition-network
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak-sso
+    restart: unless-stopped
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin-secret
+      KC_DB: dev-file
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8080
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+    ports:
+      - "8085:8080"
+    volumes:
+      - ./data/keycloak:/opt/keycloak/data
+    command: start-dev
+    networks:
+      - deposition-network
+# curl -X POST http://localhost:8085/realms/deposition/protocol/openid-connect/token -H "Content-Type: application/x-www-form-urlencoded" -d "client_id=deposition-client" -d "username=testuser" -d "password=testuser" -d "grant_type=password"
+
 networks:
   deposition-network:
     driver: bridge
