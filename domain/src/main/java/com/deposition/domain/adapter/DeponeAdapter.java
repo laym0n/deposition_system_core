@@ -27,9 +27,12 @@ public class DeponeAdapter implements DeponeInPort {
     private final FileStorageOutPort fileStorage;
     private final BlockchainOutPort blockchain;
     private final PremisMetadataBuilder premisMetadataBuilder;
+    private final PremisOwnershipValidator premisOwnershipValidator;
 
     @Override
     public DeponeResult depone(DeponeIntellectualEntityParams params) {
+        validateRelationshipsOwnedByCurrentUser(params);
+
         var intellectualEntityId = UUID.randomUUID();
 
         var persistedRepresentations = persistRepresentations(params.representations(), intellectualEntityId);
@@ -46,6 +49,31 @@ public class DeponeAdapter implements DeponeInPort {
         var anchorRecord = buildAnchorRecord(premisMetadataResource);
         anchorRecord = blockchain.persistAnchorRecord(anchorRecord);
         return new DeponeResult(intellectualEntityId, anchorRecord.getTxId());
+    }
+
+    private void validateRelationshipsOwnedByCurrentUser(DeponeIntellectualEntityParams params) {
+        if (params == null || params.intellectualEntityMetadata() == null
+                || params.intellectualEntityMetadata().relationships() == null) {
+            return;
+        }
+
+        params.intellectualEntityMetadata().relationships().stream()
+                .filter(relationship -> relationship != null && relationship.getRelatedObjects() != null)
+                .flatMap(relationship -> relationship.getRelatedObjects().stream())
+                .filter(relatedObject -> relatedObject != null && relatedObject.getValue() != null
+                && !relatedObject.getValue().isBlank())
+                .forEach(relatedObject -> {
+                    // At the moment the API passes related object identifiers as LOCAL UUID strings.
+                    UUID objectId;
+                    try {
+                        objectId = UUID.fromString(relatedObject.getValue());
+                    } catch (IllegalArgumentException ex) {
+                        throw new IllegalArgumentException(
+                                "Invalid related object identifier (expected UUID): " + relatedObject.getValue());
+                    }
+
+                    premisOwnershipValidator.validateCurrentUserOwnsObject(objectId);
+                });
     }
 
     private List<CommonMetadataBuilder.PersistedRepresentationMetadataInput> persistRepresentations(

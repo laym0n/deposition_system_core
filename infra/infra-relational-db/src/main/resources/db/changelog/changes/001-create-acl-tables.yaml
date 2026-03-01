@@ -1,0 +1,84 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-object-acl
+      author: cline
+      changes:
+        - createTable:
+            tableName: object_acl
+            columns:
+              - column:
+                  name: object_id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-create-object-acl-entry
+      author: cline
+      changes:
+        - createTable:
+            tableName: object_acl_entry
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: object_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: principal_type
+                  type: varchar(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: principal_id
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: permission
+                  type: varchar(32)
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: object_acl_entry
+            baseColumnNames: object_id
+            referencedTableName: object_acl
+            referencedColumnNames: object_id
+            constraintName: fk_object_acl_entry_object
+            onDelete: CASCADE
+
+        - createIndex:
+            tableName: object_acl_entry
+            indexName: idx_object_acl_entry_object
+            columns:
+              - column:
+                  name: object_id
+
+        - createIndex:
+            tableName: object_acl_entry
+            indexName: idx_object_acl_entry_principal
+            columns:
+              - column:
+                  name: principal_type
+              - column:
+                  name: principal_id

@@ -1,5 +1,6 @@
 package com.deposition.domain.adapter;
 
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 
@@ -19,6 +20,7 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 
 class XmlUtils {
 
@@ -36,6 +38,28 @@ class XmlUtils {
         var xmlPayload = buildXmlBytes(object);
 
         return createXmlResourceInternal(xmlPayload, metadataFilename);
+    }
+
+    public static PremisComplexType parsePremis(Resource premisXml) {
+        try (var inputStream = premisXml.getInputStream()) {
+            var xml = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            var unmarshaller = createPremisUnmarshaller();
+            var result = unmarshaller.unmarshal(new StringReader(xml));
+
+            if (result instanceof JAXBElement<?> jaxbElement
+                    && jaxbElement.getValue() instanceof PremisComplexType premis) {
+                return premis;
+            }
+
+            if (result instanceof PremisComplexType premis) {
+                return premis;
+            }
+
+            throw new IllegalStateException(
+                    "Failed to unmarshal PREMIS metadata: unexpected root type=" + result.getClass().getName());
+        } catch (Exception exception) {
+            throw new IllegalStateException("Failed to unmarshal PREMIS metadata", exception);
+        }
     }
 
     private static byte[] buildXmlBytes(Object object) {
@@ -86,6 +110,12 @@ class XmlUtils {
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
         marshaller.setSchema(PREMIS_SCHEMA);
         return marshaller;
+    }
+
+    private static Unmarshaller createPremisUnmarshaller() throws JAXBException {
+        var unmarshaller = PREMIS_JAXB_CONTEXT.createUnmarshaller();
+        unmarshaller.setSchema(PREMIS_SCHEMA);
+        return unmarshaller;
     }
 
     private static JAXBContext initPremisJaxbContext() {

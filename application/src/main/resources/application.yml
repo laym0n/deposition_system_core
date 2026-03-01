@@ -1,6 +1,18 @@
 spring:
   application:
     name: deposition-system
+  datasource:
+    url: ${spring.datasource.url}
+    username: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    enabled: ${spring.liquibase.enabled}
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
   security:
     oauth2:
       resourceserver:
@@ -15,7 +27,6 @@ integration:
     rpc-url: ${integration.ethereum.rpc-url}
     gas-limit-integer: ${integration.ethereum.gas-limit-integer}
     chain-id: ${integration.ethereum.chain-id}
-    private-key: ${integration.ethereum.private-key}
     gas-price-wei: ${integration.ethereum.gas-price-wei:0}
   s3:
     endpoint: ${integration.s3.endpoint}

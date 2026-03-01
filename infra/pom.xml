@@ -18,5 +18,6 @@
         <module>infra-s3</module>
         <module>infra-ethereum</module>
         <module>infra-sso</module>
+        <module>infra-relational-db</module>
     </modules>
 </project>

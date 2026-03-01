@@ -3,7 +3,9 @@ package com.deposition.infra.s3.adapter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLConnection;
+import java.util.UUID;
 
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +18,8 @@ import lombok.SneakyThrows;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Component
@@ -45,6 +49,38 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
         } catch (IOException | SdkException exception) {
             throw new IllegalStateException("Failed to persist resource in S3", exception);
         }
+    }
+
+    @Override
+    public Resource loadPremisMetadataByObjectId(UUID objectId) {
+        try {
+            var objectKey = buildPremisObjectKey(objectId);
+            var bucketName = s3Properties.getBucketName();
+
+            var request = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .build();
+
+            var responseBytes = s3Client.getObjectAsBytes(request);
+            var bytes = responseBytes.asByteArray();
+
+            return new ByteArrayResource(bytes) {
+                @Override
+                public String getFilename() {
+                    return "deposition-metadata.premis.xml";
+                }
+            };
+        } catch (NoSuchKeyException exception) {
+            throw new IllegalArgumentException("PREMIS metadata not found for objectId=" + objectId, exception);
+        } catch (SdkException exception) {
+            throw new IllegalStateException("Failed to load PREMIS metadata from S3 for objectId=" + objectId,
+                    exception);
+        }
+    }
+
+    private static String buildPremisObjectKey(UUID objectId) {
+        return "object/" + objectId + "/deposition-metadata.premis.xml";
     }
 
     @SneakyThrows

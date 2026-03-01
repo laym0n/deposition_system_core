@@ -1,4 +1,10 @@
 spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/deposition
+    username: deposition
+    password: deposition
+  liquibase:
+    enabled: true
   security:
     oauth2:
       resourceserver:
