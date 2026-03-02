@@ -2,6 +2,7 @@ package com.deposition.infra.api.controller;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -34,62 +35,85 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DepositionController {
 
-        private final DeponeInPort deponeInPort;
+    private final DeponeInPort deponeInPort;
 
-        @RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = DeponeMultipartRequest.class), encoding = {
-                        @Encoding(name = "intellectualEntityMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
-                        @Encoding(name = "representationMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
-                        @Encoding(name = "files", contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-        }))
-        @PostMapping(value = "/depone", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-        @SecurityRequirement(name = "bearerAuth")
-        public ResponseEntity<DeponeResult> depone(
-                        @RequestPart(name = "intellectualEntityMetadata", required = false) IntellectualEntityMetadataParam intellectualEntityMetadata,
-                        @RequestPart(name = "representationMetadata", required = false) RepresentationMetadataParam representationMetadata,
-                        @RequestPart(name = "files") List<MultipartFile> files) {
+    @RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = DeponeMultipartRequest.class), encoding = {
+        @Encoding(name = "intellectualEntityMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
+        @Encoding(name = "representationMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
+        @Encoding(name = "fileMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
+        @Encoding(name = "files", contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    }))
+    @PostMapping(value = "/depone", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<DeponeResult> depone(
+            @RequestPart(name = "intellectualEntityMetadata", required = false) IntellectualEntityMetadataParam intellectualEntityMetadata,
+            @RequestPart(name = "representationMetadata", required = false) RepresentationMetadataParam representationMetadata,
+            @RequestPart(name = "fileMetadata", required = false) List<FileMetadataParam> fileMetadata,
+            @RequestPart(name = "files") List<MultipartFile> files) {
 
-                var resolvedIntellectualEntityMetadata = intellectualEntityMetadata == null
-                                ? new IntellectualEntityMetadataParam(null, List.of(), List.of())
-                                : new IntellectualEntityMetadataParam(
-                                                intellectualEntityMetadata.originalName(),
-                                                intellectualEntityMetadata.identifiers() == null
-                                                                ? List.of()
-                                                                : List.copyOf(intellectualEntityMetadata.identifiers()),
-                                                intellectualEntityMetadata.relationships() == null
-                                                                ? List.of()
-                                                                : List.copyOf(intellectualEntityMetadata
-                                                                                .relationships()));
+        var resolvedIntellectualEntityMetadata = intellectualEntityMetadata == null
+                ? new IntellectualEntityMetadataParam(null, List.of(), List.of())
+                : new IntellectualEntityMetadataParam(
+                        intellectualEntityMetadata.originalName(),
+                        intellectualEntityMetadata.identifiers() == null
+                        ? List.of()
+                        : List.copyOf(intellectualEntityMetadata.identifiers()),
+                        intellectualEntityMetadata.relationships() == null
+                        ? List.of()
+                        : List.copyOf(intellectualEntityMetadata
+                                .relationships()));
 
-                var resolvedRepresentationMetadata = representationMetadata == null
-                                ? new RepresentationMetadataParam(null)
-                                : representationMetadata;
+        var resolvedRepresentationMetadata = representationMetadata == null
+                ? new RepresentationMetadataParam(null)
+                : representationMetadata;
 
-                var deponeFiles = files.stream()
-                                .map(file -> new DeponeFileParam(
-                                                new FileMetadataParam(file.getOriginalFilename()),
-                                                convertToReusableResource(file)))
-                                .toList();
-
-                var deponeParams = new DeponeIntellectualEntityParams(
-                                resolvedIntellectualEntityMetadata,
-                                List.of(new DeponeRepresentationParam(resolvedRepresentationMetadata, deponeFiles)));
-
-                var deponeResult = deponeInPort.depone(deponeParams);
-                return ResponseEntity.ok(deponeResult);
+        if (fileMetadata != null && fileMetadata.size() != files.size()) {
+            throw new IllegalArgumentException(
+                    "Invalid fileMetadata size: expected " + files.size() + ", got " + fileMetadata.size());
         }
 
-        private Resource convertToReusableResource(MultipartFile file) {
-                try {
-                        byte[] bytes = file.getBytes();
-                        return new ByteArrayResource(bytes) {
-                                @Override
-                                public String getFilename() {
-                                        return file.getOriginalFilename();
-                                }
-                        };
-                } catch (IOException e) {
-                        throw new IllegalStateException("Failed to read multipart file: " + file.getOriginalFilename(),
-                                        e);
+        var deponeFiles = IntStream.range(0, files.size())
+                .mapToObj(i -> {
+                    var file = files.get(i);
+                    var metadataParam = fileMetadata == null ? null : fileMetadata.get(i);
+                    var resolvedMetadata = resolveFileMetadata(metadataParam, file);
+                    return new DeponeFileParam(resolvedMetadata, convertToReusableResource(file));
+                })
+                .toList();
+
+        var deponeParams = new DeponeIntellectualEntityParams(
+                resolvedIntellectualEntityMetadata,
+                List.of(new DeponeRepresentationParam(resolvedRepresentationMetadata, deponeFiles)));
+
+        var deponeResult = deponeInPort.depone(deponeParams);
+        return ResponseEntity.ok(deponeResult);
+    }
+
+    private Resource convertToReusableResource(MultipartFile file) {
+        try {
+            byte[] bytes = file.getBytes();
+            return new ByteArrayResource(bytes) {
+                @Override
+                public String getFilename() {
+                    return file.getOriginalFilename();
                 }
+            };
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to read multipart file: " + file.getOriginalFilename(),
+                    e);
         }
+    }
+
+    private static FileMetadataParam resolveFileMetadata(FileMetadataParam fileMetadataParam, MultipartFile file) {
+        if (fileMetadataParam == null) {
+            return new FileMetadataParam(file.getOriginalFilename());
+        }
+
+        // If the client did not provide an originalName, fallback to multipart filename.
+        if (fileMetadataParam.originalName() == null) {
+            return new FileMetadataParam(file.getOriginalFilename());
+        }
+
+        return fileMetadataParam;
+    }
 }
