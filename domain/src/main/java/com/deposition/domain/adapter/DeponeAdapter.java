@@ -42,9 +42,7 @@ public class DeponeAdapter implements DeponeInPort {
                 params.intellectualEntityMetadata(),
                 intellectualEntityId);
         var premisMetadataResource = XmlUtils.createXmlResource(metadataPremis, "deposition-metadata");
-        fileStorage.persist(
-                premisMetadataResource,
-                intellectualEntityId.toString());
+        fileStorage.persist(premisMetadataResource, intellectualEntityId.toString());
 
         var anchorRecord = buildAnchorRecord(premisMetadataResource);
         anchorRecord = blockchain.persistAnchorRecord(anchorRecord);

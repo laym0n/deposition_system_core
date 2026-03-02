@@ -2,13 +2,17 @@ package com.deposition.infra.api.controller;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,11 +26,13 @@ import com.deposition.domain.port.in.DeponeResult;
 import com.deposition.domain.port.in.FileMetadataParam;
 import com.deposition.domain.port.in.IntellectualEntityMetadataParam;
 import com.deposition.domain.port.in.RepresentationMetadataParam;
+import com.deposition.domain.port.in.UpdateMetadataInPort;
+import com.deposition.domain.port.in.UpdateMetadataParams;
+import com.deposition.domain.port.in.UpdateMetadataResult;
 
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 
@@ -36,8 +42,9 @@ import lombok.RequiredArgsConstructor;
 public class DepositionController {
 
     private final DeponeInPort deponeInPort;
+    private final UpdateMetadataInPort updateMetadataInPort;
 
-    @RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = DeponeMultipartRequest.class), encoding = {
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = DeponeMultipartRequest.class), encoding = {
         @Encoding(name = "intellectualEntityMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
         @Encoding(name = "representationMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
         @Encoding(name = "fileMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
@@ -87,6 +94,15 @@ public class DepositionController {
 
         var deponeResult = deponeInPort.depone(deponeParams);
         return ResponseEntity.ok(deponeResult);
+    }
+
+    @PatchMapping(value = "/objects/{objectId}/metadata", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<UpdateMetadataResult> updateMetadata(
+            @PathVariable("objectId") UUID objectId,
+            @RequestBody UpdateMetadataParams params) {
+        var result = updateMetadataInPort.updateMetadata(objectId, params);
+        return ResponseEntity.ok(result);
     }
 
     private Resource convertToReusableResource(MultipartFile file) {

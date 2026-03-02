@@ -30,7 +30,6 @@ import com.deposition.domain.models.valueobject.Relationship;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public abstract class PremisCommonConverter {
 
-    @Named("unwrapStringPlusAuthority")
     protected String unwrapStringPlusAuthority(StringPlusAuthority value) {
         if (value == null) {
             return null;

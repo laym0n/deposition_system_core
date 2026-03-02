@@ -22,10 +22,6 @@ public abstract class FileMetadataConverter {
     @Mapping(target = "objectCharacteristics", source = "characteristics")
     @Mapping(target = "objectIdentifier", source = "identifiers")
     @Mapping(target = "relationship", source = "relationships")
-    @Mapping(target = "objectCharacteristics.compositionLevel", ignore = true)
-    @Mapping(target = "objectCharacteristics.creatingApplication", ignore = true)
-    @Mapping(target = "objectCharacteristics.inhibitors", ignore = true)
-    @Mapping(target = "objectCharacteristics.objectCharacteristicsExtension", ignore = true)
     @Mapping(target = "version", constant = CommonConverter.PREMIS_VERSION)
     @Mapping(target = "xmlID", source = "id", qualifiedByName = "toXmlId")
     public abstract File map(FileMetadata fileMetadata);
