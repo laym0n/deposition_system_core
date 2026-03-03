@@ -53,6 +53,11 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
 
     @Override
     public Resource loadPremisMetadataByObjectId(UUID objectId) {
+        return loadPremisMetadataByObjectId(objectId, null);
+    }
+
+    @Override
+    public Resource loadPremisMetadataByObjectId(UUID objectId, String versionId) {
         try {
             var objectKey = buildPremisObjectKey(objectId);
             var bucketName = s3Properties.getBucketName();
@@ -60,6 +65,7 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
             var request = GetObjectRequest.builder()
                     .bucket(bucketName)
                     .key(objectKey)
+                    .versionId(versionId)
                     .build();
 
             var responseBytes = s3Client.getObjectAsBytes(request);

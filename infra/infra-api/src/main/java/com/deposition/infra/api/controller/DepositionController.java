@@ -9,11 +9,13 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,6 +26,7 @@ import com.deposition.domain.port.in.DeponeIntellectualEntityParams;
 import com.deposition.domain.port.in.DeponeRepresentationParam;
 import com.deposition.domain.port.in.DeponeResult;
 import com.deposition.domain.port.in.FileMetadataParam;
+import com.deposition.domain.port.in.GetPremisMetadataInPort;
 import com.deposition.domain.port.in.IntellectualEntityMetadataParam;
 import com.deposition.domain.port.in.RepresentationMetadataParam;
 import com.deposition.domain.port.in.UpdateMetadataInPort;
@@ -43,6 +46,7 @@ public class DepositionController {
 
     private final DeponeInPort deponeInPort;
     private final UpdateMetadataInPort updateMetadataInPort;
+    private final GetPremisMetadataInPort getPremisMetadataInPort;
 
     @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = DeponeMultipartRequest.class), encoding = {
         @Encoding(name = "intellectualEntityMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
@@ -103,6 +107,15 @@ public class DepositionController {
             @RequestBody UpdateMetadataParams params) {
         var result = updateMetadataInPort.updateMetadata(objectId, params);
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping(value = "/objects/{objectId}/metadata", produces = MediaType.APPLICATION_XML_VALUE)
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<Resource> getPremisMetadata(
+            @PathVariable("objectId") UUID objectId,
+            @RequestParam(name = "versionId", required = false) String versionId) {
+        var premis = getPremisMetadataInPort.getPremisMetadata(objectId, versionId);
+        return ResponseEntity.ok(premis);
     }
 
     private Resource convertToReusableResource(MultipartFile file) {

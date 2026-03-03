@@ -27,15 +27,19 @@ final class PremisOwnershipValidator {
     private final AclMapper aclMapper;
 
     public void validateCurrentUserOwnsObject(UUID objectId) {
+        validateCurrentUserHasPermission(objectId, AclPermission.WRITE);
+    }
+
+    public void validateCurrentUserHasPermission(UUID objectId, AclPermission permission) {
         var currentUserId = resolveCurrentUserId();
         if (currentUserId == null) {
-            throw new IllegalArgumentException("Unauthenticated request: cannot validate object ownership");
+            throw new IllegalArgumentException("Unauthenticated request: cannot validate object permissions");
         }
 
         var acl = aclOutPort.findByObjectId(objectId)
                 .orElseGet(() -> buildAndPersistAclFromPremis(objectId));
 
-        if (!acl.hasPermissionForUser(currentUserId, AclPermission.WRITE)) {
+        if (!acl.hasPermissionForUser(currentUserId, permission)) {
             throw new ObjectAccessDeniedException(objectId);
         }
     }
