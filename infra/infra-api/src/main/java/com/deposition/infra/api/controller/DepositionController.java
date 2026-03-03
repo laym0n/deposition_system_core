@@ -32,6 +32,8 @@ import com.deposition.domain.port.in.RepresentationMetadataParam;
 import com.deposition.domain.port.in.UpdateMetadataInPort;
 import com.deposition.domain.port.in.UpdateMetadataParams;
 import com.deposition.domain.port.in.UpdateMetadataResult;
+import com.deposition.domain.port.in.VerifyPremisInPort;
+import com.deposition.domain.port.in.VerifyPremisResult;
 
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
@@ -47,6 +49,7 @@ public class DepositionController {
     private final DeponeInPort deponeInPort;
     private final UpdateMetadataInPort updateMetadataInPort;
     private final GetPremisMetadataInPort getPremisMetadataInPort;
+    private final VerifyPremisInPort verifyPremisInPort;
 
     @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = DeponeMultipartRequest.class), encoding = {
         @Encoding(name = "intellectualEntityMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
@@ -116,6 +119,15 @@ public class DepositionController {
             @RequestParam(name = "versionId", required = false) String versionId) {
         var premis = getPremisMetadataInPort.getPremisMetadata(objectId, versionId);
         return ResponseEntity.ok(premis);
+    }
+
+    @GetMapping(value = "/objects/{objectId}/verify", produces = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<VerifyPremisResult> verifyPremis(
+            @PathVariable("objectId") UUID objectId,
+            @RequestParam(name = "versionId", required = false) String versionId) {
+        var result = verifyPremisInPort.verifyPremis(objectId, versionId);
+        return ResponseEntity.ok(result);
     }
 
     private Resource convertToReusableResource(MultipartFile file) {

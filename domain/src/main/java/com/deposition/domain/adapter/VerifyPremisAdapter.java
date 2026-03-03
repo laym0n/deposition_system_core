@@ -1,0 +1,58 @@
+package com.deposition.domain.adapter;
+
+import java.util.UUID;
+
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
+
+import com.deposition.domain.exception.ObjectNotFoundException;
+import com.deposition.domain.models.acl.AclPermission;
+import com.deposition.domain.port.in.VerifyPremisInPort;
+import com.deposition.domain.port.in.VerifyPremisResult;
+import com.deposition.domain.port.out.BlockchainOutPort;
+import com.deposition.domain.port.out.BlockchainTxIndexOutPort;
+import com.deposition.domain.port.out.FileStorageOutPort;
+
+import jakarta.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
+
+@Component
+@RequiredArgsConstructor
+@Validated
+public class VerifyPremisAdapter implements VerifyPremisInPort {
+
+    private final FileStorageOutPort fileStorage;
+    private final BlockchainTxIndexOutPort blockchainTxIndex;
+    private final BlockchainOutPort blockchain;
+    private final PremisOwnershipValidator premisOwnershipValidator;
+
+    @Override
+    public VerifyPremisResult verifyPremis(UUID objectId, @Nullable String versionId) {
+        if (objectId == null) {
+            throw new IllegalArgumentException("objectId must not be null");
+        }
+
+        premisOwnershipValidator.validateCurrentUserHasPermission(objectId, AclPermission.READ);
+
+        Resource premisXml;
+        try {
+            premisXml = fileStorage.loadPremisMetadataByObjectId(objectId, versionId);
+        } catch (IllegalArgumentException ex) {
+            throw new ObjectNotFoundException(objectId);
+        }
+
+        var actualHash = ResourceHashCalculator.sha256(premisXml);
+
+        var txId = blockchainTxIndex.findTxId(objectId, versionId)
+                .orElseThrow(() -> new ObjectNotFoundException(objectId));
+
+        var anchored = blockchain.loadAnchorRecord(txId);
+        var expectedHash = anchored.getPremisMetadataHash();
+        if (expectedHash == null || expectedHash.isBlank()) {
+            return new VerifyPremisResult(false);
+        }
+
+        return new VerifyPremisResult(expectedHash.equalsIgnoreCase(actualHash));
+    }
+}

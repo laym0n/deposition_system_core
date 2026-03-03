@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-blockchain-tx-index
+      author: cline
+      changes:
+        - createTable:
+            tableName: blockchain_tx_index
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: object_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: storage_version_id
+                  type: varchar(512)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: tx_id
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: blockchain_tx_index
+            columnNames: object_id, storage_version_id
+            constraintName: uq_blockchain_tx_index_object_version
+
+        - createIndex:
+            tableName: blockchain_tx_index
+            indexName: idx_blockchain_tx_index_object
+            columns:
+              - column:
+                  name: object_id

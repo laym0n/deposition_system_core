@@ -39,6 +39,43 @@ public class EthereumAdapter implements BlockchainOutPort {
         return anchorRecord;
     }
 
+    @Override
+    public AnchorRecord loadAnchorRecord(String txId) {
+        if (txId == null || txId.isBlank()) {
+            throw new IllegalArgumentException("txId must not be blank");
+        }
+
+        try {
+            var response = web3j.ethGetTransactionByHash(txId).send();
+            if (response.hasError()) {
+                throw new IllegalStateException("Ethereum RPC returned an error while fetching tx: "
+                        + response.getError().getMessage());
+            }
+
+            var txOptional = response.getTransaction();
+            if (txOptional == null || txOptional.isEmpty()) {
+                throw new IllegalArgumentException("Transaction not found in blockchain: " + txId);
+            }
+
+            var tx = txOptional.get();
+            var input = tx.getInput();
+            if (input == null) {
+                throw new IllegalStateException("Transaction input is null for tx=" + txId);
+            }
+
+            var payloadJson = fromHexInputToString(input);
+            var anchor = objectMapper.readValue(payloadJson, AnchorRecord.class);
+            if (anchor.getTxId() == null || anchor.getTxId().isBlank()) {
+                anchor.setTxId(txId);
+            }
+            return anchor;
+        } catch (IllegalArgumentException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to load AnchorRecord from Ethereum tx=" + txId, ex);
+        }
+    }
+
     private String publishAsTransaction(String payload) {
         String fromAddress = properties.getFromAddress();
         String data = Numeric.toHexString(payload.getBytes(StandardCharsets.UTF_8));
@@ -83,5 +120,17 @@ public class EthereumAdapter implements BlockchainOutPort {
         } catch (JsonProcessingException ex) {
             throw new IllegalStateException("Failed to serialize payload for Ethereum transaction", ex);
         }
+    }
+
+    private static String fromHexInputToString(String input) {
+        var normalized = input;
+        if (normalized.startsWith("0x")) {
+            normalized = normalized.substring(2);
+        }
+        if (normalized.isBlank()) {
+            return "";
+        }
+        var bytes = Numeric.hexStringToByteArray("0x" + normalized);
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 }

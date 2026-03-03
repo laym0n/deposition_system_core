@@ -14,4 +14,6 @@ import lombok.experimental.SuperBuilder;
 public class Storage {
 
     private URI contentLocation;
+
+    private String versionId;
 }

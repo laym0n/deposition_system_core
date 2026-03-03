@@ -40,11 +40,12 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
                     .contentType(resolveContentType(resource))
                     .build();
 
-            s3Client.putObject(putObjectRequest,
+            var putResponse = s3Client.putObject(putObjectRequest,
                     RequestBody.fromInputStream(resource.getInputStream(), resource.contentLength()));
 
             return Storage.builder()
                     .contentLocation(buildObjectUri(bucketName, objectKey))
+                    .versionId(putResponse.versionId())
                     .build();
         } catch (IOException | SdkException exception) {
             throw new IllegalStateException("Failed to persist resource in S3", exception);

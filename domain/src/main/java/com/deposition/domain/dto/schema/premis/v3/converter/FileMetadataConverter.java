@@ -11,9 +11,11 @@ import com.deposition.domain.dto.schema.premis.v3.ContentLocationComplexType;
 import com.deposition.domain.dto.schema.premis.v3.File;
 import com.deposition.domain.dto.schema.premis.v3.FixityComplexType;
 import com.deposition.domain.dto.schema.premis.v3.FormatDesignationComplexType;
+import com.deposition.domain.dto.schema.premis.v3.StorageComplexType;
 import com.deposition.domain.models.FileMetadata;
 import com.deposition.domain.models.valueobject.FixityBlock;
 import com.deposition.domain.models.valueobject.FormatDesignation;
+import com.deposition.domain.models.valueobject.Storage;
 
 @Mapper(componentModel = "spring", unmappedSourcePolicy = ReportingPolicy.ERROR, uses = CommonConverter.class)
 public abstract class FileMetadataConverter {
@@ -25,6 +27,10 @@ public abstract class FileMetadataConverter {
     @Mapping(target = "version", constant = CommonConverter.PREMIS_VERSION)
     @Mapping(target = "xmlID", source = "id", qualifiedByName = "toXmlId")
     public abstract File map(FileMetadata fileMetadata);
+
+    @BeanMapping(ignoreUnmappedSourceProperties = "versionId")
+    @Mapping(target = "contentLocation", source = "contentLocation")
+    protected abstract StorageComplexType map(Storage storage);
 
     @BeanMapping(unmappedSourcePolicy = ReportingPolicy.IGNORE)
     @Mapping(target = "contentLocationType", constant = "URI")
