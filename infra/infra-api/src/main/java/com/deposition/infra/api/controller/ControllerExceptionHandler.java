@@ -14,21 +14,34 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
+import com.deposition.domain.exception.DescriptiveMetadataSchemaNotFoundException;
+import com.deposition.domain.exception.DescriptiveMetadataValidationException;
+
 import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
 public class ControllerExceptionHandler {
 
     @ExceptionHandler({
-            MissingServletRequestPartException.class,
-            MethodArgumentNotValidException.class,
-            BindException.class,
-            HttpMessageNotReadableException.class,
-            MethodArgumentTypeMismatchException.class,
-            ServletRequestBindingException.class,
-            ConstraintViolationException.class
+        MissingServletRequestPartException.class,
+        MethodArgumentNotValidException.class,
+        BindException.class,
+        HttpMessageNotReadableException.class,
+        MethodArgumentTypeMismatchException.class,
+        ServletRequestBindingException.class,
+        ConstraintViolationException.class,
+        IllegalArgumentException.class,
+        DescriptiveMetadataSchemaNotFoundException.class,
+        DescriptiveMetadataValidationException.class
     })
     public ResponseEntity<Map<String, String>> handleBadRequestExceptions(Exception exception) {
+        if (exception instanceof DescriptiveMetadataValidationException ex) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "reason", resolveReason(exception),
+                            "errors", String.join("; ", ex.getErrors())));
+        }
+
         return ResponseEntity.badRequest().body(Map.of("reason", resolveReason(exception)));
     }
 

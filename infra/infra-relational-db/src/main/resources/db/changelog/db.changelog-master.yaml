@@ -3,3 +3,5 @@ databaseChangeLog:
       file: db/changelog/changes/001-create-acl-tables.yaml
   - include:
       file: db/changelog/changes/002-create-blockchain-tx-index.yaml
+  - include:
+      file: db/changelog/changes/003-create-descriptive-metadata-schema.yaml

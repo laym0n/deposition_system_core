@@ -12,6 +12,8 @@ public class DeponeMultipartRequest {
 
     public IntellectualEntityMetadataParam intellectualEntityMetadata;
 
+    public String descriptiveMetadata;
+
     public RepresentationMetadataParam representationMetadata;
 
     public List<FileMetadataParam> fileMetadata;

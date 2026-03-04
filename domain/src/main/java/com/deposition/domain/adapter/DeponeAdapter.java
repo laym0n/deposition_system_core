@@ -17,6 +17,7 @@ import com.deposition.domain.port.in.DeponeResult;
 import com.deposition.domain.port.out.BlockchainOutPort;
 import com.deposition.domain.port.out.BlockchainTxIndexOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
+import com.deposition.domain.service.DescriptiveMetadataService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,12 +31,18 @@ public class DeponeAdapter implements DeponeInPort {
     private final BlockchainTxIndexOutPort blockchainTxIndex;
     private final PremisMetadataBuilder premisMetadataBuilder;
     private final PremisOwnershipValidator premisOwnershipValidator;
+    private final DescriptiveMetadataService descriptiveMetadataService;
 
     @Override
     public DeponeResult depone(DeponeIntellectualEntityParams params) {
         validateRelationshipsOwnedByCurrentUser(params);
 
         var intellectualEntityId = UUID.randomUUID();
+
+        descriptiveMetadataService.validateAndPersistIfPresent(
+                intellectualEntityId,
+                params.intellectualEntityType(),
+                params.descriptiveMetadata());
 
         var persistedRepresentations = persistRepresentations(params.representations(), intellectualEntityId);
 

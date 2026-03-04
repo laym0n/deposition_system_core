@@ -1,0 +1,46 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-seed-descriptive-metadata-schema-scientific-work-dublin-core
+      author: cline
+      context: local-dev
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              INSERT INTO descriptive_metadata_schema (id, entity_type, schema_json, is_active)
+              VALUES (
+                'c0f4f384-6dfc-4f4a-9b6a-8c72dc04a0b1',
+                'SCIENTIFIC_WORK',
+                $$
+                {
+                  "$schema": "http://json-schema.org/draft-07/schema#",
+                  "title": "Dublin Core - Scientific Work",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["title", "creator"],
+                  "properties": {
+                    "title": { "type": "string", "minLength": 1 },
+                    "creator": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+                    "subject": { "type": "array", "items": { "type": "string" } },
+                    "description": { "type": "string" },
+                    "publisher": { "type": "string" },
+                    "contributor": { "type": "array", "items": { "type": "string" } },
+                    "date": { "type": "string", "description": "ISO-8601 date (YYYY, YYYY-MM, or YYYY-MM-DD)" },
+                    "type": { "type": "string", "description": "Dublin Core dc:type" },
+                    "format": { "type": "string" },
+                    "identifier": { "type": "string" },
+                    "source": { "type": "string" },
+                    "language": { "type": "string" },
+                    "relation": { "type": "array", "items": { "type": "string" } },
+                    "coverage": { "type": "string" },
+                    "rights": { "type": "string" }
+                  }
+                }
+                $$,
+                true
+              )
+              ON CONFLICT (entity_type)
+              DO UPDATE SET
+                schema_json = EXCLUDED.schema_json,
+                is_active = true,
+                updated_at = CURRENT_TIMESTAMP;

@@ -1,0 +1,8 @@
+databaseChangeLog:
+  # Base schema (comes from infra-relational-db module main resources)
+  - include:
+      file: db/changelog/db.changelog-master.yaml
+
+  # Local-dev seed (test resources; MUST NOT be packaged into final jar)
+  - include:
+      file: db/changelog/changes/004-seed-descriptive-metadata-schema-scientific-work-dublin-core.yaml

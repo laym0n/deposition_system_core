@@ -5,9 +5,17 @@ import java.util.List;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 public record DeponeIntellectualEntityParams(
-                @Nullable @Valid IntellectualEntityMetadataParam intellectualEntityMetadata,
-                @NotEmpty List<@Valid DeponeRepresentationParam> representations) {
+        @NotNull
+        IntellectualEntityType intellectualEntityType,
+        @Nullable
+        @Valid
+        IntellectualEntityMetadataParam intellectualEntityMetadata,
+        @Nullable
+        String descriptiveMetadata,
+        @NotEmpty
+        List<@Valid DeponeRepresentationParam> representations) {
 
 }

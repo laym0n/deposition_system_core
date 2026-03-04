@@ -28,6 +28,7 @@ import com.deposition.domain.port.in.DeponeResult;
 import com.deposition.domain.port.in.FileMetadataParam;
 import com.deposition.domain.port.in.GetPremisMetadataInPort;
 import com.deposition.domain.port.in.IntellectualEntityMetadataParam;
+import com.deposition.domain.port.in.IntellectualEntityType;
 import com.deposition.domain.port.in.RepresentationMetadataParam;
 import com.deposition.domain.port.in.UpdateMetadataInPort;
 import com.deposition.domain.port.in.UpdateMetadataParams;
@@ -53,6 +54,7 @@ public class DepositionController {
 
     @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = DeponeMultipartRequest.class), encoding = {
         @Encoding(name = "intellectualEntityMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
+        @Encoding(name = "descriptiveMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
         @Encoding(name = "representationMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
         @Encoding(name = "fileMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
         @Encoding(name = "files", contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
@@ -60,7 +62,9 @@ public class DepositionController {
     @PostMapping(value = "/depone", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<DeponeResult> depone(
+            @RequestParam(name = "intellectualEntityType") IntellectualEntityType intellectualEntityType,
             @RequestPart(name = "intellectualEntityMetadata", required = false) IntellectualEntityMetadataParam intellectualEntityMetadata,
+            @RequestPart(name = "descriptiveMetadata", required = false) String descriptiveMetadata,
             @RequestPart(name = "representationMetadata", required = false) RepresentationMetadataParam representationMetadata,
             @RequestPart(name = "fileMetadata", required = false) List<FileMetadataParam> fileMetadata,
             @RequestPart(name = "files") List<MultipartFile> files) {
@@ -96,7 +100,9 @@ public class DepositionController {
                 .toList();
 
         var deponeParams = new DeponeIntellectualEntityParams(
+                intellectualEntityType,
                 resolvedIntellectualEntityMetadata,
+                descriptiveMetadata,
                 List.of(new DeponeRepresentationParam(resolvedRepresentationMetadata, deponeFiles)));
 
         var deponeResult = deponeInPort.depone(deponeParams);

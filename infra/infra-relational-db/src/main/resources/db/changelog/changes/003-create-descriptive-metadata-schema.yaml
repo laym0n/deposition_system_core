@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-descriptive-metadata-schema
+      author: cline
+      changes:
+        - createTable:
+            tableName: descriptive_metadata_schema
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: entity_type
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: schema_json
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: descriptive_metadata_schema
+            columnNames: entity_type
+            constraintName: uq_descriptive_metadata_schema_entity_type
+
+        - createIndex:
+            tableName: descriptive_metadata_schema
+            indexName: idx_descriptive_metadata_schema_active
+            columns:
+              - column:
+                  name: is_active
