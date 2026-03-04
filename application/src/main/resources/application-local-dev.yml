@@ -21,6 +21,10 @@ integration:
     gas-limit-integer: 3000000
     chain-id: 1337
     gas-price-wei: 0
+  opensearch:
+    enabled: true
+    endpoint: http://localhost:9200
+    descriptive-metadata-index: descriptive-metadata
   s3:
     endpoint: http://localhost:9000
     region: us-east-1

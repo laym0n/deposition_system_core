@@ -102,6 +102,11 @@
                 <artifactId>infra-relational-db</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.deposition</groupId>
+                <artifactId>infra-opensearch</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

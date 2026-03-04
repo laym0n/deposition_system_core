@@ -28,6 +28,10 @@ integration:
     gas-limit-integer: ${integration.ethereum.gas-limit-integer}
     chain-id: ${integration.ethereum.chain-id}
     gas-price-wei: ${integration.ethereum.gas-price-wei:0}
+  opensearch:
+    enabled: ${integration.opensearch.enabled:false}
+    endpoint: ${integration.opensearch.endpoint:}
+    descriptive-metadata-index: ${integration.opensearch.descriptive-metadata-index:descriptive-metadata}
   s3:
     endpoint: ${integration.s3.endpoint}
     region: ${integration.s3.region}

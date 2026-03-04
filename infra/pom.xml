@@ -19,5 +19,6 @@
         <module>infra-ethereum</module>
         <module>infra-sso</module>
         <module>infra-relational-db</module>
+        <module>infra-opensearch</module>
     </modules>
 </project>

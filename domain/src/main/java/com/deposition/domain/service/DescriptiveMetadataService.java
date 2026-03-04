@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import com.deposition.domain.exception.DescriptiveMetadataSchemaNotFoundException;
 import com.deposition.domain.exception.DescriptiveMetadataValidationException;
 import com.deposition.domain.port.in.IntellectualEntityType;
+import com.deposition.domain.port.out.DescriptiveMetadataIndexOutPort;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -30,6 +31,7 @@ public class DescriptiveMetadataService {
 
     private final DescriptiveMetadataSchemaOutPort schemaOutPort;
     private final FileStorageOutPort fileStorage;
+    private final DescriptiveMetadataIndexOutPort indexOutPort;
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -63,6 +65,10 @@ public class DescriptiveMetadataService {
                         "Descriptive metadata validation failed for entityType=" + entityType,
                         errors.stream().map(ValidationMessage::getMessage).toList());
             }
+
+            // index extracted fields for search
+            var extractedFields = extractFields(metadataNode);
+            indexOutPort.index(intellectualEntityId, entityType, extractedFields);
         } catch (DescriptiveMetadataValidationException ex) {
             throw ex;
         } catch (com.fasterxml.jackson.core.JsonProcessingException ex) {
@@ -96,5 +102,54 @@ public class DescriptiveMetadataService {
             throw new IllegalStateException("Failed to persist descriptive metadata for objectId=" + intellectualEntityId,
                     ex);
         }
+    }
+
+    private static java.util.Map<String, Object> extractFields(JsonNode metadataNode) {
+        if (metadataNode == null || metadataNode.isNull() || metadataNode.isMissingNode()) {
+            return java.util.Map.of();
+        }
+
+        var result = new java.util.HashMap<String, Object>();
+        metadataNode.properties().forEach(entry -> {
+            var key = entry.getKey();
+            var value = entry.getValue();
+            if (value == null || value.isNull() || value.isMissingNode()) {
+                return;
+            }
+            if (value.isTextual()) {
+                result.put(key, value.asText());
+                return;
+            }
+            if (value.isNumber()) {
+                result.put(key, value.numberValue());
+                return;
+            }
+            if (value.isBoolean()) {
+                result.put(key, value.asBoolean());
+                return;
+            }
+            if (value.isArray()) {
+                var list = new java.util.ArrayList<Object>();
+                value.elements().forEachRemaining(element -> {
+                    if (element == null || element.isNull()) {
+                        return;
+                    }
+                    if (element.isTextual()) {
+                        list.add(element.asText());
+                    } else if (element.isNumber()) {
+                        list.add(element.numberValue());
+                    } else if (element.isBoolean()) {
+                        list.add(element.asBoolean());
+                    } else {
+                        // fallback: store json string for complex elements
+                        list.add(element.toString());
+                    }
+                });
+                result.put(key, list);
+                return;
+            }
+            result.put(key, value.toString());
+        });
+        return java.util.Collections.unmodifiableMap(result);
     }
 }

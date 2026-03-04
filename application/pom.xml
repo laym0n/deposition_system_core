@@ -38,6 +38,10 @@
             <groupId>com.deposition</groupId>
             <artifactId>infra-relational-db</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.deposition</groupId>
+            <artifactId>infra-opensearch</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
