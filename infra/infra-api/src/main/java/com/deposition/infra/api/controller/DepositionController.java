@@ -29,7 +29,10 @@ import com.deposition.domain.port.in.FileMetadataParam;
 import com.deposition.domain.port.in.GetPremisMetadataInPort;
 import com.deposition.domain.port.in.IntellectualEntityMetadataParam;
 import com.deposition.domain.port.in.IntellectualEntityType;
+import com.deposition.domain.port.in.ObjectSearchRequest;
 import com.deposition.domain.port.in.RepresentationMetadataParam;
+import com.deposition.domain.port.in.SearchObjectsInPort;
+import com.deposition.domain.port.in.SearchObjectsResult;
 import com.deposition.domain.port.in.UpdateMetadataInPort;
 import com.deposition.domain.port.in.UpdateMetadataParams;
 import com.deposition.domain.port.in.UpdateMetadataResult;
@@ -51,6 +54,7 @@ public class DepositionController {
     private final UpdateMetadataInPort updateMetadataInPort;
     private final GetPremisMetadataInPort getPremisMetadataInPort;
     private final VerifyPremisInPort verifyPremisInPort;
+    private final SearchObjectsInPort searchObjectsInPort;
 
     @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = DeponeMultipartRequest.class), encoding = {
         @Encoding(name = "intellectualEntityMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
@@ -133,6 +137,13 @@ public class DepositionController {
             @PathVariable("objectId") UUID objectId,
             @RequestParam(name = "versionId", required = false) String versionId) {
         var result = verifyPremisInPort.verifyPremis(objectId, versionId);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping(value = "/objects/search", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<SearchObjectsResult> searchObjects(@RequestBody @jakarta.validation.Valid ObjectSearchRequest request) {
+        var result = searchObjectsInPort.search(request);
         return ResponseEntity.ok(result);
     }
 

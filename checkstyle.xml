@@ -1,31 +1,33 @@
 <?xml version="1.0"?>
-<!DOCTYPE module PUBLIC
-        "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
-        "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<!DOCTYPE module PUBLIC "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN" "https://checkstyle.org/dtds/configuration_1_3.dtd">
 <module name="Checker">
-    <property name="severity" value="warning"/>
+    <property name="severity" value="warning" />
 
     <module name="LineLength">
-        <property name="max" value="140"/>
-        <property name="severity" value="error"/>
+        <property name="max" value="140" />
+        <property name="severity" value="error" />
     </module>
 
     <module name="FileTabCharacter">
-        <property name="eachLine" value="true"/>
+        <property name="eachLine" value="true" />
     </module>
 
     <module name="TreeWalker">
         <module name="RegexpSinglelineJava">
-            <property name="format" value="^(?!\s*import\s)(?!\s*package\s).*\b(?:[a-z_]\w*\.){2,}[A-Z]\w*\b"/>
-            <property name="message" value="Avoid fully qualified class names in code. Use imports instead."/>
-            <property name="severity" value="error"/>
+            <property name="format"
+                value="^(?!\s*import\s)(?!\s*package\s).*\b(?:[a-z_]\w*\.){2,}[A-Z]\w*\b" />
+            <property name="message"
+                value="Avoid fully qualified class names in code. Use imports instead." />
+            <property name="severity" value="error" />
         </module>
         <module name="MatchXpath">
-            <property name="query" value="//VARIABLE_DEF[ancestor::SLIST and not(TYPE/LITERAL_VAR or TYPE/IDENT[@text='var'])]"/>
-            <property name="severity" value="error"/>
-            <message key="matchxpath.match" value="Use var type definitions for local variables"/>
+            <property name="query"
+                value="//VARIABLE_DEF[ancestor::SLIST and not(TYPE/LITERAL_VAR or TYPE/IDENT[@text='var'])]" />
+            <property name="severity" value="error" />
+            <message key="matchxpath.match" value="Use var type definitions for local variables" />
         </module>
-        <module name="AvoidStarImport"/>
-        <module name="UnusedImports"/>
+        <module name="AvoidStarImport" />
+        <module name="RedundantImport" />
+        <module name="UnusedImports" />
     </module>
 </module>

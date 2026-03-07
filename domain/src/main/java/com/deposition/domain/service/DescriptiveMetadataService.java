@@ -2,6 +2,7 @@ package com.deposition.domain.service;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.core.io.ByteArrayResource;
@@ -11,9 +12,9 @@ import org.springframework.stereotype.Component;
 import com.deposition.domain.exception.DescriptiveMetadataSchemaNotFoundException;
 import com.deposition.domain.exception.DescriptiveMetadataValidationException;
 import com.deposition.domain.port.in.IntellectualEntityType;
-import com.deposition.domain.port.out.DescriptiveMetadataIndexOutPort;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonSchema;
@@ -22,6 +23,7 @@ import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 
 @Component
 @RequiredArgsConstructor
@@ -31,25 +33,13 @@ public class DescriptiveMetadataService {
 
     private final DescriptiveMetadataSchemaOutPort schemaOutPort;
     private final FileStorageOutPort fileStorage;
-    private final DescriptiveMetadataIndexOutPort indexOutPort;
+    private final ObjectMapper objectMapper;
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
-    /**
-     * If metadataJson is provided, validates it against JSON schema resolved by
-     * entityType and persists the JSON in S3.
-     */
-    public void validateAndPersistIfPresent(UUID intellectualEntityId,
+    public Map<String, Object> validateAndPersistIfPresent(UUID intellectualEntityId,
             IntellectualEntityType entityType,
             String metadataJson) {
         if (metadataJson == null || metadataJson.isBlank()) {
-            return;
-        }
-        if (intellectualEntityId == null) {
-            throw new IllegalArgumentException("intellectualEntityId must not be null");
-        }
-        if (entityType == null) {
-            throw new IllegalArgumentException("entityType must not be null");
+            return Map.of();
         }
 
         var schemaJson = schemaOutPort.findActiveSchemaJsonByEntityType(entityType.name())
@@ -57,8 +47,9 @@ public class DescriptiveMetadataService {
                 "Descriptive metadata JsonSchema not found for entityType=" + entityType));
 
         try {
-            JsonSchema schema = loadSchema(schemaJson);
-            JsonNode metadataNode = OBJECT_MAPPER.readTree(metadataJson);
+            JsonNode schemaNode = objectMapper.readTree(schemaJson);
+            JsonSchema schema = loadSchema(schemaNode);
+            JsonNode metadataNode = objectMapper.readTree(metadataJson);
             var errors = schema.validate(metadataNode);
             if (!errors.isEmpty()) {
                 throw new DescriptiveMetadataValidationException(
@@ -66,9 +57,9 @@ public class DescriptiveMetadataService {
                         errors.stream().map(ValidationMessage::getMessage).toList());
             }
 
-            // index extracted fields for search
-            var extractedFields = extractFields(metadataNode);
-            indexOutPort.index(intellectualEntityId, entityType, extractedFields);
+            persistJson(intellectualEntityId, metadataJson);
+            var extractedFields = extractFields(metadataNode, schemaNode);
+            return extractedFields;
         } catch (DescriptiveMetadataValidationException ex) {
             throw ex;
         } catch (com.fasterxml.jackson.core.JsonProcessingException ex) {
@@ -78,12 +69,9 @@ public class DescriptiveMetadataService {
                     "Descriptive metadata validation failed for entityType=" + entityType,
                     List.of(ex.getMessage()));
         }
-
-        persistJson(intellectualEntityId, metadataJson);
     }
 
-    private static JsonSchema loadSchema(String schemaJson) throws com.fasterxml.jackson.core.JsonProcessingException {
-        JsonNode schemaNode = OBJECT_MAPPER.readTree(schemaJson);
+    private static JsonSchema loadSchema(JsonNode schemaNode) {
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012);
         return factory.getSchema(schemaNode);
     }
@@ -99,57 +87,17 @@ public class DescriptiveMetadataService {
             };
             fileStorage.persist(resource, intellectualEntityId.toString());
         } catch (Exception ex) {
-            throw new IllegalStateException("Failed to persist descriptive metadata for objectId=" + intellectualEntityId,
+            throw new IllegalStateException(
+                    "Failed to persist descriptive metadata for objectId=" + intellectualEntityId,
                     ex);
         }
     }
 
-    private static java.util.Map<String, Object> extractFields(JsonNode metadataNode) {
+    @SneakyThrows
+    private Map<String, Object> extractFields(JsonNode metadataNode, JsonNode schemaNode) {
         if (metadataNode == null || metadataNode.isNull() || metadataNode.isMissingNode()) {
-            return java.util.Map.of();
+            return Map.of();
         }
-
-        var result = new java.util.HashMap<String, Object>();
-        metadataNode.properties().forEach(entry -> {
-            var key = entry.getKey();
-            var value = entry.getValue();
-            if (value == null || value.isNull() || value.isMissingNode()) {
-                return;
-            }
-            if (value.isTextual()) {
-                result.put(key, value.asText());
-                return;
-            }
-            if (value.isNumber()) {
-                result.put(key, value.numberValue());
-                return;
-            }
-            if (value.isBoolean()) {
-                result.put(key, value.asBoolean());
-                return;
-            }
-            if (value.isArray()) {
-                var list = new java.util.ArrayList<Object>();
-                value.elements().forEachRemaining(element -> {
-                    if (element == null || element.isNull()) {
-                        return;
-                    }
-                    if (element.isTextual()) {
-                        list.add(element.asText());
-                    } else if (element.isNumber()) {
-                        list.add(element.numberValue());
-                    } else if (element.isBoolean()) {
-                        list.add(element.asBoolean());
-                    } else {
-                        // fallback: store json string for complex elements
-                        list.add(element.toString());
-                    }
-                });
-                result.put(key, list);
-                return;
-            }
-            result.put(key, value.toString());
-        });
-        return java.util.Collections.unmodifiableMap(result);
+        return objectMapper.convertValue(metadataNode, new TypeReference<Map<String, Object>>() {});
     }
 }

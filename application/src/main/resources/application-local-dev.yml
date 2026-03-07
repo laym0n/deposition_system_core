@@ -14,6 +14,13 @@ spring:
 server:
   port: 8082
 
+logging:
+  level:
+    org.opensearch.client: TRACE
+    org.apache.http: DEBUG
+    org.apache.http.headers: DEBUG
+    org.apache.http.wire: TRACE
+
 integration:
   ethereum:
     rpc-url: http://localhost:18545
@@ -25,6 +32,7 @@ integration:
     enabled: true
     endpoint: http://localhost:9200
     descriptive-metadata-index: descriptive-metadata
+    object-index: objects
   s3:
     endpoint: http://localhost:9000
     region: us-east-1

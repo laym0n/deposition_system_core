@@ -141,7 +141,18 @@
                 <configuration>
                     <configLocation>${maven.multiModuleProjectDirectory}/checkstyle.xml</configLocation>
                     <violationSeverity>error</violationSeverity>
+                    <!-- <consoleOutput>true</consoleOutput>
+                    <failOnViolation>true</failOnViolation> -->
                 </configuration>
+                <!-- <executions>
+                    <execution>
+                        <id>checkstyle-validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions> -->
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

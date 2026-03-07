@@ -8,6 +8,7 @@ import org.springframework.validation.annotation.Validated;
 
 import com.deposition.domain.exception.ObjectNotFoundException;
 import com.deposition.domain.models.AnchorRecord;
+import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.port.in.UpdateMetadataInPort;
 import com.deposition.domain.port.in.UpdateMetadataParams;
 import com.deposition.domain.port.in.UpdateMetadataResult;
@@ -34,7 +35,7 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
             throw new IllegalArgumentException("objectId must not be null");
         }
 
-        premisOwnershipValidator.validateCurrentUserOwnsObject(objectId);
+        premisOwnershipValidator.validateCurrentUserHasPermission(objectId, AclPermission.WRITE);
 
         Resource premisXml;
         try {

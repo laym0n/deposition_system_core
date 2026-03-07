@@ -26,10 +26,6 @@ final class PremisOwnershipValidator {
     private final PremisSnapshotConverter premisSnapshotConverter;
     private final AclMapper aclMapper;
 
-    public void validateCurrentUserOwnsObject(UUID objectId) {
-        validateCurrentUserHasPermission(objectId, AclPermission.WRITE);
-    }
-
     public void validateCurrentUserHasPermission(UUID objectId, AclPermission permission) {
         var currentUserId = resolveCurrentUserId();
         if (currentUserId == null) {

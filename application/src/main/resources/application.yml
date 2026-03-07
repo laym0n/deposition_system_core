@@ -32,6 +32,7 @@ integration:
     enabled: ${integration.opensearch.enabled:false}
     endpoint: ${integration.opensearch.endpoint:}
     descriptive-metadata-index: ${integration.opensearch.descriptive-metadata-index:descriptive-metadata}
+    object-index: ${integration.opensearch.object-index:objects}
   s3:
     endpoint: ${integration.s3.endpoint}
     region: ${integration.s3.region}

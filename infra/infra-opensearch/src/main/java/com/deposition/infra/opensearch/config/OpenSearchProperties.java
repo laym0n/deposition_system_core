@@ -15,4 +15,6 @@ public class OpenSearchProperties {
     private String endpoint;
 
     private String descriptiveMetadataIndex;
+
+    private String objectIndex;
 }

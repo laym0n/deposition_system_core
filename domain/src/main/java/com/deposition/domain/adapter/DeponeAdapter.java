@@ -10,6 +10,7 @@ import org.springframework.validation.annotation.Validated;
 import com.deposition.domain.adapter.builder.CommonMetadataBuilder;
 import com.deposition.domain.adapter.builder.PremisMetadataBuilder;
 import com.deposition.domain.models.AnchorRecord;
+import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.port.in.DeponeInPort;
 import com.deposition.domain.port.in.DeponeIntellectualEntityParams;
 import com.deposition.domain.port.in.DeponeRepresentationParam;
@@ -17,6 +18,7 @@ import com.deposition.domain.port.in.DeponeResult;
 import com.deposition.domain.port.out.BlockchainOutPort;
 import com.deposition.domain.port.out.BlockchainTxIndexOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
+import com.deposition.domain.service.DepositionIndexingService;
 import com.deposition.domain.service.DescriptiveMetadataService;
 
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,7 @@ public class DeponeAdapter implements DeponeInPort {
     private final PremisMetadataBuilder premisMetadataBuilder;
     private final PremisOwnershipValidator premisOwnershipValidator;
     private final DescriptiveMetadataService descriptiveMetadataService;
+    private final DepositionIndexingService depositionIndexingService;
 
     @Override
     public DeponeResult depone(DeponeIntellectualEntityParams params) {
@@ -39,7 +42,7 @@ public class DeponeAdapter implements DeponeInPort {
 
         var intellectualEntityId = UUID.randomUUID();
 
-        descriptiveMetadataService.validateAndPersistIfPresent(
+        var descriptiveExtracted = descriptiveMetadataService.validateAndPersistIfPresent(
                 intellectualEntityId,
                 params.intellectualEntityType(),
                 params.descriptiveMetadata());
@@ -50,11 +53,15 @@ public class DeponeAdapter implements DeponeInPort {
                 persistedRepresentations,
                 params.intellectualEntityMetadata(),
                 intellectualEntityId);
+
         var premisMetadataResource = XmlUtils.createXmlResource(metadataPremis, "deposition-metadata");
         var premisStorage = fileStorage.persist(premisMetadataResource, intellectualEntityId.toString());
 
         var anchorRecord = buildAnchorRecord(premisMetadataResource);
         anchorRecord = blockchain.persistAnchorRecord(anchorRecord);
+
+        depositionIndexingService.indexIntellectualEntity(metadataPremis, intellectualEntityId, anchorRecord.getTxId(),
+                descriptiveExtracted);
 
         blockchainTxIndex.save(intellectualEntityId, premisStorage.getVersionId(), anchorRecord.getTxId());
         return new DeponeResult(intellectualEntityId, anchorRecord.getTxId());
@@ -72,7 +79,6 @@ public class DeponeAdapter implements DeponeInPort {
                 .filter(relatedObject -> relatedObject != null && relatedObject.getValue() != null
                 && !relatedObject.getValue().isBlank())
                 .forEach(relatedObject -> {
-                    // At the moment the API passes related object identifiers as LOCAL UUID strings.
                     UUID objectId;
                     try {
                         objectId = UUID.fromString(relatedObject.getValue());
@@ -81,7 +87,7 @@ public class DeponeAdapter implements DeponeInPort {
                                 "Invalid related object identifier (expected UUID): " + relatedObject.getValue());
                     }
 
-                    premisOwnershipValidator.validateCurrentUserOwnsObject(objectId);
+                    premisOwnershipValidator.validateCurrentUserHasPermission(objectId, AclPermission.WRITE);
                 });
     }
 
