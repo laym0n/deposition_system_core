@@ -16,6 +16,7 @@ import com.deposition.domain.models.acl.ObjectAcl;
 import com.deposition.domain.port.out.ObjectIndexDocument;
 import com.deposition.domain.port.out.ObjectIndexOutPort;
 
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -26,7 +27,8 @@ public class ObjectIndexingService {
 
     public void indexIntellectualEntity(UUID intellectualEntityId,
             String ownerUserId,
-            String blockchainTxId,
+            @Nullable String blockchainTxId,
+            @Nullable String storageVersionId,
             PremisSnapshot snapshot,
             Map<String, Object> intellectualEntityDescriptiveFields) {
         ObjectAcl acl = buildDefaultAcl(intellectualEntityId, ownerUserId);
@@ -52,12 +54,18 @@ public class ObjectIndexingService {
             return;
         }
 
+        List<ObjectIndexDocument.Anchor> anchors = null;
+        if ((storageVersionId != null && !storageVersionId.isBlank())
+                || (blockchainTxId != null && !blockchainTxId.isBlank())) {
+            anchors = List.of(new ObjectIndexDocument.Anchor(storageVersionId, blockchainTxId, null));
+        }
+
         ObjectIndexDocument doc = new ObjectIndexDocument(
                 intellectualEntityId,
                 "INTELLECTUAL_ENTITY",
                 acl,
                 entity.getOriginalName(),
-                blockchainTxId,
+                anchors,
                 entity.getIdentifiers() == null ? List.of() : entity.getIdentifiers(),
                 entity.getRelationships() == null ? List.of() : entity.getRelationships(),
                 intellectualEntityDescriptiveFields == null || intellectualEntityDescriptiveFields.isEmpty()

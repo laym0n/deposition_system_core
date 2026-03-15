@@ -22,12 +22,25 @@ public record ObjectIndexDocument(
         @Nullable
         String originalName,
         @Nullable
-        String blockchainTxId,
+        List<Anchor> anchors,
         @Nullable
         List<ObjectIdentifier> identifiers,
         @Nullable
         List<Relationship> relationships,
         @Nullable
         Map<String, Object> descriptive) {
+
+    /**
+     * Anchoring info for a particular stored PREMIS version.
+     */
+    public record Anchor(
+            @Nullable
+            String storageVersionId,
+            @Nullable
+            String blockchainTxId,
+            @Nullable
+            String anchoredAt) {
+
+    }
 
 }

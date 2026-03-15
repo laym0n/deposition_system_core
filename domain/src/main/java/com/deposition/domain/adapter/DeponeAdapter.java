@@ -16,7 +16,6 @@ import com.deposition.domain.port.in.DeponeIntellectualEntityParams;
 import com.deposition.domain.port.in.DeponeRepresentationParam;
 import com.deposition.domain.port.in.DeponeResult;
 import com.deposition.domain.port.out.BlockchainOutPort;
-import com.deposition.domain.port.out.BlockchainTxIndexOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.domain.service.DepositionIndexingService;
 import com.deposition.domain.service.DescriptiveMetadataService;
@@ -30,7 +29,6 @@ public class DeponeAdapter implements DeponeInPort {
 
     private final FileStorageOutPort fileStorage;
     private final BlockchainOutPort blockchain;
-    private final BlockchainTxIndexOutPort blockchainTxIndex;
     private final PremisMetadataBuilder premisMetadataBuilder;
     private final PremisOwnershipValidator premisOwnershipValidator;
     private final DescriptiveMetadataService descriptiveMetadataService;
@@ -61,9 +59,8 @@ public class DeponeAdapter implements DeponeInPort {
         anchorRecord = blockchain.persistAnchorRecord(anchorRecord);
 
         depositionIndexingService.indexIntellectualEntity(metadataPremis, intellectualEntityId, anchorRecord.getTxId(),
-                descriptiveExtracted);
+                premisStorage.getVersionId(), descriptiveExtracted);
 
-        blockchainTxIndex.save(intellectualEntityId, premisStorage.getVersionId(), anchorRecord.getTxId());
         return new DeponeResult(intellectualEntityId, anchorRecord.getTxId());
     }
 

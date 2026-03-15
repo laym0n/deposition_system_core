@@ -97,7 +97,7 @@ public class OpenSearchObjectSearchAdapter implements ObjectSearchOutPort {
             return;
         }
 
-        bool.filter(f -> f.term(t -> t.field("blockchainTxId.keyword").value(FieldValue.of(request.txId()))));
+        bool.filter(f -> f.term(t -> t.field("anchors.blockchainTxId.keyword").value(FieldValue.of(request.txId()))));
     }
 
     private static void applyFullText(ObjectSearchRequest request, BoolQuery.Builder bool) {

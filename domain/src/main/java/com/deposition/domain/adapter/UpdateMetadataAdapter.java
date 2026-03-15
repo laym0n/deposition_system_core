@@ -13,8 +13,8 @@ import com.deposition.domain.port.in.UpdateMetadataInPort;
 import com.deposition.domain.port.in.UpdateMetadataParams;
 import com.deposition.domain.port.in.UpdateMetadataResult;
 import com.deposition.domain.port.out.BlockchainOutPort;
-import com.deposition.domain.port.out.BlockchainTxIndexOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
+import com.deposition.domain.service.DepositionIndexingService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,9 +25,9 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
 
     private final FileStorageOutPort fileStorage;
     private final BlockchainOutPort blockchain;
-    private final BlockchainTxIndexOutPort blockchainTxIndex;
     private final PremisOwnershipValidator premisOwnershipValidator;
     private final PremisMetadataUpdater premisMetadataUpdater;
+    private final DepositionIndexingService depositionIndexingService;
 
     @Override
     public UpdateMetadataResult updateMetadata(UUID objectId, UpdateMetadataParams params) {
@@ -58,7 +58,9 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
         var anchorRecord = buildAnchorRecord(updatedPremisResource);
         anchorRecord = blockchain.persistAnchorRecord(anchorRecord);
 
-        blockchainTxIndex.save(objectId, premisStorage.getVersionId(), anchorRecord.getTxId());
+        // Re-index object document with new versionId and txId.
+        depositionIndexingService.indexIntellectualEntity(update.premis(), objectId, anchorRecord.getTxId(),
+                premisStorage.getVersionId(), null);
 
         return new UpdateMetadataResult(objectId, anchorRecord.getTxId());
     }

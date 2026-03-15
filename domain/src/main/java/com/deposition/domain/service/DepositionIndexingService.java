@@ -22,14 +22,15 @@ public class DepositionIndexingService {
     public void indexIntellectualEntity(PremisComplexType premis,
             UUID intellectualEntityId,
             String blockchainTxId,
+            String storageVersionId,
             Map<String, Object> descriptiveExtractedFields) {
         var userId = resolveCurrentUserId();
         if (userId == null) {
             return;
         }
         var snapshot = premisSnapshotConverter.map(premis);
-        objectIndexingService.indexIntellectualEntity(intellectualEntityId, userId, blockchainTxId, snapshot,
-                descriptiveExtractedFields);
+        objectIndexingService.indexIntellectualEntity(intellectualEntityId, userId, blockchainTxId, storageVersionId,
+                snapshot, descriptiveExtractedFields);
     }
 
     private static String resolveCurrentUserId() {

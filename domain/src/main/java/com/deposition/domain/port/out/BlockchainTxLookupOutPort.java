@@ -5,10 +5,7 @@ import java.util.UUID;
 
 import jakarta.annotation.Nullable;
 
-// TODO переделать на использование 
-public interface BlockchainTxIndexOutPort {
+public interface BlockchainTxLookupOutPort {
 
     Optional<String> findTxId(UUID objectId, @Nullable String storageVersionId);
-
-    void save(UUID objectId, @Nullable String storageVersionId, String txId);
 }

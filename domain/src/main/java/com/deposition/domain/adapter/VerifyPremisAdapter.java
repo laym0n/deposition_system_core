@@ -11,7 +11,7 @@ import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.port.in.VerifyPremisInPort;
 import com.deposition.domain.port.in.VerifyPremisResult;
 import com.deposition.domain.port.out.BlockchainOutPort;
-import com.deposition.domain.port.out.BlockchainTxIndexOutPort;
+import com.deposition.domain.port.out.BlockchainTxLookupOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
 
 import jakarta.annotation.Nullable;
@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class VerifyPremisAdapter implements VerifyPremisInPort {
 
     private final FileStorageOutPort fileStorage;
-    private final BlockchainTxIndexOutPort blockchainTxIndex;
+    private final BlockchainTxLookupOutPort blockchainTxLookup;
     private final BlockchainOutPort blockchain;
     private final PremisOwnershipValidator premisOwnershipValidator;
 
@@ -44,7 +44,7 @@ public class VerifyPremisAdapter implements VerifyPremisInPort {
 
         var actualHash = ResourceHashCalculator.sha256(premisXml);
 
-        var txId = blockchainTxIndex.findTxId(objectId, versionId)
+        var txId = blockchainTxLookup.findTxId(objectId, versionId)
                 .orElseThrow(() -> new ObjectNotFoundException(objectId));
 
         var anchored = blockchain.loadAnchorRecord(txId);
