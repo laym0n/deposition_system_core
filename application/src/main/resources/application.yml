@@ -39,3 +39,13 @@ integration:
     access-key: ${integration.s3.access-key}
     secret-key: ${integration.s3.secret-key}
     bucket-name: ${integration.s3.bucket-name}
+
+statistics:
+  events:
+    executor:
+      thread-name-prefix: statistics-event-
+      daemon: true
+      core-pool-size: 1
+      maximum-pool-size: 2
+      keep-alive: 60s
+      allow-core-thread-time-out: false

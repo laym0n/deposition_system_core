@@ -1,0 +1,58 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-statistics-event
+      author: cline
+      changes:
+        - createTable:
+            tableName: statistics_event
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: event_type
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: object_id
+                  type: uuid
+                  constraints:
+                    nullable: true
+              - column:
+                  name: object_version
+                  type: varchar(256)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: user_id
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_timestamp
+                  type: timestamptz
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - createIndex:
+            tableName: statistics_event
+            indexName: idx_statistics_event_type_ts
+            columns:
+              - column:
+                  name: event_type
+              - column:
+                  name: event_timestamp
+
+        - createIndex:
+            tableName: statistics_event
+            indexName: idx_statistics_event_object_ts
+            columns:
+              - column:
+                  name: object_id
+              - column:
+                  name: event_timestamp

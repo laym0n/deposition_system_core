@@ -11,14 +11,17 @@ import com.deposition.domain.adapter.builder.CommonMetadataBuilder;
 import com.deposition.domain.adapter.builder.PremisMetadataBuilder;
 import com.deposition.domain.models.AnchorRecord;
 import com.deposition.domain.models.acl.AclPermission;
+import com.deposition.domain.models.statistics.StatisticsEventType;
 import com.deposition.domain.port.in.DeponeInPort;
 import com.deposition.domain.port.in.DeponeIntellectualEntityParams;
 import com.deposition.domain.port.in.DeponeRepresentationParam;
 import com.deposition.domain.port.in.DeponeResult;
 import com.deposition.domain.port.out.BlockchainOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
+import com.deposition.domain.port.out.UserService;
 import com.deposition.domain.service.DepositionIndexingService;
 import com.deposition.domain.service.DescriptiveMetadataService;
+import com.deposition.domain.service.StatisticsEventReporter;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +36,8 @@ public class DeponeAdapter implements DeponeInPort {
     private final PremisOwnershipValidator premisOwnershipValidator;
     private final DescriptiveMetadataService descriptiveMetadataService;
     private final DepositionIndexingService depositionIndexingService;
+    private final StatisticsEventReporter statisticsEventReporter;
+    private final UserService userService;
 
     @Override
     public DeponeResult depone(DeponeIntellectualEntityParams params) {
@@ -60,6 +65,13 @@ public class DeponeAdapter implements DeponeInPort {
 
         depositionIndexingService.indexIntellectualEntity(metadataPremis, intellectualEntityId, anchorRecord.getTxId(),
                 premisStorage.getVersionId(), descriptiveExtracted);
+
+        userService.getCurrentUserId()
+                .ifPresent(userId -> statisticsEventReporter.report(
+                StatisticsEventType.OBJECT_DEPOSIT,
+                intellectualEntityId,
+                null,
+                userId));
 
         return new DeponeResult(intellectualEntityId, anchorRecord.getTxId());
     }

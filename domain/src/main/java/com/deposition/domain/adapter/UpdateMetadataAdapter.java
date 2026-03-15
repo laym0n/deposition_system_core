@@ -9,12 +9,15 @@ import org.springframework.validation.annotation.Validated;
 import com.deposition.domain.exception.ObjectNotFoundException;
 import com.deposition.domain.models.AnchorRecord;
 import com.deposition.domain.models.acl.AclPermission;
+import com.deposition.domain.models.statistics.StatisticsEventType;
 import com.deposition.domain.port.in.UpdateMetadataInPort;
 import com.deposition.domain.port.in.UpdateMetadataParams;
 import com.deposition.domain.port.in.UpdateMetadataResult;
 import com.deposition.domain.port.out.BlockchainOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
+import com.deposition.domain.port.out.UserService;
 import com.deposition.domain.service.DepositionIndexingService;
+import com.deposition.domain.service.StatisticsEventReporter;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,6 +31,8 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
     private final PremisOwnershipValidator premisOwnershipValidator;
     private final PremisMetadataUpdater premisMetadataUpdater;
     private final DepositionIndexingService depositionIndexingService;
+    private final StatisticsEventReporter statisticsEventReporter;
+    private final UserService userService;
 
     @Override
     public UpdateMetadataResult updateMetadata(UUID objectId, UpdateMetadataParams params) {
@@ -58,9 +63,15 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
         var anchorRecord = buildAnchorRecord(updatedPremisResource);
         anchorRecord = blockchain.persistAnchorRecord(anchorRecord);
 
-        // Re-index object document with new versionId and txId.
         depositionIndexingService.indexIntellectualEntity(update.premis(), objectId, anchorRecord.getTxId(),
                 premisStorage.getVersionId(), null);
+
+        userService.getCurrentUserId()
+                .ifPresent(userId -> statisticsEventReporter.report(
+                StatisticsEventType.OBJECT_METADATA_UPDATE,
+                objectId,
+                null,
+                userId));
 
         return new UpdateMetadataResult(objectId, anchorRecord.getTxId());
     }

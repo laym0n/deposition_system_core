@@ -1,5 +1,7 @@
 package com.deposition.domain.config;
 
+import java.time.Clock;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -9,12 +11,18 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 
 @Configuration
 public class DomainConfig {
+
     @Bean
     public ObjectMapper objectMapper() {
         return JsonMapper.builder()
                 .findAndAddModules()
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .build();
+    }
+
+    @Bean
+    public Clock clock() {
+        return Clock.systemUTC();
     }
 
 }

@@ -8,11 +8,14 @@ import org.springframework.validation.annotation.Validated;
 
 import com.deposition.domain.exception.ObjectNotFoundException;
 import com.deposition.domain.models.acl.AclPermission;
+import com.deposition.domain.models.statistics.StatisticsEventType;
 import com.deposition.domain.port.in.VerifyPremisInPort;
 import com.deposition.domain.port.in.VerifyPremisResult;
 import com.deposition.domain.port.out.BlockchainOutPort;
 import com.deposition.domain.port.out.BlockchainTxLookupOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
+import com.deposition.domain.port.out.UserService;
+import com.deposition.domain.service.StatisticsEventReporter;
 
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +29,8 @@ public class VerifyPremisAdapter implements VerifyPremisInPort {
     private final BlockchainTxLookupOutPort blockchainTxLookup;
     private final BlockchainOutPort blockchain;
     private final PremisOwnershipValidator premisOwnershipValidator;
+    private final StatisticsEventReporter statisticsEventReporter;
+    private final UserService userService;
 
     @Override
     public VerifyPremisResult verifyPremis(UUID objectId, @Nullable String versionId) {
@@ -52,6 +57,13 @@ public class VerifyPremisAdapter implements VerifyPremisInPort {
         if (expectedHash == null || expectedHash.isBlank()) {
             return new VerifyPremisResult(false);
         }
+
+        userService.getCurrentUserId()
+                .ifPresent(userId -> statisticsEventReporter.report(
+                StatisticsEventType.PROOF_REQUEST,
+                objectId,
+                versionId,
+                userId));
 
         return new VerifyPremisResult(expectedHash.equalsIgnoreCase(actualHash));
     }
