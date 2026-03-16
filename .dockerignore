@@ -1,0 +1,14 @@
+# Git / IDE
+.git
+.idea
+.vscode
+
+# Maven / build outputs
+**/target
+**/.flattened-pom.xml
+
+# Local runtime data (used by docker-compose)
+data
+
+# OS junk
+**/.DS_Store
