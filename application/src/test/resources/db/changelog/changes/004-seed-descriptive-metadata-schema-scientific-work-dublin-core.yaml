@@ -39,8 +39,9 @@ databaseChangeLog:
                 $$,
                 true
               )
-              ON CONFLICT (entity_type)
+              ON CONFLICT (id)
               DO UPDATE SET
+                entity_type = EXCLUDED.entity_type,
                 schema_json = EXCLUDED.schema_json,
-                is_active = true,
+                is_active = EXCLUDED.is_active,
                 updated_at = CURRENT_TIMESTAMP;

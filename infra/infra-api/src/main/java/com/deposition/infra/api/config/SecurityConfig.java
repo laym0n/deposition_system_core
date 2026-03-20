@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -29,6 +30,7 @@ public class SecurityConfig {
                         "/swagger-ui.html")
                 .permitAll()
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+                .requestMatchers(HttpMethod.GET, "/descriptive-metadata/schemas/**").permitAll()
                 .anyRequest().authenticated())
                 .oauth2ResourceServer(oAuth2ResourceServerCustomizer)
                 .cors(Customizer.withDefaults())

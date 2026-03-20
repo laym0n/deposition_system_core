@@ -41,11 +41,6 @@ databaseChangeLog:
                   constraints:
                     nullable: false
 
-        - addUniqueConstraint:
-            tableName: descriptive_metadata_schema
-            columnNames: entity_type
-            constraintName: uq_descriptive_metadata_schema_entity_type
-
         - createIndex:
             tableName: descriptive_metadata_schema
             indexName: idx_descriptive_metadata_schema_active
