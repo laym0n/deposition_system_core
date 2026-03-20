@@ -26,6 +26,7 @@ import com.deposition.domain.port.in.DeponeIntellectualEntityParams;
 import com.deposition.domain.port.in.DeponeRepresentationParam;
 import com.deposition.domain.port.in.DeponeResult;
 import com.deposition.domain.port.in.FileMetadataParam;
+import com.deposition.domain.port.in.GetCachedObjectMetadataInPort;
 import com.deposition.domain.port.in.GetPremisMetadataInPort;
 import com.deposition.domain.port.in.IntellectualEntityMetadataParam;
 import com.deposition.domain.port.in.IntellectualEntityType;
@@ -38,6 +39,7 @@ import com.deposition.domain.port.in.UpdateMetadataParams;
 import com.deposition.domain.port.in.UpdateMetadataResult;
 import com.deposition.domain.port.in.VerifyPremisInPort;
 import com.deposition.domain.port.in.VerifyPremisResult;
+import com.deposition.domain.port.in.dto.CachedObjectMetadataResponse;
 
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
@@ -53,6 +55,7 @@ public class DepositionController {
     private final DeponeInPort deponeInPort;
     private final UpdateMetadataInPort updateMetadataInPort;
     private final GetPremisMetadataInPort getPremisMetadataInPort;
+    private final GetCachedObjectMetadataInPort getCachedObjectMetadataInPort;
     private final VerifyPremisInPort verifyPremisInPort;
     private final SearchObjectsInPort searchObjectsInPort;
 
@@ -129,6 +132,17 @@ public class DepositionController {
             @RequestParam(name = "versionId", required = false) String versionId) {
         var premis = getPremisMetadataInPort.getPremisMetadata(objectId, versionId);
         return ResponseEntity.ok(premis);
+    }
+
+    @GetMapping(value = "/objects/{objectId}/cached-metadata", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CachedObjectMetadataResponse> getCachedMetadata(
+            @PathVariable("objectId") UUID objectId,
+            org.springframework.security.core.Authentication authentication) {
+        String userId = (authentication != null && authentication.isAuthenticated())
+                ? authentication.getName()
+                : null;
+        var result = getCachedObjectMetadataInPort.getCachedMetadata(objectId, userId);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping(value = "/objects/{objectId}/verify", produces = MediaType.APPLICATION_JSON_VALUE)

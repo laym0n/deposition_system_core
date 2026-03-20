@@ -31,4 +31,5 @@ public class ObjectAcl {
                 .filter(Objects::nonNull)
                 .anyMatch(entry -> entry.isForUser(userId) && entry.hasPermission(permission));
     }
+
 }

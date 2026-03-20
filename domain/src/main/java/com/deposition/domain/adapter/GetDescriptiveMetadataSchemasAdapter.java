@@ -26,8 +26,7 @@ public class GetDescriptiveMetadataSchemasAdapter implements GetDescriptiveMetad
 
         return schemaOutPort.findSchemas(outFilter)
                 .stream()
-                .map(s -> new DescriptiveMetadataSchemaSummary(
-                s.id(),
+                .map(s -> new DescriptiveMetadataSchemaSummary(s.id(),
                 IntellectualEntityType.valueOf(s.entityType()),
                 s.active(),
                 s.createdAt(),

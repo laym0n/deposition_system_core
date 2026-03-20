@@ -1,5 +1,6 @@
 package com.deposition.infra.api.controller;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -20,7 +21,6 @@ import com.deposition.domain.exception.DescriptiveMetadataSchemaNotFoundExceptio
 import com.deposition.domain.models.DescriptiveMetadataSchema;
 import com.deposition.domain.port.in.CreateDescriptiveMetadataSchemaInPort;
 import com.deposition.domain.port.in.GetDescriptiveMetadataSchemaByIdInPort;
-import com.deposition.domain.port.in.GetDescriptiveMetadataSchemaInPort;
 import com.deposition.domain.port.in.GetDescriptiveMetadataSchemasInPort;
 import com.deposition.domain.port.in.IntellectualEntityType;
 import com.deposition.domain.port.in.UpdateDescriptiveMetadataSchemaActiveInPort;
@@ -34,7 +34,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DescriptiveMetadataSchemaController {
 
-    private final GetDescriptiveMetadataSchemaInPort getDescriptiveMetadataSchemaInPort;
     private final GetDescriptiveMetadataSchemaByIdInPort getDescriptiveMetadataSchemaByIdInPort;
     private final GetDescriptiveMetadataSchemasInPort getDescriptiveMetadataSchemasInPort;
     private final CreateDescriptiveMetadataSchemaInPort createDescriptiveMetadataSchemaInPort;
@@ -42,18 +41,9 @@ public class DescriptiveMetadataSchemaController {
 
     @GetMapping(value = "/descriptive-metadata/schemas", produces = MediaType.APPLICATION_JSON_VALUE)
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<?> getSchemas(
+    public ResponseEntity<List<DescriptiveMetadataSchemaSummaryDto>> getSchemas(
             @RequestParam(name = "entityType", required = false) IntellectualEntityType entityType,
-            @RequestParam(name = "objectType", required = false) IntellectualEntityType objectType,
             @RequestParam(name = "active", required = false) Boolean active) {
-
-        // Backward-compatible: if user asks for schema for particular object type
-        // return JSON schema itself.
-        if (objectType != null) {
-            var schema = getDescriptiveMetadataSchemaInPort.getSchema(objectType);
-            return ResponseEntity.ok(schema);
-        }
-
         var effectiveEntityType = entityType;
         var filter = new GetDescriptiveMetadataSchemasInPort.DescriptiveMetadataSchemaFilter(effectiveEntityType, active);
         var schemas = getDescriptiveMetadataSchemasInPort.getSchemas(filter);

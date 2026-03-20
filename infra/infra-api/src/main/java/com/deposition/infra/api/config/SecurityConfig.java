@@ -31,6 +31,7 @@ public class SecurityConfig {
                 .permitAll()
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
                 .requestMatchers(HttpMethod.GET, "/descriptive-metadata/schemas/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/objects/*/cached-metadata").permitAll()
                 .anyRequest().authenticated())
                 .oauth2ResourceServer(oAuth2ResourceServerCustomizer)
                 .cors(Customizer.withDefaults())
