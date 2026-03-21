@@ -37,9 +37,14 @@ import com.deposition.domain.port.in.SearchObjectsResult;
 import com.deposition.domain.port.in.UpdateMetadataInPort;
 import com.deposition.domain.port.in.UpdateMetadataParams;
 import com.deposition.domain.port.in.UpdateMetadataResult;
+import com.deposition.domain.port.in.UpsertRightsStatementInPort;
+import com.deposition.domain.port.in.RecordObjectEventInPort;
 import com.deposition.domain.port.in.VerifyPremisInPort;
 import com.deposition.domain.port.in.VerifyPremisResult;
 import com.deposition.domain.port.in.dto.CachedObjectMetadataResponse;
+import com.deposition.domain.port.in.dto.DepositionResult;
+import com.deposition.domain.port.in.dto.UpsertRightsStatementRequest;
+import com.deposition.domain.port.in.dto.RecordObjectEventRequest;
 
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
@@ -56,6 +61,8 @@ public class DepositionController {
     private final UpdateMetadataInPort updateMetadataInPort;
     private final GetPremisMetadataInPort getPremisMetadataInPort;
     private final GetCachedObjectMetadataInPort getCachedObjectMetadataInPort;
+    private final UpsertRightsStatementInPort upsertRightsStatementInPort;
+    private final RecordObjectEventInPort recordObjectEventInPort;
     private final VerifyPremisInPort verifyPremisInPort;
     private final SearchObjectsInPort searchObjectsInPort;
 
@@ -156,8 +163,37 @@ public class DepositionController {
 
     @PostMapping(value = "/objects/search", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<SearchObjectsResult> searchObjects(@RequestBody @jakarta.validation.Valid ObjectSearchRequest request) {
+    public ResponseEntity<SearchObjectsResult> searchObjects(
+            @RequestBody @jakarta.validation.Valid ObjectSearchRequest request) {
         var result = searchObjectsInPort.search(request);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping(value = "/objects/{objectId}/rights-statement", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<DepositionResult> upsertRightsStatement(
+            @PathVariable("objectId") UUID objectId,
+            @RequestBody @jakarta.validation.Valid UpsertRightsStatementRequest request) {
+        var result = upsertRightsStatementInPort.upsertRightsStatement(objectId, request);
+        return ResponseEntity.ok(result);
+    }
+
+    @PatchMapping(value = "/objects/{objectId}/rights-statements/{rightsStatementId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<DepositionResult> updateRightsStatement(
+            @PathVariable("objectId") UUID objectId,
+            @PathVariable("rightsStatementId") String rightsStatementId,
+            @RequestBody @jakarta.validation.Valid UpsertRightsStatementRequest request) {
+        var result = upsertRightsStatementInPort.updateRightsStatement(objectId, rightsStatementId, request);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping(value = "/objects/{objectId}/events", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<DepositionResult> recordEvent(
+            @PathVariable("objectId") UUID objectId,
+            @RequestBody @jakarta.validation.Valid RecordObjectEventRequest request) {
+        var result = recordObjectEventInPort.recordEvent(objectId, request);
         return ResponseEntity.ok(result);
     }
 
@@ -171,8 +207,7 @@ public class DepositionController {
                 }
             };
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to read multipart file: " + file.getOriginalFilename(),
-                    e);
+            throw new IllegalStateException("Failed to read multipart file: " + file.getOriginalFilename(), e);
         }
     }
 
