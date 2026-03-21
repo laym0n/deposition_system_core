@@ -3,8 +3,6 @@ package com.deposition.domain.service.acl;
 import java.util.UUID;
 
 import org.springframework.core.io.Resource;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import com.deposition.domain.dto.schema.premis.v3.converter.PremisSnapshotConverter;
@@ -14,6 +12,7 @@ import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.acl.ObjectAcl;
 import com.deposition.domain.port.out.AclOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
+import com.deposition.domain.port.out.UserOutPort;
 import com.deposition.domain.service.XmlUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -26,9 +25,10 @@ public final class AccessValidatorService {
     private final AclOutPort aclOutPort;
     private final PremisSnapshotConverter premisSnapshotConverter;
     private final AclMapper aclMapper;
+    private final UserOutPort userOutPort;
 
     public void validateCurrentUserHasPermission(UUID objectId, AclPermission permission) {
-        var currentUserId = resolveCurrentUserId();
+        var currentUserId = userOutPort.getCurrentUserId();
         if (currentUserId == null) {
             throw new IllegalArgumentException("Unauthenticated request: cannot validate object permissions");
         }
@@ -56,11 +56,4 @@ public final class AccessValidatorService {
         return aclOutPort.save(acl);
     }
 
-    private static String resolveCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return null;
-        }
-        return authentication.getName();
-    }
 }

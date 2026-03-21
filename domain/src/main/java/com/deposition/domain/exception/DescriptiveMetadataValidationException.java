@@ -2,7 +2,7 @@ package com.deposition.domain.exception;
 
 import java.util.List;
 
-public class DescriptiveMetadataValidationException extends RuntimeException {
+public class DescriptiveMetadataValidationException extends ModuleException {
 
     private final List<String> errors;
 

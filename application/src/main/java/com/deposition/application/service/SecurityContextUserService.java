@@ -5,13 +5,13 @@ import java.util.Optional;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import com.deposition.domain.port.out.UserService;
+import com.deposition.domain.port.out.UserOutPort;
 
 @Component
-public class SecurityContextUserService implements UserService {
+public class SecurityContextUserService implements UserOutPort {
 
     @Override
-    public Optional<String> getCurrentUserId() {
+    public Optional<String> getOptinalCurrentUserId() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             return Optional.empty();

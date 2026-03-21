@@ -18,7 +18,7 @@ import com.deposition.domain.port.in.DeponeRepresentationParam;
 import com.deposition.domain.port.in.DeponeResult;
 import com.deposition.domain.port.out.BlockchainOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
-import com.deposition.domain.port.out.UserService;
+import com.deposition.domain.port.out.UserOutPort;
 import com.deposition.domain.service.DepositionIndexingService;
 import com.deposition.domain.service.DescriptiveMetadataService;
 import com.deposition.domain.service.ResourceHashCalculatorUtils;
@@ -40,7 +40,7 @@ public class DeponeAdapter implements DeponeInPort {
     private final DescriptiveMetadataService descriptiveMetadataService;
     private final DepositionIndexingService depositionIndexingService;
     private final StatisticsEventReporter statisticsEventReporter;
-    private final UserService userService;
+    private final UserOutPort userService;
 
     @Override
     public DeponeResult depone(DeponeIntellectualEntityParams params) {
@@ -69,7 +69,7 @@ public class DeponeAdapter implements DeponeInPort {
         depositionIndexingService.indexIntellectualEntity(metadataPremis, intellectualEntityId, txId,
                 premisStorage.getVersionId(), descriptiveExtracted);
 
-        userService.getCurrentUserId()
+        userService.getOptinalCurrentUserId()
                 .ifPresent(userId -> statisticsEventReporter.report(
                 StatisticsEventType.OBJECT_DEPOSIT,
                 intellectualEntityId,

@@ -1,7 +1,5 @@
 package com.deposition.domain.adapter.object;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
@@ -9,6 +7,7 @@ import com.deposition.domain.port.in.ObjectSearchRequest;
 import com.deposition.domain.port.in.SearchObjectsInPort;
 import com.deposition.domain.port.in.SearchObjectsResult;
 import com.deposition.domain.port.out.ObjectSearchOutPort;
+import com.deposition.domain.port.out.UserOutPort;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,10 +17,11 @@ import lombok.RequiredArgsConstructor;
 public class SearchObjectsAdapter implements SearchObjectsInPort {
 
     private final ObjectSearchOutPort searchOutPort;
+    private final UserOutPort userOutPort;
 
     @Override
     public SearchObjectsResult search(ObjectSearchRequest request) {
-        var userId = resolveCurrentUserId();
+        var userId = userOutPort.getCurrentUserId();
         if (userId == null) {
             throw new IllegalArgumentException("Unauthenticated request: cannot search objects");
         }
@@ -29,11 +29,4 @@ public class SearchObjectsAdapter implements SearchObjectsInPort {
         return searchOutPort.search(userId, request);
     }
 
-    private static String resolveCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return null;
-        }
-        return authentication.getName();
-    }
 }

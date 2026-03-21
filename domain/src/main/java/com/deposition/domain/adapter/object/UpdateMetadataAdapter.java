@@ -15,7 +15,7 @@ import com.deposition.domain.port.in.UpdateMetadataParams;
 import com.deposition.domain.port.in.UpdateMetadataResult;
 import com.deposition.domain.port.out.BlockchainOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
-import com.deposition.domain.port.out.UserService;
+import com.deposition.domain.port.out.UserOutPort;
 import com.deposition.domain.service.DepositionIndexingService;
 import com.deposition.domain.service.ResourceHashCalculatorUtils;
 import com.deposition.domain.service.StatisticsEventReporter;
@@ -35,7 +35,7 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
     private final PremisMetadataUpdater premisMetadataUpdater;
     private final DepositionIndexingService depositionIndexingService;
     private final StatisticsEventReporter statisticsEventReporter;
-    private final UserService userService;
+    private final UserOutPort userService;
 
     @Override
     public UpdateMetadataResult updateMetadata(UUID objectId, UpdateMetadataParams params) {
@@ -69,7 +69,7 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
         depositionIndexingService.indexIntellectualEntity(update.premis(), objectId, txId,
                 premisStorage.getVersionId(), null);
 
-        userService.getCurrentUserId()
+        userService.getOptinalCurrentUserId()
                 .ifPresent(userId -> statisticsEventReporter.report(
                 StatisticsEventType.OBJECT_METADATA_UPDATE,
                 objectId,
