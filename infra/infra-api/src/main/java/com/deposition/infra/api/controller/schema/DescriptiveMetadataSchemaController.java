@@ -1,4 +1,4 @@
-package com.deposition.infra.api.controller;
+package com.deposition.infra.api.controller.schema;
 
 import java.util.List;
 import java.util.Map;
@@ -7,7 +7,6 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.deposition.domain.exception.DescriptiveMetadataSchemaNotFoundException;
 import com.deposition.domain.models.DescriptiveMetadataSchema;
 import com.deposition.domain.port.in.CreateDescriptiveMetadataSchemaInPort;
 import com.deposition.domain.port.in.GetDescriptiveMetadataSchemaByIdInPort;
@@ -79,12 +77,6 @@ public class DescriptiveMetadataSchemaController {
                 schemaId,
                 new UpdateDescriptiveMetadataSchemaActiveInPort.UpdateActiveCommand(request.active()));
         return ResponseEntity.ok(DescriptiveMetadataSchemaDto.from(updated));
-    }
-
-    @ExceptionHandler(DescriptiveMetadataSchemaNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleSchemaNotFound(DescriptiveMetadataSchemaNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("reason", ex.getMessage()));
     }
 
     public record DescriptiveMetadataSchemaSummaryDto(
