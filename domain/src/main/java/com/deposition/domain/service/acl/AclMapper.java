@@ -15,6 +15,7 @@ import com.deposition.domain.models.acl.AclPrincipalType;
 import com.deposition.domain.models.acl.ObjectAcl;
 import com.deposition.domain.models.enums.EventType;
 import com.deposition.domain.models.enums.ObjectIdentifierType;
+import com.deposition.domain.models.enums.AgentIdentifierType;
 
 @Component
 public final class AclMapper {
@@ -35,8 +36,7 @@ public final class AclMapper {
                 .filter(Objects::nonNull)
                 .map(link -> link.getAgentIdentifier())
                 .filter(Objects::nonNull)
-                .filter(agentIdentifier -> agentIdentifier.getType() != null
-                && agentIdentifier.getType().name().equalsIgnoreCase("LOCAL"))
+                .filter(agentIdentifier -> agentIdentifier.getType() == AgentIdentifierType.SYSTEM)
                 .map(agentIdentifier -> agentIdentifier.getValue())
                 .filter(Objects::nonNull)
                 .filter(value -> !value.isBlank())
@@ -66,7 +66,7 @@ public final class AclMapper {
                 .filter(Objects::nonNull)
                 .map(link -> link.getObjectIdentifier())
                 .filter(Objects::nonNull)
-                .anyMatch(identifier -> identifier.getType() == ObjectIdentifierType.LOCAL
+                .anyMatch(identifier -> identifier.getType() == ObjectIdentifierType.SYSTEM
                 && Objects.equals(identifier.getValue(), objectId.toString()));
     }
 }

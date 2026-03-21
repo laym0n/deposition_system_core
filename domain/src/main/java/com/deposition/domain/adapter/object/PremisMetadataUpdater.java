@@ -264,7 +264,7 @@ final class PremisMetadataUpdater {
                 continue;
             }
             var type = id.getObjectIdentifierType().getValue();
-            if (!Objects.equals(ObjectIdentifierType.LOCAL.name(), type)) {
+            if (!Objects.equals(ObjectIdentifierType.SYSTEM.name(), type)) {
                 continue;
             }
             var value = id.getObjectIdentifierValue();
@@ -309,12 +309,12 @@ final class PremisMetadataUpdater {
 
         var event = EventMetadata.builder()
                 .id(eventId)
-                .identifier(new EventIdentifier(EventIdentifierType.LOCAL, eventId.toString()))
+                .identifier(new EventIdentifier(EventIdentifierType.SYSTEM, eventId.toString()))
                 .type(EventType.METADATA_MODIFICATION)
                 .dateTime(OffsetDateTime.now())
                 .detail(List.of(new EventDetailInformation("Metadata updated via REST API")))
                 .objectLinks(List.of(new EventObjectLink(
-                        new ObjectIdentifier(ObjectIdentifierType.LOCAL, objectId.toString()),
+                        new ObjectIdentifier(ObjectIdentifierType.SYSTEM, objectId.toString()),
                         List.of(EventObjectLinkRole.OUTCOME))))
                 .agentLinks(buildAgentLinks(authentication))
                 .build();
@@ -329,7 +329,7 @@ final class PremisMetadataUpdater {
         if (authentication == null || !authentication.isAuthenticated()) {
             return List.of();
         }
-        var agentIdentifier = new AgentIdentifier(AgentIdentifierType.LOCAL, authentication.getName());
+        var agentIdentifier = new AgentIdentifier(AgentIdentifierType.SYSTEM, authentication.getName());
         return List.of(new EventAgentLink(agentIdentifier, List.of(EventAgentLinkRole.AUTHORIZER)));
     }
 
@@ -358,7 +358,7 @@ final class PremisMetadataUpdater {
                 .name(agentId)
                 .type(com.deposition.domain.models.enums.AgentType.PERSON)
                 .identifiers(List.of(Identifier.builder()
-                        .type(ObjectIdentifierType.LOCAL.name())
+                        .type(ObjectIdentifierType.SYSTEM.name())
                         .value(agentId)
                         .build()))
                 .build();

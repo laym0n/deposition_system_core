@@ -77,12 +77,12 @@ public class RecordObjectEventAdapter implements RecordObjectEventInPort {
 
         var event = EventMetadata.builder()
                 .id(eventId)
-                .identifier(new EventIdentifier(EventIdentifierType.LOCAL, eventId.toString()))
+                .identifier(new EventIdentifier(EventIdentifierType.SYSTEM, eventId.toString()))
                 .type(request.type())
                 .dateTime(OffsetDateTime.now())
                 .detail(List.of(new EventDetailInformation(request.detail())))
                 .objectLinks(List.of(new EventObjectLink(
-                        new ObjectIdentifier(ObjectIdentifierType.LOCAL, objectId.toString()),
+                        new ObjectIdentifier(ObjectIdentifierType.SYSTEM, objectId.toString()),
                         List.of(EventObjectLinkRole.OUTCOME))))
                 .agentLinks(buildAgentLinks(authentication))
                 .build();
@@ -128,7 +128,7 @@ public class RecordObjectEventAdapter implements RecordObjectEventInPort {
         if (userId == null || userId.isBlank()) {
             return List.of();
         }
-        var agentIdentifier = new AgentIdentifier(AgentIdentifierType.LOCAL, userId);
+        var agentIdentifier = new AgentIdentifier(AgentIdentifierType.SYSTEM, userId);
         return List.of(new EventAgentLink(agentIdentifier, List.of(EventAgentLinkRole.AUTHORIZER)));
     }
 
@@ -155,7 +155,7 @@ public class RecordObjectEventAdapter implements RecordObjectEventInPort {
                 .name(agentId)
                 .type(com.deposition.domain.models.enums.AgentType.PERSON)
                 .identifiers(List.of(com.deposition.domain.models.valueobject.Identifier.builder()
-                        .type(ObjectIdentifierType.LOCAL.name())
+                        .type(ObjectIdentifierType.SYSTEM.name())
                         .value(agentId)
                         .build()))
                 .build();

@@ -108,12 +108,12 @@ public final class RightsStatementPremisUpdater {
 
         var event = EventMetadata.builder()
                 .id(eventId)
-                .identifier(new EventIdentifier(EventIdentifierType.LOCAL, eventId.toString()))
+                .identifier(new EventIdentifier(EventIdentifierType.SYSTEM, eventId.toString()))
                 .type(EventType.METADATA_MODIFICATION)
                 .dateTime(OffsetDateTime.now())
                 .detail(List.of(new EventDetailInformation(detail)))
                 .objectLinks(List.of(new EventObjectLink(
-                        new ObjectIdentifier(ObjectIdentifierType.LOCAL, objectId.toString()),
+                        new ObjectIdentifier(ObjectIdentifierType.SYSTEM, objectId.toString()),
                         List.of(EventObjectLinkRole.OUTCOME))))
                 .agentLinks(buildAgentLinks(authentication))
                 .build();
@@ -127,7 +127,7 @@ public final class RightsStatementPremisUpdater {
         if (authentication == null || !authentication.isAuthenticated()) {
             return List.of();
         }
-        var agentIdentifier = new AgentIdentifier(AgentIdentifierType.LOCAL, authentication.getName());
+        var agentIdentifier = new AgentIdentifier(AgentIdentifierType.SYSTEM, authentication.getName());
         return List.of(new EventAgentLink(agentIdentifier, List.of(EventAgentLinkRole.AUTHORIZER)));
     }
 
@@ -152,7 +152,7 @@ public final class RightsStatementPremisUpdater {
                 .name(agentId)
                 .type(com.deposition.domain.models.enums.AgentType.PERSON)
                 .identifiers(List.of(Identifier.builder()
-                        .type(ObjectIdentifierType.LOCAL.name())
+                        .type(ObjectIdentifierType.SYSTEM.name())
                         .value(agentId)
                         .build()))
                 .build();
@@ -396,7 +396,7 @@ public final class RightsStatementPremisUpdater {
 
     private LinkingObjectIdentifierComplexType buildLinkingObjectIdentifier(UUID objectId) {
         var link = new LinkingObjectIdentifierComplexType();
-        link.setLinkingObjectIdentifierType(toStringPlusAuthority(ObjectIdentifierType.LOCAL.name()));
+        link.setLinkingObjectIdentifierType(toStringPlusAuthority(ObjectIdentifierType.SYSTEM.name()));
         link.setLinkingObjectIdentifierValue(objectId.toString());
         link.getLinkingObjectRole().add(toStringPlusAuthority("SUBJECT"));
         return link;

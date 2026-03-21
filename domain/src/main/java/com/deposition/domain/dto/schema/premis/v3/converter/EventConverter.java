@@ -22,6 +22,7 @@ import com.deposition.domain.models.valueobject.EventOutcomeInformation;
 
 @Mapper(componentModel = "spring", unmappedSourcePolicy = ReportingPolicy.ERROR, uses = CommonConverter.class)
 public abstract class EventConverter {
+
     @Autowired
     private CommonConverter commonConverter;
 
@@ -58,7 +59,7 @@ public abstract class EventConverter {
     protected void convertNameToUpperCase(@MappingTarget EventComplexType eventComplexType,
             EventMetadata eventMetadata) {
         var eventIdentifier = new EventIdentifierComplexType();
-        eventIdentifier.setEventIdentifierType(commonConverter.toStringPlusAuthority(EventIdentifierType.LOCAL.name()));
+        eventIdentifier.setEventIdentifierType(commonConverter.toStringPlusAuthority(EventIdentifierType.SYSTEM.name()));
         eventIdentifier.setEventIdentifierValue(eventMetadata.getId().toString());
         eventComplexType.setEventIdentifier(eventIdentifier);
     }

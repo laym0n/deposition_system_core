@@ -85,7 +85,7 @@ public final class PremisMetadataBuilder {
                 .name(agentId)
                 .type(AgentType.PERSON)
                 .identifiers(List.of(Identifier.builder()
-                        .type(ObjectIdentifierType.LOCAL.name())
+                        .type(ObjectIdentifierType.SYSTEM.name())
                         .value(agentId)
                         .build()))
                 .build();

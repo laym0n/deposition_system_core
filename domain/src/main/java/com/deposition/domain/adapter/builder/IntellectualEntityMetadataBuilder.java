@@ -52,7 +52,7 @@ final class IntellectualEntityMetadataBuilder {
                                                 .map(representationObjectId -> {
                                                     return (RelationObjectIdentifier) RelationObjectIdentifier
                                                             .builder()
-                                                            .type(ObjectIdentifierType.LOCAL)
+                                                            .type(ObjectIdentifierType.SYSTEM)
                                                             .value(representationObjectId
                                                                     .toString())
                                                             .build();

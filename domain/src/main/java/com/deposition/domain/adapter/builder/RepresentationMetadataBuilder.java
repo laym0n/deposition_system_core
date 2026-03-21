@@ -41,7 +41,7 @@ final class RepresentationMetadataBuilder {
                                         fileObjectIds.stream()
                                                 .map(fileObjectId -> (RelationObjectIdentifier) RelationObjectIdentifier
                                                 .builder()
-                                                .type(ObjectIdentifierType.LOCAL)
+                                                .type(ObjectIdentifierType.SYSTEM)
                                                 .value(fileObjectId
                                                         .toString())
                                                 .build())

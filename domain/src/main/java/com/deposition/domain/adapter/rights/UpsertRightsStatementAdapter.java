@@ -211,7 +211,7 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
                         .name(grant.userId())
                         .type(com.deposition.domain.models.enums.AgentType.PERSON)
                         .identifiers(List.of(com.deposition.domain.models.valueobject.Identifier.builder()
-                                .type(ObjectIdentifierType.LOCAL.name())
+                                .type(ObjectIdentifierType.SYSTEM.name())
                                 .value(grant.userId())
                                 .build()))
                         .build());

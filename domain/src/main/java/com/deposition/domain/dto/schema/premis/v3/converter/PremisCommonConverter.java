@@ -43,7 +43,11 @@ public abstract class PremisCommonConverter {
         if (raw == null || raw.isBlank()) {
             return null;
         }
-        return ObjectIdentifierType.valueOf(raw.toUpperCase());
+        try {
+            return ObjectIdentifierType.valueOf(raw.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            return ObjectIdentifierType.OTHER;
+        }
     }
 
     @Named("toObjectRelationshipType")
@@ -90,7 +94,11 @@ public abstract class PremisCommonConverter {
         if (raw == null || raw.isBlank()) {
             return null;
         }
-        return EventIdentifierType.valueOf(raw.toUpperCase());
+        try {
+            return EventIdentifierType.valueOf(raw.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            return EventIdentifierType.SYSTEM;
+        }
     }
 
     @Named("toAgentIdentifierType")
@@ -99,7 +107,11 @@ public abstract class PremisCommonConverter {
         if (raw == null || raw.isBlank()) {
             return null;
         }
-        return AgentIdentifierType.valueOf(raw.toUpperCase());
+        try {
+            return AgentIdentifierType.valueOf(raw.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            return AgentIdentifierType.SYSTEM;
+        }
     }
 
     @Mapping(target = "type", source = "linkingAgentIdentifierType", qualifiedByName = "toAgentIdentifierType")
@@ -124,7 +136,7 @@ public abstract class PremisCommonConverter {
                 continue;
             }
             var type = unwrapStringPlusAuthority(objectIdentifier.getObjectIdentifierType());
-            if (!Objects.equals(ObjectIdentifierType.LOCAL.name(), type)) {
+            if (!Objects.equals(ObjectIdentifierType.SYSTEM.name(), type)) {
                 continue;
             }
             var value = objectIdentifier.getObjectIdentifierValue();

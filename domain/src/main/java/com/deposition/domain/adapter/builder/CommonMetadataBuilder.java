@@ -45,7 +45,7 @@ public final class CommonMetadataBuilder {
                 .dateTime(OffsetDateTime.now())
                 .objectLinks(List.of(new EventObjectLink(
                         new ObjectIdentifier(
-                                ObjectIdentifierType.LOCAL, objectId.toString()),
+                                ObjectIdentifierType.SYSTEM, objectId.toString()),
                         List.of(EventObjectLinkRole.OUTCOME))))
                 .agentLinks(buildAgentLinks(authentication))
                 .build();
@@ -56,7 +56,7 @@ public final class CommonMetadataBuilder {
         if (authentication == null || !authentication.isAuthenticated()) {
             return List.of();
         }
-        var agentIdentifier = new AgentIdentifier(AgentIdentifierType.LOCAL, authentication.getName());
+        var agentIdentifier = new AgentIdentifier(AgentIdentifierType.SYSTEM, authentication.getName());
         return List.of(new EventAgentLink(agentIdentifier, List.of(EventAgentLinkRole.AUTHORIZER)));
     }
 

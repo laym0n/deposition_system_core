@@ -30,6 +30,7 @@ import com.deposition.domain.models.valueobject.Relationship;
 
 @Mapper(componentModel = "spring", unmappedSourcePolicy = ReportingPolicy.ERROR)
 public abstract class CommonConverter {
+
     protected static final String PREMIS_VERSION = "3.0";
 
     @Mapping(target = "authority", ignore = true)
@@ -73,16 +74,20 @@ public abstract class CommonConverter {
             AbstractObjectMetadata objectMetadata) {
         List<ObjectIdentifierComplexType> objectIdentifiers;
         switch (objectComplexType) {
-            case File file -> objectIdentifiers = file.getObjectIdentifier();
-            case IntellectualEntity intellectualEntity -> objectIdentifiers = intellectualEntity.getObjectIdentifier();
-            case Representation representation -> objectIdentifiers = representation.getObjectIdentifier();
-            case Bitstream bitstream -> objectIdentifiers = bitstream.getObjectIdentifier();
+            case File file ->
+                objectIdentifiers = file.getObjectIdentifier();
+            case IntellectualEntity intellectualEntity ->
+                objectIdentifiers = intellectualEntity.getObjectIdentifier();
+            case Representation representation ->
+                objectIdentifiers = representation.getObjectIdentifier();
+            case Bitstream bitstream ->
+                objectIdentifiers = bitstream.getObjectIdentifier();
             default -> {
                 return;
             }
         }
         var objectIdentifier = new ObjectIdentifierComplexType();
-        objectIdentifier.setObjectIdentifierType(toStringPlusAuthority(ObjectIdentifierType.LOCAL.name()));
+        objectIdentifier.setObjectIdentifierType(toStringPlusAuthority(ObjectIdentifierType.SYSTEM.name()));
         objectIdentifier.setObjectIdentifierValue(objectMetadata.getId().toString());
         objectIdentifiers.add(objectIdentifier);
     }
