@@ -6,13 +6,14 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
+import com.deposition.domain.exception.ModuleException;
 import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.AnchorRecord;
 import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.statistics.StatisticsEventType;
+import com.deposition.domain.port.in.common.DepositionResult;
 import com.deposition.domain.port.in.object.UpdateMetadataInPort;
 import com.deposition.domain.port.in.object.UpdateMetadataParams;
-import com.deposition.domain.port.in.object.UpdateMetadataResult;
 import com.deposition.domain.port.out.BlockchainOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.domain.port.out.UserOutPort;
@@ -38,7 +39,7 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
     private final UserOutPort userService;
 
     @Override
-    public UpdateMetadataResult updateMetadata(UUID objectId, UpdateMetadataParams params) {
+    public DepositionResult updateMetadata(UUID objectId, UpdateMetadataParams params) {
         if (objectId == null) {
             throw new IllegalArgumentException("objectId must not be null");
         }
@@ -56,7 +57,7 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
 
         var update = premisMetadataUpdater.applyUpdate(premis, objectId, params);
         if (!update.updated()) {
-            return new UpdateMetadataResult(objectId, null);
+            throw new ModuleException("Not updated");
         }
 
         var updatedPremisResource = XmlUtils.createXmlResource(update.premis(), "deposition-metadata");
@@ -73,10 +74,10 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
                 .ifPresent(userId -> statisticsEventReporter.report(
                 StatisticsEventType.OBJECT_METADATA_UPDATE,
                 objectId,
-                null,
+                premisStorage.getVersionId(),
                 userId));
 
-        return new UpdateMetadataResult(objectId, txId);
+        return new DepositionResult(objectId, txId, premisStorage.getVersionId());
     }
 
     private static AnchorRecord buildAnchorRecord(UUID objectId, String versionId, Resource premisMetadata) {

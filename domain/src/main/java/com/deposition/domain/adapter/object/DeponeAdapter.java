@@ -12,10 +12,10 @@ import com.deposition.domain.adapter.builder.PremisMetadataBuilder;
 import com.deposition.domain.models.AnchorRecord;
 import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.statistics.StatisticsEventType;
+import com.deposition.domain.port.in.common.DepositionResult;
 import com.deposition.domain.port.in.object.DeponeInPort;
 import com.deposition.domain.port.in.object.DeponeIntellectualEntityParams;
 import com.deposition.domain.port.in.object.DeponeRepresentationParam;
-import com.deposition.domain.port.in.object.DeponeResult;
 import com.deposition.domain.port.out.BlockchainOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.domain.port.out.UserOutPort;
@@ -43,7 +43,7 @@ public class DeponeAdapter implements DeponeInPort {
     private final UserOutPort userService;
 
     @Override
-    public DeponeResult depone(DeponeIntellectualEntityParams params) {
+    public DepositionResult depone(DeponeIntellectualEntityParams params) {
         validateRelationshipsOwnedByCurrentUser(params);
 
         var intellectualEntityId = UUID.randomUUID();
@@ -76,7 +76,7 @@ public class DeponeAdapter implements DeponeInPort {
                 null,
                 userId));
 
-        return new DeponeResult(intellectualEntityId, txId);
+        return new DepositionResult(intellectualEntityId, txId, premisStorage.getVersionId());
     }
 
     private void validateRelationshipsOwnedByCurrentUser(DeponeIntellectualEntityParams params) {

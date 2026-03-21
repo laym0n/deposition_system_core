@@ -20,26 +20,25 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.deposition.domain.port.in.common.DepositionResult;
+import com.deposition.domain.port.in.object.CachedObjectMetadataResponse;
 import com.deposition.domain.port.in.object.DeponeFileParam;
 import com.deposition.domain.port.in.object.DeponeInPort;
 import com.deposition.domain.port.in.object.DeponeIntellectualEntityParams;
 import com.deposition.domain.port.in.object.DeponeRepresentationParam;
-import com.deposition.domain.port.in.object.DeponeResult;
 import com.deposition.domain.port.in.object.FileMetadataParam;
 import com.deposition.domain.port.in.object.GetCachedObjectMetadataInPort;
 import com.deposition.domain.port.in.object.GetPremisMetadataInPort;
 import com.deposition.domain.port.in.object.IntellectualEntityMetadataParam;
-import com.deposition.domain.port.in.schema.IntellectualEntityType;
 import com.deposition.domain.port.in.object.ObjectSearchRequest;
 import com.deposition.domain.port.in.object.RepresentationMetadataParam;
 import com.deposition.domain.port.in.object.SearchObjectsInPort;
 import com.deposition.domain.port.in.object.SearchObjectsResult;
 import com.deposition.domain.port.in.object.UpdateMetadataInPort;
 import com.deposition.domain.port.in.object.UpdateMetadataParams;
-import com.deposition.domain.port.in.object.UpdateMetadataResult;
 import com.deposition.domain.port.in.object.VerifyPremisInPort;
 import com.deposition.domain.port.in.object.VerifyPremisResult;
-import com.deposition.domain.port.in.object.CachedObjectMetadataResponse;
+import com.deposition.domain.port.in.schema.IntellectualEntityType;
 
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
@@ -68,7 +67,7 @@ public class ObjectController {
     }))
     @PostMapping(value = "/depone", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<DeponeResult> depone(
+    public ResponseEntity<DepositionResult> depone(
             @RequestParam(name = "intellectualEntityType") IntellectualEntityType intellectualEntityType,
             @RequestPart(name = "intellectualEntityMetadata", required = false) IntellectualEntityMetadataParam intellectualEntityMetadata,
             @RequestPart(name = "descriptiveMetadata", required = false) String descriptiveMetadata,
@@ -118,7 +117,7 @@ public class ObjectController {
 
     @PatchMapping(value = "/objects/{objectId}/metadata", consumes = MediaType.APPLICATION_JSON_VALUE)
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<UpdateMetadataResult> updateMetadata(
+    public ResponseEntity<DepositionResult> updateMetadata(
             @PathVariable("objectId") UUID objectId,
             @RequestBody UpdateMetadataParams params) {
         var result = updateMetadataInPort.updateMetadata(objectId, params);
