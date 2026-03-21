@@ -25,7 +25,7 @@ import com.deposition.domain.dto.schema.premis.v3.converter.FileMetadataConverte
 import com.deposition.domain.dto.schema.premis.v3.converter.IntellectualEntityConverter;
 import com.deposition.domain.dto.schema.premis.v3.converter.PremisSnapshotConverter;
 import com.deposition.domain.dto.schema.premis.v3.converter.RepresentationMetadataConverter;
-import com.deposition.domain.exception.ObjectNotFoundException;
+import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.EventMetadata;
 import com.deposition.domain.models.FileMetadata;
 import com.deposition.domain.models.IntellectualEntityMetadata;
@@ -231,7 +231,7 @@ final class PremisMetadataUpdater {
             }
         }
 
-        throw new ObjectNotFoundException(objectId);
+        throw new ResourceNotFoundException("Object", objectId.toString());
     }
 
     private static UUID extractLocalId(ObjectComplexType obj) {
@@ -278,7 +278,7 @@ final class PremisMetadataUpdater {
 
     private <T> T findObjectById(PremisSnapshot snapshot, UUID objectId, Class<T> type) {
         if (snapshot == null || snapshot.getObjects() == null) {
-            throw new ObjectNotFoundException(objectId);
+            throw new ResourceNotFoundException("Object", objectId.toString());
         }
 
         for (var obj : snapshot.getObjects()) {
@@ -297,7 +297,7 @@ final class PremisMetadataUpdater {
             return type.cast(obj);
         }
 
-        throw new ObjectNotFoundException(objectId);
+        throw new ResourceNotFoundException("Object", objectId.toString());
     }
 
     private void addMetadataModificationEvent(

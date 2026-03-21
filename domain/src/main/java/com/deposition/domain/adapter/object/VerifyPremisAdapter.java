@@ -6,7 +6,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-import com.deposition.domain.exception.ObjectNotFoundException;
+import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.statistics.StatisticsEventType;
 import com.deposition.domain.port.in.VerifyPremisInPort;
@@ -46,13 +46,13 @@ public class VerifyPremisAdapter implements VerifyPremisInPort {
         try {
             premisXml = fileStorage.loadPremisMetadataByObjectId(objectId, versionId);
         } catch (IllegalArgumentException ex) {
-            throw new ObjectNotFoundException(objectId);
+            throw new ResourceNotFoundException("Object", objectId.toString());
         }
 
         var actualHash = ResourceHashCalculatorUtils.sha256(premisXml);
 
         var txId = blockchainTxLookup.findTxId(objectId, versionId)
-                .orElseThrow(() -> new ObjectNotFoundException(objectId));
+                .orElseThrow(() -> new ResourceNotFoundException("Object", objectId.toString()));
 
         var anchored = blockchain.loadAnchorRecord(txId);
         var expectedHash = anchored.getHash();

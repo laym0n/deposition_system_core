@@ -6,7 +6,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-import com.deposition.domain.exception.DescriptiveMetadataSchemaNotFoundException;
+import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.DescriptiveMetadataSchema;
 import com.deposition.domain.port.in.GetDescriptiveMetadataSchemaByIdInPort;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
@@ -26,8 +26,8 @@ public class GetDescriptiveMetadataSchemaByIdAdapter implements GetDescriptiveMe
     @Override
     public Map<String, Object> getSchema(UUID schemaId) {
         DescriptiveMetadataSchema schema = schemaOutPort.findById(schemaId)
-                .orElseThrow(() -> new DescriptiveMetadataSchemaNotFoundException(
-                "Descriptive metadata JsonSchema not found: id=" + schemaId));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                "DescriptiveMetadataSchema", schemaId.toString()));
 
         try {
             return objectMapper.readValue(schema.schemaJson(), new TypeReference<Map<String, Object>>() {

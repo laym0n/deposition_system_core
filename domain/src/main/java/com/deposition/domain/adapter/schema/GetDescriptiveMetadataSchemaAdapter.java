@@ -5,7 +5,7 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-import com.deposition.domain.exception.DescriptiveMetadataSchemaNotFoundException;
+import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.port.in.GetDescriptiveMetadataSchemaInPort;
 import com.deposition.domain.port.in.IntellectualEntityType;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
@@ -25,8 +25,8 @@ public class GetDescriptiveMetadataSchemaAdapter implements GetDescriptiveMetada
     @Override
     public Map<String, Object> getSchema(IntellectualEntityType entityType) {
         var schemaJson = schemaOutPort.findActiveSchemaJsonByEntityType(entityType.name())
-                .orElseThrow(() -> new DescriptiveMetadataSchemaNotFoundException(
-                "Descriptive metadata JsonSchema not found for entityType=" + entityType));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                "DescriptiveMetadataSchema", "entityType=" + entityType));
 
         try {
             return objectMapper.readValue(schemaJson, new TypeReference<Map<String, Object>>() {

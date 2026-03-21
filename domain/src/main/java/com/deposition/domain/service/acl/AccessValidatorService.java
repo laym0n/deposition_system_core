@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.deposition.domain.dto.schema.premis.v3.converter.PremisSnapshotConverter;
 import com.deposition.domain.exception.ObjectAccessDeniedException;
-import com.deposition.domain.exception.ObjectNotFoundException;
+import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.acl.ObjectAcl;
 import com.deposition.domain.port.out.AclOutPort;
@@ -47,7 +47,7 @@ public final class AccessValidatorService {
             premisXml = fileStorage.loadPremisMetadataByObjectId(objectId);
         } catch (IllegalArgumentException ex) {
             // Storage adapter uses IllegalArgumentException to signal missing object key.
-            throw new ObjectNotFoundException(objectId);
+            throw new ResourceNotFoundException("Object", objectId.toString());
         }
         var premis = XmlUtils.parsePremis(premisXml);
 

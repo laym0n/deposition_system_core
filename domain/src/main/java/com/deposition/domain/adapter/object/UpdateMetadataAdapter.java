@@ -6,7 +6,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-import com.deposition.domain.exception.ObjectNotFoundException;
+import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.AnchorRecord;
 import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.statistics.StatisticsEventType;
@@ -49,7 +49,7 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
         try {
             premisXml = fileStorage.loadPremisMetadataByObjectId(objectId);
         } catch (IllegalArgumentException ex) {
-            throw new ObjectNotFoundException(objectId);
+            throw new ResourceNotFoundException("Object", objectId.toString());
         }
 
         var premis = XmlUtils.parsePremis(premisXml);

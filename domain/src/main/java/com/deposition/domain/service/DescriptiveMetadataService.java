@@ -9,8 +9,8 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import com.deposition.domain.exception.DescriptiveMetadataSchemaNotFoundException;
 import com.deposition.domain.exception.DescriptiveMetadataValidationException;
+import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.port.in.IntellectualEntityType;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
@@ -43,8 +43,8 @@ public class DescriptiveMetadataService {
         }
 
         var schemaJson = schemaOutPort.findActiveSchemaJsonByEntityType(entityType.name())
-                .orElseThrow(() -> new DescriptiveMetadataSchemaNotFoundException(
-                "Descriptive metadata JsonSchema not found for entityType=" + entityType));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                "DescriptiveMetadataSchema", "entityType=" + entityType));
 
         try {
             JsonNode schemaNode = objectMapper.readTree(schemaJson);
@@ -98,6 +98,7 @@ public class DescriptiveMetadataService {
         if (metadataNode == null || metadataNode.isNull() || metadataNode.isMissingNode()) {
             return Map.of();
         }
-        return objectMapper.convertValue(metadataNode, new TypeReference<Map<String, Object>>() {});
+        return objectMapper.convertValue(metadataNode, new TypeReference<Map<String, Object>>() {
+        });
     }
 }

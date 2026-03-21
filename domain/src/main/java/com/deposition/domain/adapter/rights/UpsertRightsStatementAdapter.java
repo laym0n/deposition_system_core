@@ -10,7 +10,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-import com.deposition.domain.exception.ObjectNotFoundException;
+import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.AgentMetadata;
 import com.deposition.domain.models.AnchorRecord;
 import com.deposition.domain.models.acl.AclEntry;
@@ -61,7 +61,7 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
         try {
             premisXml = fileStorage.loadPremisMetadataByObjectId(objectId);
         } catch (IllegalArgumentException ex) {
-            throw new ObjectNotFoundException(objectId);
+            throw new ResourceNotFoundException("Object", objectId.toString());
         }
 
         var premis = XmlUtils.parsePremis(premisXml);
@@ -100,7 +100,7 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
 
     private void updateObjectIndex(UUID objectId, UpsertRightsStatementRequest request, String versionId, String txId) {
         var existing = objectIndexLookupOutPort.findByObjectId(objectId)
-                .orElseThrow(() -> new ObjectNotFoundException(objectId));
+                .orElseThrow(() -> new ResourceNotFoundException("Object", objectId.toString()));
 
         ObjectAcl updatedAcl = mergeAcl(existing.acl(), request);
 

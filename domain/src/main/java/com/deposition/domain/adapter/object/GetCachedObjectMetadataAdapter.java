@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-import com.deposition.domain.exception.ObjectNotFoundException;
+import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.acl.ObjectAcl;
 import com.deposition.domain.port.in.GetCachedObjectMetadataInPort;
 import com.deposition.domain.port.in.dto.CachedObjectMetadataResponse;
@@ -27,7 +27,7 @@ public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataIn
     @Override
     public CachedObjectMetadataResponse getCachedMetadata(UUID objectId, @Nullable String currentUserId) {
         var doc = objectIndexLookupOutPort.findByObjectId(objectId)
-                .orElseThrow(() -> new ObjectNotFoundException(objectId));
+                .orElseThrow(() -> new ResourceNotFoundException("Object", objectId.toString()));
 
         var premisMetadata = new PremisMetadata(
                 doc.entityType(),

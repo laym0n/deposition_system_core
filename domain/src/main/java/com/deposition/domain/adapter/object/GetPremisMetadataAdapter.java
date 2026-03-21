@@ -6,7 +6,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-import com.deposition.domain.exception.ObjectNotFoundException;
+import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.statistics.StatisticsEventType;
 import com.deposition.domain.port.in.GetPremisMetadataInPort;
@@ -44,7 +44,7 @@ public class GetPremisMetadataAdapter implements GetPremisMetadataInPort {
 
             return premis;
         } catch (IllegalArgumentException ex) {
-            throw new ObjectNotFoundException(objectId);
+            throw new ResourceNotFoundException("Object", objectId.toString());
         }
     }
 }

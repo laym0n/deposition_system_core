@@ -16,10 +16,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
-import com.deposition.domain.exception.DescriptiveMetadataSchemaNotFoundException;
 import com.deposition.domain.exception.DescriptiveMetadataValidationException;
 import com.deposition.domain.exception.ObjectAccessDeniedException;
-import com.deposition.domain.exception.ObjectNotFoundException;
+import com.deposition.domain.exception.ResourceNotFoundException;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ObjectNotFoundException.class)
-    public ResponseEntity<ApiError> handleNotFound(ObjectNotFoundException ex) {
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiError> handleNotFound(ResourceNotFoundException ex) {
         log.error(ExceptionUtils.getMessage(ex), ex);
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ApiError("NOT_FOUND", ex.getMessage()));
@@ -51,7 +50,6 @@ public class GlobalExceptionHandler {
         ServletRequestBindingException.class,
         ConstraintViolationException.class,
         IllegalArgumentException.class,
-        DescriptiveMetadataSchemaNotFoundException.class,
         DescriptiveMetadataValidationException.class
     })
     public ResponseEntity<Map<String, String>> handleBadRequestExceptions(Exception exception) {
