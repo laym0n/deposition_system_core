@@ -1,7 +1,5 @@
 databaseChangeLog:
   - include:
-      file: db/changelog/changes/001-create-acl-tables.yaml
+      file: db/changelog/changes/001-create-descriptive-metadata-schema.yaml
   - include:
-      file: db/changelog/changes/002-create-descriptive-metadata-schema.yaml
-  - include:
-      file: db/changelog/changes/003-create-statistics-event.yaml
+      file: db/changelog/changes/002-create-statistics-event.yaml
