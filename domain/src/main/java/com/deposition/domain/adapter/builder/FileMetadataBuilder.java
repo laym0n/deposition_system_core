@@ -10,7 +10,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import com.deposition.domain.adapter.ResourceHashCalculator;
+import com.deposition.domain.adapter.common.ResourceHashCalculator;
 import com.deposition.domain.adapter.converter.FileParamConverter;
 import com.deposition.domain.dto.schema.premis.v3.File;
 import com.deposition.domain.dto.schema.premis.v3.converter.FileMetadataConverter;

@@ -1,4 +1,4 @@
-package com.deposition.domain.adapter;
+package com.deposition.domain.adapter.schema;
 
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;

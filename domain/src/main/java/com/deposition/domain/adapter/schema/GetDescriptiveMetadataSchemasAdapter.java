@@ -1,4 +1,4 @@
-package com.deposition.domain.adapter;
+package com.deposition.domain.adapter.schema;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.deposition.domain.adapter;
+package com.deposition.domain.adapter.object;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

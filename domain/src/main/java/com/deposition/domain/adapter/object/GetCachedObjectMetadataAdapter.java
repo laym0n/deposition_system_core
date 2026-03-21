@@ -1,4 +1,4 @@
-package com.deposition.domain.adapter;
+package com.deposition.domain.adapter.object;
 
 import java.util.List;
 import java.util.Objects;

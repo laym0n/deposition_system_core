@@ -1,4 +1,4 @@
-package com.deposition.domain.adapter;
+package com.deposition.domain.adapter.object;
 
 import java.util.List;
 import java.util.UUID;
@@ -9,6 +9,9 @@ import org.springframework.validation.annotation.Validated;
 
 import com.deposition.domain.adapter.builder.CommonMetadataBuilder;
 import com.deposition.domain.adapter.builder.PremisMetadataBuilder;
+import com.deposition.domain.adapter.acl.PremisOwnershipValidator;
+import com.deposition.domain.adapter.common.ResourceHashCalculator;
+import com.deposition.domain.adapter.common.XmlUtils;
 import com.deposition.domain.models.AnchorRecord;
 import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.statistics.StatisticsEventType;

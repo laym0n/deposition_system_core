@@ -1,4 +1,4 @@
-package com.deposition.domain.adapter;
+package com.deposition.domain.adapter.common;
 
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -22,7 +22,7 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
 
-class XmlUtils {
+public class XmlUtils {
 
     private static final String PREMIS_SCHEMA_CLASSPATH_LOCATION = "schema/premis-v3-0.xsd";
     private static final XmlMapper XML_MAPPER = new XmlMapper();

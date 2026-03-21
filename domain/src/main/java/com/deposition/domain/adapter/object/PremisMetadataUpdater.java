@@ -1,4 +1,4 @@
-package com.deposition.domain.adapter;
+package com.deposition.domain.adapter.object;
 
 import java.time.OffsetDateTime;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.deposition.domain.adapter;
+package com.deposition.domain.adapter.rights;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import org.springframework.stereotype.Component;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 
 import com.deposition.domain.dto.schema.premis.v3.LinkingAgentIdentifierComplexType;
 import com.deposition.domain.dto.schema.premis.v3.LinkingObjectIdentifierComplexType;
@@ -23,27 +23,27 @@ import com.deposition.domain.dto.schema.premis.v3.StringPlusAuthority;
 import com.deposition.domain.dto.schema.premis.v3.converter.EventConverter;
 import com.deposition.domain.models.AgentMetadata;
 import com.deposition.domain.models.EventMetadata;
-import com.deposition.domain.models.enums.ObjectIdentifierType;
-import com.deposition.domain.port.in.dto.UpsertRightsStatementRequest;
-import com.deposition.domain.port.in.dto.UpsertRightsStatementRequest.AgentGrant;
+import com.deposition.domain.models.enums.AgentIdentifierType;
+import com.deposition.domain.models.enums.EventAgentLinkRole;
 import com.deposition.domain.models.enums.EventIdentifierType;
 import com.deposition.domain.models.enums.EventObjectLinkRole;
 import com.deposition.domain.models.enums.EventType;
+import com.deposition.domain.models.enums.ObjectIdentifierType;
+import com.deposition.domain.models.valueobject.AgentIdentifier;
 import com.deposition.domain.models.valueobject.EventAgentLink;
 import com.deposition.domain.models.valueobject.EventDetailInformation;
 import com.deposition.domain.models.valueobject.EventIdentifier;
 import com.deposition.domain.models.valueobject.EventObjectLink;
-import com.deposition.domain.models.valueobject.ObjectIdentifier;
-import com.deposition.domain.models.enums.AgentIdentifierType;
-import com.deposition.domain.models.enums.EventAgentLinkRole;
-import com.deposition.domain.models.valueobject.AgentIdentifier;
 import com.deposition.domain.models.valueobject.Identifier;
+import com.deposition.domain.models.valueobject.ObjectIdentifier;
+import com.deposition.domain.port.in.dto.UpsertRightsStatementRequest;
+import com.deposition.domain.port.in.dto.UpsertRightsStatementRequest.AgentGrant;
 
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-final class RightsStatementPremisUpdater {
+public final class RightsStatementPremisUpdater {
 
     private static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
 

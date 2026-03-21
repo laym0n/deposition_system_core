@@ -1,4 +1,4 @@
-package com.deposition.domain.adapter;
+package com.deposition.domain.adapter.object;
 
 import java.util.UUID;
 
@@ -6,6 +6,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
+import com.deposition.domain.adapter.acl.PremisOwnershipValidator;
+import com.deposition.domain.adapter.common.ResourceHashCalculator;
 import com.deposition.domain.exception.ObjectNotFoundException;
 import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.statistics.StatisticsEventType;

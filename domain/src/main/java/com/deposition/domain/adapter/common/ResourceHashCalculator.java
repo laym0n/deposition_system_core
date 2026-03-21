@@ -1,4 +1,4 @@
-package com.deposition.domain.adapter;
+package com.deposition.domain.adapter.common;
 
 import java.io.IOException;
 import java.io.InputStream;

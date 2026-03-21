@@ -1,4 +1,4 @@
-package com.deposition.domain.adapter;
+package com.deposition.domain.adapter.schema;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
