@@ -6,9 +6,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-import com.deposition.domain.adapter.acl.PremisOwnershipValidator;
-import com.deposition.domain.adapter.common.ResourceHashCalculator;
-import com.deposition.domain.adapter.common.XmlUtils;
 import com.deposition.domain.exception.ObjectNotFoundException;
 import com.deposition.domain.models.AnchorRecord;
 import com.deposition.domain.models.acl.AclPermission;
@@ -20,7 +17,10 @@ import com.deposition.domain.port.out.BlockchainOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.domain.port.out.UserService;
 import com.deposition.domain.service.DepositionIndexingService;
+import com.deposition.domain.service.ResourceHashCalculatorUtils;
 import com.deposition.domain.service.StatisticsEventReporter;
+import com.deposition.domain.service.XmlUtils;
+import com.deposition.domain.service.acl.AccessValidatorService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,7 +31,7 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
 
     private final FileStorageOutPort fileStorage;
     private final BlockchainOutPort blockchain;
-    private final PremisOwnershipValidator premisOwnershipValidator;
+    private final AccessValidatorService accessValidatorService;
     private final PremisMetadataUpdater premisMetadataUpdater;
     private final DepositionIndexingService depositionIndexingService;
     private final StatisticsEventReporter statisticsEventReporter;
@@ -43,7 +43,7 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
             throw new IllegalArgumentException("objectId must not be null");
         }
 
-        premisOwnershipValidator.validateCurrentUserHasPermission(objectId, AclPermission.WRITE);
+        accessValidatorService.validateCurrentUserHasPermission(objectId, AclPermission.WRITE);
 
         Resource premisXml;
         try {
@@ -80,7 +80,7 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
     }
 
     private static AnchorRecord buildAnchorRecord(Resource premisMetadata) {
-        var premisMetadataHash = ResourceHashCalculator.sha256(premisMetadata);
+        var premisMetadataHash = ResourceHashCalculatorUtils.sha256(premisMetadata);
         return AnchorRecord.builder()
                 .premisMetadataHash(premisMetadataHash)
                 .build();

@@ -9,9 +9,6 @@ import org.springframework.validation.annotation.Validated;
 
 import com.deposition.domain.adapter.builder.CommonMetadataBuilder;
 import com.deposition.domain.adapter.builder.PremisMetadataBuilder;
-import com.deposition.domain.adapter.acl.PremisOwnershipValidator;
-import com.deposition.domain.adapter.common.ResourceHashCalculator;
-import com.deposition.domain.adapter.common.XmlUtils;
 import com.deposition.domain.models.AnchorRecord;
 import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.statistics.StatisticsEventType;
@@ -24,7 +21,10 @@ import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.domain.port.out.UserService;
 import com.deposition.domain.service.DepositionIndexingService;
 import com.deposition.domain.service.DescriptiveMetadataService;
+import com.deposition.domain.service.ResourceHashCalculatorUtils;
 import com.deposition.domain.service.StatisticsEventReporter;
+import com.deposition.domain.service.XmlUtils;
+import com.deposition.domain.service.acl.AccessValidatorService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -36,7 +36,7 @@ public class DeponeAdapter implements DeponeInPort {
     private final FileStorageOutPort fileStorage;
     private final BlockchainOutPort blockchain;
     private final PremisMetadataBuilder premisMetadataBuilder;
-    private final PremisOwnershipValidator premisOwnershipValidator;
+    private final AccessValidatorService accessValidatorService;
     private final DescriptiveMetadataService descriptiveMetadataService;
     private final DepositionIndexingService depositionIndexingService;
     private final StatisticsEventReporter statisticsEventReporter;
@@ -99,7 +99,7 @@ public class DeponeAdapter implements DeponeInPort {
                                 "Invalid related object identifier (expected UUID): " + relatedObject.getValue());
                     }
 
-                    premisOwnershipValidator.validateCurrentUserHasPermission(objectId, AclPermission.WRITE);
+                    accessValidatorService.validateCurrentUserHasPermission(objectId, AclPermission.WRITE);
                 });
     }
 
@@ -123,7 +123,7 @@ public class DeponeAdapter implements DeponeInPort {
     }
 
     private AnchorRecord buildAnchorRecord(Resource premisMetadata) {
-        var premisMetadataHash = ResourceHashCalculator.sha256(premisMetadata);
+        var premisMetadataHash = ResourceHashCalculatorUtils.sha256(premisMetadata);
 
         return AnchorRecord.builder()
                 .premisMetadataHash(premisMetadataHash)

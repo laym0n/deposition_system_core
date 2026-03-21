@@ -10,9 +10,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-import com.deposition.domain.adapter.acl.PremisOwnershipValidator;
-import com.deposition.domain.adapter.common.ResourceHashCalculator;
-import com.deposition.domain.adapter.common.XmlUtils;
 import com.deposition.domain.exception.ObjectNotFoundException;
 import com.deposition.domain.models.AgentMetadata;
 import com.deposition.domain.models.AnchorRecord;
@@ -30,6 +27,9 @@ import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.domain.port.out.ObjectIndexDocument;
 import com.deposition.domain.port.out.ObjectIndexLookupOutPort;
 import com.deposition.domain.port.out.ObjectIndexOutPort;
+import com.deposition.domain.service.ResourceHashCalculatorUtils;
+import com.deposition.domain.service.XmlUtils;
+import com.deposition.domain.service.acl.AccessValidatorService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -41,7 +41,7 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
     private final FileStorageOutPort fileStorage;
     private final BlockchainOutPort blockchain;
     private final RightsStatementPremisUpdater rightsStatementPremisUpdater;
-    private final PremisOwnershipValidator premisOwnershipValidator;
+    private final AccessValidatorService accessValidatorService;
     private final ObjectIndexLookupOutPort objectIndexLookupOutPort;
     private final ObjectIndexOutPort objectIndexOutPort;
 
@@ -55,7 +55,7 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
         }
 
         // Only owner/editor can update rights.
-        premisOwnershipValidator.validateCurrentUserHasPermission(objectId, AclPermission.WRITE);
+        accessValidatorService.validateCurrentUserHasPermission(objectId, AclPermission.WRITE);
 
         Resource premisXml;
         try {
@@ -232,7 +232,7 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
     }
 
     private static AnchorRecord buildAnchorRecord(Resource premisMetadata) {
-        var premisMetadataHash = ResourceHashCalculator.sha256(premisMetadata);
+        var premisMetadataHash = ResourceHashCalculatorUtils.sha256(premisMetadata);
         return AnchorRecord.builder()
                 .premisMetadataHash(premisMetadataHash)
                 .build();

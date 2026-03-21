@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class JpaAclAdapter implements AclOutPort {
+public class JpaAclAdapter implements AclOutPort { // TODO получение ACL из OpenSearch
 
     private final ObjectAclJpaRepository repository;
     private final AclMapper mapper;

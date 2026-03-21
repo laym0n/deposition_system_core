@@ -1,4 +1,4 @@
-package com.deposition.domain.adapter.acl;
+package com.deposition.domain.service.acl;
 
 import java.util.UUID;
 
@@ -7,7 +7,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import com.deposition.domain.adapter.common.XmlUtils;
 import com.deposition.domain.dto.schema.premis.v3.converter.PremisSnapshotConverter;
 import com.deposition.domain.exception.ObjectAccessDeniedException;
 import com.deposition.domain.exception.ObjectNotFoundException;
@@ -15,12 +14,13 @@ import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.acl.ObjectAcl;
 import com.deposition.domain.port.out.AclOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
+import com.deposition.domain.service.XmlUtils;
 
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public final class PremisOwnershipValidator {
+public final class AccessValidatorService {
 
     private final FileStorageOutPort fileStorage;
     private final AclOutPort aclOutPort;

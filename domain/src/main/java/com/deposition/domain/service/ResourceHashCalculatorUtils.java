@@ -1,4 +1,4 @@
-package com.deposition.domain.adapter.common;
+package com.deposition.domain.service;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,11 +10,11 @@ import java.util.List;
 
 import org.springframework.core.io.Resource;
 
-public final class ResourceHashCalculator {
+public final class ResourceHashCalculatorUtils {
 
     public static final String DEFAULT_HASH_ALGORITHM = "SHA-256";
 
-    private ResourceHashCalculator() {
+    private ResourceHashCalculatorUtils() {
     }
 
     public static String sha256(Resource resource) {

@@ -10,9 +10,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-import com.deposition.domain.adapter.acl.PremisOwnershipValidator;
-import com.deposition.domain.adapter.common.ResourceHashCalculator;
-import com.deposition.domain.adapter.common.XmlUtils;
 import com.deposition.domain.exception.ObjectNotFoundException;
 import com.deposition.domain.models.AnchorRecord;
 import com.deposition.domain.models.EventMetadata;
@@ -36,6 +33,9 @@ import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.domain.port.out.ObjectIndexDocument;
 import com.deposition.domain.port.out.ObjectIndexLookupOutPort;
 import com.deposition.domain.port.out.ObjectIndexOutPort;
+import com.deposition.domain.service.ResourceHashCalculatorUtils;
+import com.deposition.domain.service.XmlUtils;
+import com.deposition.domain.service.acl.AccessValidatorService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -46,7 +46,7 @@ public class RecordObjectEventAdapter implements RecordObjectEventInPort {
 
     private final FileStorageOutPort fileStorage;
     private final BlockchainOutPort blockchain;
-    private final PremisOwnershipValidator premisOwnershipValidator;
+    private final AccessValidatorService accessValidatorService;
     private final com.deposition.domain.dto.schema.premis.v3.converter.EventConverter eventConverter;
     private final com.deposition.domain.dto.schema.premis.v3.converter.AgentConverter agentConverter;
     private final ObjectIndexLookupOutPort objectIndexLookupOutPort;
@@ -61,7 +61,7 @@ public class RecordObjectEventAdapter implements RecordObjectEventInPort {
             throw new IllegalArgumentException("request must not be null");
         }
 
-        premisOwnershipValidator.validateCurrentUserHasPermission(objectId, AclPermission.WRITE);
+        accessValidatorService.validateCurrentUserHasPermission(objectId, AclPermission.WRITE);
 
         Resource premisXml;
         try {
@@ -164,7 +164,7 @@ public class RecordObjectEventAdapter implements RecordObjectEventInPort {
     }
 
     private static AnchorRecord buildAnchorRecord(Resource premisMetadata) {
-        var premisMetadataHash = ResourceHashCalculator.sha256(premisMetadata);
+        var premisMetadataHash = ResourceHashCalculatorUtils.sha256(premisMetadata);
         return AnchorRecord.builder()
                 .premisMetadataHash(premisMetadataHash)
                 .build();

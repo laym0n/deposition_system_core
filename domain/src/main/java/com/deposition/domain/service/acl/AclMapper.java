@@ -1,4 +1,4 @@
-package com.deposition.domain.adapter.acl;
+package com.deposition.domain.service.acl;
 
 import java.util.EnumSet;
 import java.util.Objects;

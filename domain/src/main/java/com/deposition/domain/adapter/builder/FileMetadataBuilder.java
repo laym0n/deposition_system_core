@@ -10,7 +10,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import com.deposition.domain.adapter.common.ResourceHashCalculator;
 import com.deposition.domain.adapter.converter.FileParamConverter;
 import com.deposition.domain.dto.schema.premis.v3.File;
 import com.deposition.domain.dto.schema.premis.v3.converter.FileMetadataConverter;
@@ -20,6 +19,7 @@ import com.deposition.domain.models.valueobject.FixityBlock;
 import com.deposition.domain.models.valueobject.FormatBlock;
 import com.deposition.domain.models.valueobject.FormatDesignation;
 import com.deposition.domain.port.in.DeponeFileParam;
+import com.deposition.domain.service.ResourceHashCalculatorUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -43,7 +43,7 @@ final class FileMetadataBuilder {
 
     private File buildFileObject(CommonMetadataBuilder.PersistedFileMetadataInput persistedFile, UUID objectId) {
         var fileParam = persistedFile.fileParam();
-        var calculatedHash = calculateHash(fileParam, ResourceHashCalculator.DEFAULT_HASH_ALGORITHM);
+        var calculatedHash = calculateHash(fileParam, ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM);
 
         var fileMetadata = FileMetadata.builder()
                 .id(objectId)
@@ -54,7 +54,7 @@ final class FileMetadataBuilder {
                                 .size(calculatedHash.size())
                                 .fixity(List.of(
                                         FixityBlock.builder()
-                                                .algorithm(ResourceHashCalculator.DEFAULT_HASH_ALGORITHM)
+                                                .algorithm(ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM)
                                                 .digest(calculatedHash.hash())
                                                 .build()))
                                 .format(List.of(
@@ -72,7 +72,7 @@ final class FileMetadataBuilder {
 
     private static HashCalculationResult calculateHash(DeponeFileParam fileParam, String hashAlgorithm) {
         try {
-            var hash = ResourceHashCalculator.calculateHash(fileParam.resource(), hashAlgorithm);
+            var hash = ResourceHashCalculatorUtils.calculateHash(fileParam.resource(), hashAlgorithm);
             var totalBytes = fileParam.resource().contentLength();
             return new HashCalculationResult(hash, totalBytes);
         } catch (IOException exception) {

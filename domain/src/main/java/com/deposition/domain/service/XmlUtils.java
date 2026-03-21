@@ -1,4 +1,4 @@
-package com.deposition.domain.adapter.common;
+package com.deposition.domain.service;
 
 import java.io.StringReader;
 import java.io.StringWriter;
