@@ -55,7 +55,7 @@ public class VerifyPremisAdapter implements VerifyPremisInPort {
                 .orElseThrow(() -> new ObjectNotFoundException(objectId));
 
         var anchored = blockchain.loadAnchorRecord(txId);
-        var expectedHash = anchored.getPremisMetadataHash();
+        var expectedHash = anchored.getHash();
         if (expectedHash == null || expectedHash.isBlank()) {
             return new VerifyPremisResult(false);
         }

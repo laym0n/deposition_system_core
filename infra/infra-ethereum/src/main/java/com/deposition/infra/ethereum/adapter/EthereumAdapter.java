@@ -29,14 +29,11 @@ public class EthereumAdapter implements BlockchainOutPort {
     private final EthereumProperties properties;
 
     @Override
-    public AnchorRecord persistAnchorRecord(AnchorRecord anchorRecord) {
+    public String persistAnchorRecord(AnchorRecord anchorRecord) {
         String payload = toJson(anchorRecord);
         String txHash = publishAsTransaction(payload);
-        if (anchorRecord.getTxId() == null || anchorRecord.getTxId().isBlank()) {
-            anchorRecord.setTxId(txHash);
-        }
-        log.info("AnchorRecord persisted in Ethereum tx={} payloadId={}", txHash, anchorRecord.getTxId());
-        return anchorRecord;
+        log.info("AnchorRecord persisted in Ethereum tx={}", txHash);
+        return txHash;
     }
 
     @Override
@@ -64,11 +61,7 @@ public class EthereumAdapter implements BlockchainOutPort {
             }
 
             var payloadJson = fromHexInputToString(input);
-            var anchor = objectMapper.readValue(payloadJson, AnchorRecord.class);
-            if (anchor.getTxId() == null || anchor.getTxId().isBlank()) {
-                anchor.setTxId(txId);
-            }
-            return anchor;
+            return objectMapper.readValue(payloadJson, AnchorRecord.class);
         } catch (IllegalArgumentException ex) {
             throw ex;
         } catch (Exception ex) {

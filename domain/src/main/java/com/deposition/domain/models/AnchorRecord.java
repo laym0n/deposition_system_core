@@ -11,6 +11,11 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class AnchorRecord {
 
-    private String txId;
-    private String premisMetadataHash;
+    private String objectId;
+
+    private String versionId;
+
+    private String hash;
+
+    private String hashAlgorithm;
 }

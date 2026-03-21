@@ -72,13 +72,13 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
         var updatedPremisResource = XmlUtils.createXmlResource(premis, "deposition-metadata");
         var premisStorage = fileStorage.persist(updatedPremisResource, objectId.toString());
 
-        var anchorRecord = buildAnchorRecord(updatedPremisResource);
-        anchorRecord = blockchain.persistAnchorRecord(anchorRecord);
+        var anchorRecord = buildAnchorRecord(objectId, premisStorage.getVersionId(), updatedPremisResource);
+        var txId = blockchain.persistAnchorRecord(anchorRecord);
 
         // Update OpenSearch: anchors + ACL adjustments (OpenSearch is a source of truth).
-        updateObjectIndex(objectId, request, premisStorage.getVersionId(), anchorRecord.getTxId());
+        updateObjectIndex(objectId, request, premisStorage.getVersionId(), txId);
 
-        return new DepositionResult(objectId, anchorRecord.getTxId(), premisStorage.getVersionId());
+        return new DepositionResult(objectId, txId, premisStorage.getVersionId());
     }
 
     @Override
@@ -231,10 +231,14 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
         return result;
     }
 
-    private static AnchorRecord buildAnchorRecord(Resource premisMetadata) {
-        var premisMetadataHash = ResourceHashCalculatorUtils.sha256(premisMetadata);
+    private static AnchorRecord buildAnchorRecord(UUID objectId, String versionId, Resource premisMetadata) {
+        String algorithm = ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM;
+        var premisMetadataHash = ResourceHashCalculatorUtils.calculateHash(premisMetadata, algorithm);
         return AnchorRecord.builder()
-                .premisMetadataHash(premisMetadataHash)
+                .objectId(objectId.toString())
+                .versionId(versionId)
+                .hash(premisMetadataHash)
+                .hashAlgorithm(algorithm)
                 .build();
     }
 }

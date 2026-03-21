@@ -63,10 +63,10 @@ public class DeponeAdapter implements DeponeInPort {
         var premisMetadataResource = XmlUtils.createXmlResource(metadataPremis, "deposition-metadata");
         var premisStorage = fileStorage.persist(premisMetadataResource, intellectualEntityId.toString());
 
-        var anchorRecord = buildAnchorRecord(premisMetadataResource);
-        anchorRecord = blockchain.persistAnchorRecord(anchorRecord);
+        var anchorRecord = buildAnchorRecord(intellectualEntityId, premisStorage.getVersionId(), premisMetadataResource);
+        var txId = blockchain.persistAnchorRecord(anchorRecord);
 
-        depositionIndexingService.indexIntellectualEntity(metadataPremis, intellectualEntityId, anchorRecord.getTxId(),
+        depositionIndexingService.indexIntellectualEntity(metadataPremis, intellectualEntityId, txId,
                 premisStorage.getVersionId(), descriptiveExtracted);
 
         userService.getCurrentUserId()
@@ -76,7 +76,7 @@ public class DeponeAdapter implements DeponeInPort {
                 null,
                 userId));
 
-        return new DeponeResult(intellectualEntityId, anchorRecord.getTxId());
+        return new DeponeResult(intellectualEntityId, txId);
     }
 
     private void validateRelationshipsOwnedByCurrentUser(DeponeIntellectualEntityParams params) {
@@ -122,11 +122,15 @@ public class DeponeAdapter implements DeponeInPort {
                 .toList();
     }
 
-    private AnchorRecord buildAnchorRecord(Resource premisMetadata) {
-        var premisMetadataHash = ResourceHashCalculatorUtils.sha256(premisMetadata);
+    private static AnchorRecord buildAnchorRecord(UUID objectId, String versionId, Resource premisMetadata) {
+        String algorithm = ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM;
+        var premisMetadataHash = ResourceHashCalculatorUtils.calculateHash(premisMetadata, algorithm);
 
         return AnchorRecord.builder()
-                .premisMetadataHash(premisMetadataHash)
+                .objectId(objectId.toString())
+                .versionId(versionId)
+                .hash(premisMetadataHash)
+                .hashAlgorithm(algorithm)
                 .build();
     }
 

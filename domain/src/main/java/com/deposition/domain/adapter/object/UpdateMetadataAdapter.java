@@ -63,10 +63,10 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
 
         var premisStorage = fileStorage.persist(updatedPremisResource, objectId.toString());
 
-        var anchorRecord = buildAnchorRecord(updatedPremisResource);
-        anchorRecord = blockchain.persistAnchorRecord(anchorRecord);
+        var anchorRecord = buildAnchorRecord(objectId, premisStorage.getVersionId(), updatedPremisResource);
+        var txId = blockchain.persistAnchorRecord(anchorRecord);
 
-        depositionIndexingService.indexIntellectualEntity(update.premis(), objectId, anchorRecord.getTxId(),
+        depositionIndexingService.indexIntellectualEntity(update.premis(), objectId, txId,
                 premisStorage.getVersionId(), null);
 
         userService.getCurrentUserId()
@@ -76,13 +76,17 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
                 null,
                 userId));
 
-        return new UpdateMetadataResult(objectId, anchorRecord.getTxId());
+        return new UpdateMetadataResult(objectId, txId);
     }
 
-    private static AnchorRecord buildAnchorRecord(Resource premisMetadata) {
-        var premisMetadataHash = ResourceHashCalculatorUtils.sha256(premisMetadata);
+    private static AnchorRecord buildAnchorRecord(UUID objectId, String versionId, Resource premisMetadata) {
+        String algorithm = ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM;
+        var premisMetadataHash = ResourceHashCalculatorUtils.calculateHash(premisMetadata, algorithm);
         return AnchorRecord.builder()
-                .premisMetadataHash(premisMetadataHash)
+                .objectId(objectId.toString())
+                .versionId(versionId)
+                .hash(premisMetadataHash)
+                .hashAlgorithm(algorithm)
                 .build();
     }
 }
