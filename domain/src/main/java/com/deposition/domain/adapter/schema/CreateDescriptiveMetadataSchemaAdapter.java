@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
 import com.deposition.domain.models.DescriptiveMetadataSchema;
-import com.deposition.domain.port.in.CreateDescriptiveMetadataSchemaInPort;
+import com.deposition.domain.port.in.schema.CreateDescriptiveMetadataSchemaInPort;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

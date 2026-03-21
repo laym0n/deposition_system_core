@@ -4,9 +4,9 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import com.deposition.domain.port.in.FileMetadataParam;
-import com.deposition.domain.port.in.IntellectualEntityMetadataParam;
-import com.deposition.domain.port.in.RepresentationMetadataParam;
+import com.deposition.domain.port.in.object.FileMetadataParam;
+import com.deposition.domain.port.in.object.IntellectualEntityMetadataParam;
+import com.deposition.domain.port.in.object.RepresentationMetadataParam;
 
 public class DeponeMultipartRequest {
 

@@ -15,7 +15,7 @@ import com.deposition.domain.models.enums.ObjectRelationshipSubType;
 import com.deposition.domain.models.enums.ObjectRelationshipType;
 import com.deposition.domain.models.valueobject.RelationObjectIdentifier;
 import com.deposition.domain.models.valueobject.Relationship;
-import com.deposition.domain.port.in.RepresentationMetadataParam;
+import com.deposition.domain.port.in.object.RepresentationMetadataParam;
 
 import lombok.RequiredArgsConstructor;
 

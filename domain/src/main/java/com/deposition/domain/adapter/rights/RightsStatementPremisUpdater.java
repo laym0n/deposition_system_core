@@ -36,8 +36,8 @@ import com.deposition.domain.models.valueobject.EventIdentifier;
 import com.deposition.domain.models.valueobject.EventObjectLink;
 import com.deposition.domain.models.valueobject.Identifier;
 import com.deposition.domain.models.valueobject.ObjectIdentifier;
-import com.deposition.domain.port.in.dto.UpsertRightsStatementRequest;
-import com.deposition.domain.port.in.dto.UpsertRightsStatementRequest.AgentGrant;
+import com.deposition.domain.port.in.rights.UpsertRightsStatementRequest;
+import com.deposition.domain.port.in.rights.UpsertRightsStatementRequest.AgentGrant;
 
 import lombok.RequiredArgsConstructor;
 

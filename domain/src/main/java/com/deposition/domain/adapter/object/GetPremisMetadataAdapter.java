@@ -9,7 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.statistics.StatisticsEventType;
-import com.deposition.domain.port.in.GetPremisMetadataInPort;
+import com.deposition.domain.port.in.object.GetPremisMetadataInPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.domain.port.out.UserOutPort;
 import com.deposition.domain.service.StatisticsEventReporter;

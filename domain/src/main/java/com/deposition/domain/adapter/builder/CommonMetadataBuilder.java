@@ -21,8 +21,8 @@ import com.deposition.domain.models.valueobject.EventAgentLink;
 import com.deposition.domain.models.valueobject.EventObjectLink;
 import com.deposition.domain.models.valueobject.ObjectIdentifier;
 import com.deposition.domain.models.valueobject.Storage;
-import com.deposition.domain.port.in.DeponeFileParam;
-import com.deposition.domain.port.in.RepresentationMetadataParam;
+import com.deposition.domain.port.in.object.DeponeFileParam;
+import com.deposition.domain.port.in.object.RepresentationMetadataParam;
 
 import lombok.RequiredArgsConstructor;
 

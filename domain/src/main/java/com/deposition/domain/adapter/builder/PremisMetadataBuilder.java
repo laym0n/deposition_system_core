@@ -16,7 +16,7 @@ import com.deposition.domain.models.AgentMetadata;
 import com.deposition.domain.models.enums.AgentType;
 import com.deposition.domain.models.enums.ObjectIdentifierType;
 import com.deposition.domain.models.valueobject.Identifier;
-import com.deposition.domain.port.in.IntellectualEntityMetadataParam;
+import com.deposition.domain.port.in.object.IntellectualEntityMetadataParam;
 
 import lombok.RequiredArgsConstructor;
 

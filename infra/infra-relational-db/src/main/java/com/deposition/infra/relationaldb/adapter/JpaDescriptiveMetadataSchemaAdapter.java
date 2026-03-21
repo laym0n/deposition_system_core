@@ -87,7 +87,7 @@ public class JpaDescriptiveMetadataSchemaAdapter implements DescriptiveMetadataS
     private static DescriptiveMetadataSchema toDomain(DescriptiveMetadataSchemaEntity entity) {
         return new DescriptiveMetadataSchema(
                 entity.getId(),
-                com.deposition.domain.port.in.IntellectualEntityType.valueOf(entity.getEntityType()),
+                com.deposition.domain.port.in.schema.IntellectualEntityType.valueOf(entity.getEntityType()),
                 entity.getSchemaJson(),
                 entity.isActive(),
                 entity.getCreatedAt(),

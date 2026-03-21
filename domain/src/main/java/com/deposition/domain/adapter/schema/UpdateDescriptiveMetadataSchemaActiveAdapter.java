@@ -5,7 +5,7 @@ import org.springframework.validation.annotation.Validated;
 
 import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.DescriptiveMetadataSchema;
-import com.deposition.domain.port.in.UpdateDescriptiveMetadataSchemaActiveInPort;
+import com.deposition.domain.port.in.schema.UpdateDescriptiveMetadataSchemaActiveInPort;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
 
 import lombok.RequiredArgsConstructor;

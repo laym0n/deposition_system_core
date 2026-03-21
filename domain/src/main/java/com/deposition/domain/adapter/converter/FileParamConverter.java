@@ -6,7 +6,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 
 import com.deposition.domain.models.FileMetadata;
-import com.deposition.domain.port.in.FileMetadataParam;
+import com.deposition.domain.port.in.object.FileMetadataParam;
 
 @Mapper(componentModel = "spring", unmappedSourcePolicy = ReportingPolicy.ERROR, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public abstract class FileParamConverter {

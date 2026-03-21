@@ -6,7 +6,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 
 import com.deposition.domain.models.IntellectualEntityMetadata;
-import com.deposition.domain.port.in.IntellectualEntityMetadataParam;
+import com.deposition.domain.port.in.object.IntellectualEntityMetadataParam;
 
 @Mapper(componentModel = "spring", unmappedSourcePolicy = ReportingPolicy.ERROR, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public abstract class IntellectualEntityParamConverter {

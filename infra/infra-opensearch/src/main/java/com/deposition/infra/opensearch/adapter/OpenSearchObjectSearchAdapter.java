@@ -12,8 +12,8 @@ import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
 import org.springframework.stereotype.Component;
 
-import com.deposition.domain.port.in.ObjectSearchRequest;
-import com.deposition.domain.port.in.SearchObjectsResult;
+import com.deposition.domain.port.in.object.ObjectSearchRequest;
+import com.deposition.domain.port.in.object.SearchObjectsResult;
 import com.deposition.domain.port.out.ObjectSearchOutPort;
 import com.deposition.infra.opensearch.config.OpenSearchProperties;
 

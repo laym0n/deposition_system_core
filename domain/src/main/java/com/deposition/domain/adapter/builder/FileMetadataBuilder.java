@@ -18,7 +18,7 @@ import com.deposition.domain.models.valueobject.Characteristics;
 import com.deposition.domain.models.valueobject.FixityBlock;
 import com.deposition.domain.models.valueobject.FormatBlock;
 import com.deposition.domain.models.valueobject.FormatDesignation;
-import com.deposition.domain.port.in.DeponeFileParam;
+import com.deposition.domain.port.in.object.DeponeFileParam;
 import com.deposition.domain.service.ResourceHashCalculatorUtils;
 
 import lombok.RequiredArgsConstructor;

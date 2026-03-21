@@ -8,7 +8,7 @@ import org.springframework.validation.annotation.Validated;
 
 import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.DescriptiveMetadataSchema;
-import com.deposition.domain.port.in.GetDescriptiveMetadataSchemaByIdInPort;
+import com.deposition.domain.port.in.schema.GetDescriptiveMetadataSchemaByIdInPort;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -8,10 +8,6 @@ import org.springframework.stereotype.Component;
 
 import com.deposition.domain.models.IntellectualEntityMetadata;
 import com.deposition.domain.models.PremisSnapshot;
-import com.deposition.domain.models.acl.AclEntry;
-import com.deposition.domain.models.acl.AclPermission;
-import com.deposition.domain.models.acl.AclPrincipal;
-import com.deposition.domain.models.acl.AclPrincipalType;
 import com.deposition.domain.models.acl.ObjectAcl;
 import com.deposition.domain.port.out.ObjectIndexDocument;
 import com.deposition.domain.port.out.ObjectIndexOutPort;
@@ -26,12 +22,25 @@ public class ObjectIndexingService {
     private final ObjectIndexOutPort objectIndexOutPort;
 
     public void indexIntellectualEntity(UUID intellectualEntityId,
-            String ownerUserId,
+            ObjectAcl acl,
             @Nullable String blockchainTxId,
             @Nullable String storageVersionId,
             PremisSnapshot snapshot,
             Map<String, Object> intellectualEntityDescriptiveFields) {
-        ObjectAcl acl = buildDefaultAcl(intellectualEntityId, ownerUserId);
+        if (intellectualEntityId == null) {
+            throw new IllegalArgumentException("intellectualEntityId must not be null");
+        }
+        if (acl == null) {
+            throw new IllegalArgumentException("acl must not be null");
+        }
+
+        // Ensure caller-provided ACL is associated with the indexed object.
+        if (acl.getObjectId() == null || !intellectualEntityId.equals(acl.getObjectId())) {
+            acl = ObjectAcl.builder()
+                    .objectId(intellectualEntityId)
+                    .entries(acl.getEntries())
+                    .build();
+        }
 
         IntellectualEntityMetadata entity = snapshot.getObjects() == null ? null
                 : snapshot.getObjects().stream()
@@ -73,16 +82,5 @@ public class ObjectIndexingService {
                 : intellectualEntityDescriptiveFields);
 
         objectIndexOutPort.index(doc);
-    }
-
-    private static ObjectAcl buildDefaultAcl(UUID objectId, String ownerUserId) {
-        return ObjectAcl.builder()
-                .objectId(objectId)
-                .entries(List.of(
-                        AclEntry.builder()
-                                .principal(AclPrincipal.builder().type(AclPrincipalType.USER).id(ownerUserId).build())
-                                .permissions(java.util.EnumSet.of(AclPermission.READ, AclPermission.WRITE))
-                                .build()))
-                .build();
     }
 }

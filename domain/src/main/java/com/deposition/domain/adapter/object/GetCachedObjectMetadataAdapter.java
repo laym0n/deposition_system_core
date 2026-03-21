@@ -9,9 +9,9 @@ import org.springframework.validation.annotation.Validated;
 
 import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.acl.ObjectAcl;
-import com.deposition.domain.port.in.GetCachedObjectMetadataInPort;
-import com.deposition.domain.port.in.dto.CachedObjectMetadataResponse;
-import com.deposition.domain.port.in.dto.CachedObjectMetadataResponse.PremisMetadata;
+import com.deposition.domain.port.in.object.GetCachedObjectMetadataInPort;
+import com.deposition.domain.port.in.object.CachedObjectMetadataResponse;
+import com.deposition.domain.port.in.object.CachedObjectMetadataResponse.PremisMetadata;
 import com.deposition.domain.port.out.ObjectIndexLookupOutPort;
 
 import jakarta.annotation.Nullable;

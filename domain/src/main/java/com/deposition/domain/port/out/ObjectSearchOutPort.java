@@ -1,7 +1,7 @@
 package com.deposition.domain.port.out;
 
-import com.deposition.domain.port.in.ObjectSearchRequest;
-import com.deposition.domain.port.in.SearchObjectsResult;
+import com.deposition.domain.port.in.object.ObjectSearchRequest;
+import com.deposition.domain.port.in.object.SearchObjectsResult;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;

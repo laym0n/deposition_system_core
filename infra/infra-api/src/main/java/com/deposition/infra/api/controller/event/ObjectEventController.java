@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.deposition.domain.port.in.RecordObjectEventInPort;
-import com.deposition.domain.port.in.dto.DepositionResult;
-import com.deposition.domain.port.in.dto.RecordObjectEventRequest;
+import com.deposition.domain.port.in.event.RecordObjectEventInPort;
+import com.deposition.domain.port.in.common.DepositionResult;
+import com.deposition.domain.port.in.event.RecordObjectEventRequest;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;

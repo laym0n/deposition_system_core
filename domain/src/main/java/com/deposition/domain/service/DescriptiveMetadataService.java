@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import com.deposition.domain.exception.DescriptiveMetadataValidationException;
 import com.deposition.domain.exception.ResourceNotFoundException;
-import com.deposition.domain.port.in.IntellectualEntityType;
+import com.deposition.domain.port.in.schema.IntellectualEntityType;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.fasterxml.jackson.core.type.TypeReference;

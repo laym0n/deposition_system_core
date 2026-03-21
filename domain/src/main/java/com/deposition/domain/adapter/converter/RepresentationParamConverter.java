@@ -6,7 +6,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 
 import com.deposition.domain.models.RepresentationMetadata;
-import com.deposition.domain.port.in.RepresentationMetadataParam;
+import com.deposition.domain.port.in.object.RepresentationMetadataParam;
 
 @Mapper(componentModel = "spring", unmappedSourcePolicy = ReportingPolicy.ERROR, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public abstract class RepresentationParamConverter {

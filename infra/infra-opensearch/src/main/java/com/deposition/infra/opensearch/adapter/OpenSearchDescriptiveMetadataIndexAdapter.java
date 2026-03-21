@@ -9,7 +9,7 @@ import org.opensearch.client.opensearch.OpenSearchClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import com.deposition.domain.port.in.IntellectualEntityType;
+import com.deposition.domain.port.in.schema.IntellectualEntityType;
 import com.deposition.domain.port.out.DescriptiveMetadataIndexOutPort;
 import com.deposition.infra.opensearch.config.OpenSearchProperties;
 

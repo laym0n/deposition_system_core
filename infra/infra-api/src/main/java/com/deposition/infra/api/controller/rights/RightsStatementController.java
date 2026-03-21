@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.deposition.domain.port.in.UpsertRightsStatementInPort;
-import com.deposition.domain.port.in.dto.DepositionResult;
-import com.deposition.domain.port.in.dto.UpsertRightsStatementRequest;
+import com.deposition.domain.port.in.rights.UpsertRightsStatementInPort;
+import com.deposition.domain.port.in.common.DepositionResult;
+import com.deposition.domain.port.in.rights.UpsertRightsStatementRequest;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;

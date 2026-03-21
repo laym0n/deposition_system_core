@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.deposition.domain.models.DescriptiveMetadataSchema;
-import com.deposition.domain.port.in.CreateDescriptiveMetadataSchemaInPort;
-import com.deposition.domain.port.in.GetDescriptiveMetadataSchemaByIdInPort;
-import com.deposition.domain.port.in.GetDescriptiveMetadataSchemasInPort;
-import com.deposition.domain.port.in.IntellectualEntityType;
-import com.deposition.domain.port.in.UpdateDescriptiveMetadataSchemaActiveInPort;
+import com.deposition.domain.port.in.schema.CreateDescriptiveMetadataSchemaInPort;
+import com.deposition.domain.port.in.schema.GetDescriptiveMetadataSchemaByIdInPort;
+import com.deposition.domain.port.in.schema.GetDescriptiveMetadataSchemasInPort;
+import com.deposition.domain.port.in.schema.IntellectualEntityType;
+import com.deposition.domain.port.in.schema.UpdateDescriptiveMetadataSchemaActiveInPort;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.constraints.NotNull;

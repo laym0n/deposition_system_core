@@ -17,9 +17,9 @@ import com.deposition.domain.models.enums.EventType;
 import com.deposition.domain.models.enums.ObjectIdentifierType;
 
 @Component
-final class AclMapper {
+public final class AclMapper {
 
-    public ObjectAcl buildDefaultAclFromSnapshot(PremisSnapshot snapshot, UUID objectId) {
+    public static ObjectAcl buildDefaultAclFromSnapshot(PremisSnapshot snapshot, UUID objectId) {
         if (snapshot == null) {
             throw new IllegalArgumentException("snapshot must not be null");
         }

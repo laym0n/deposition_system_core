@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-import com.deposition.domain.port.in.GetDescriptiveMetadataSchemasInPort;
-import com.deposition.domain.port.in.IntellectualEntityType;
+import com.deposition.domain.port.in.schema.GetDescriptiveMetadataSchemasInPort;
+import com.deposition.domain.port.in.schema.IntellectualEntityType;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
 
 import lombok.RequiredArgsConstructor;

@@ -44,12 +44,12 @@ import com.deposition.domain.models.valueobject.EventIdentifier;
 import com.deposition.domain.models.valueobject.EventObjectLink;
 import com.deposition.domain.models.valueobject.Identifier;
 import com.deposition.domain.models.valueobject.ObjectIdentifier;
-import com.deposition.domain.port.in.FileMetadataParam;
-import com.deposition.domain.port.in.IntellectualEntityMetadataParam;
-import com.deposition.domain.port.in.RepresentationMetadataParam;
-import com.deposition.domain.port.in.UpdateFileMetadataParam;
-import com.deposition.domain.port.in.UpdateMetadataParams;
-import com.deposition.domain.port.in.UpdateRepresentationMetadataParam;
+import com.deposition.domain.port.in.object.FileMetadataParam;
+import com.deposition.domain.port.in.object.IntellectualEntityMetadataParam;
+import com.deposition.domain.port.in.object.RepresentationMetadataParam;
+import com.deposition.domain.port.in.object.UpdateFileMetadataParam;
+import com.deposition.domain.port.in.object.UpdateMetadataParams;
+import com.deposition.domain.port.in.object.UpdateRepresentationMetadataParam;
 
 import lombok.RequiredArgsConstructor;
 
