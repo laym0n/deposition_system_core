@@ -26,7 +26,27 @@ public final class AccessValidatorService {
 
         var acl = aclOutPort.getByObjectId(objectId);
 
+        // Object-scoped SUPER_ADMIN bypasses permissions.
+        if (acl.isSuperAdmin(currentUserId)) {
+            return;
+        }
+
         if (!acl.hasPermissionForUser(currentUserId, permission)) {
+            throw new ObjectAccessDeniedException(objectId);
+        }
+    }
+
+    /**
+     * Validates that current user is SUPER_ADMIN for given object.
+     */
+    public void validateCurrentUserIsSuperAdmin(UUID objectId) {
+        var currentUserId = userOutPort.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new IllegalArgumentException("Unauthenticated request: cannot validate object permissions");
+        }
+
+        var acl = aclOutPort.getByObjectId(objectId);
+        if (!acl.isSuperAdmin(currentUserId)) {
             throw new ObjectAccessDeniedException(objectId);
         }
     }

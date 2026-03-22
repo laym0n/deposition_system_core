@@ -18,7 +18,14 @@ public class AclEntry {
     private AclPrincipal principal;
 
     @Default
+    private AclRole role = AclRole.USER;
+
+    @Default
     private EnumSet<AclPermission> permissions = EnumSet.noneOf(AclPermission.class);
+
+    public boolean isSuperAdminForObject() {
+        return role == AclRole.SUPER_ADMIN;
+    }
 
     public boolean hasPermission(AclPermission permission) {
         if (permission == null) {

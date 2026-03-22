@@ -12,10 +12,11 @@ import com.deposition.domain.models.acl.AclEntry;
 import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.acl.AclPrincipal;
 import com.deposition.domain.models.acl.AclPrincipalType;
+import com.deposition.domain.models.acl.AclRole;
 import com.deposition.domain.models.acl.ObjectAcl;
+import com.deposition.domain.models.enums.AgentIdentifierType;
 import com.deposition.domain.models.enums.EventType;
 import com.deposition.domain.models.enums.ObjectIdentifierType;
-import com.deposition.domain.models.enums.AgentIdentifierType;
 
 @Component
 public final class AclMapper {
@@ -36,7 +37,7 @@ public final class AclMapper {
                 .filter(Objects::nonNull)
                 .map(link -> link.getAgentIdentifier())
                 .filter(Objects::nonNull)
-                .filter(agentIdentifier -> agentIdentifier.getType() == AgentIdentifierType.SYSTEM)
+                .filter(agentIdentifier -> agentIdentifier.getType() == AgentIdentifierType.OTHER)
                 .map(agentIdentifier -> agentIdentifier.getValue())
                 .filter(Objects::nonNull)
                 .filter(value -> !value.isBlank())
@@ -52,6 +53,7 @@ public final class AclMapper {
                                         .type(AclPrincipalType.USER)
                                         .id(creatorUserId)
                                         .build())
+                                .role(AclRole.SUPER_ADMIN)
                                 .permissions(EnumSet.of(AclPermission.READ, AclPermission.WRITE))
                                 .build()))
                 .build();

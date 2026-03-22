@@ -32,4 +32,13 @@ public class ObjectAcl {
                 .anyMatch(entry -> entry.isForUser(userId) && entry.hasPermission(permission));
     }
 
+    public boolean isSuperAdmin(String userId) {
+        if (userId == null || userId.isBlank()) {
+            return false;
+        }
+        return entries != null && entries.stream()
+                .filter(Objects::nonNull)
+                .anyMatch(entry -> entry.isForUser(userId) && entry.isSuperAdminForObject());
+    }
+
 }

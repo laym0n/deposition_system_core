@@ -2,5 +2,6 @@ package com.deposition.domain.models.acl;
 
 public enum AclPermission {
     READ,
-    WRITE
+    WRITE,
+    READ_SOURCE_FILE;
 }

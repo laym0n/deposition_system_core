@@ -17,6 +17,7 @@ import com.deposition.domain.models.acl.AclEntry;
 import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.acl.AclPrincipal;
 import com.deposition.domain.models.acl.AclPrincipalType;
+import com.deposition.domain.models.acl.AclRole;
 import com.deposition.domain.models.acl.ObjectAcl;
 import com.deposition.domain.models.enums.ObjectIdentifierType;
 import com.deposition.domain.port.in.rights.UpsertRightsStatementInPort;
@@ -54,8 +55,7 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
             throw new IllegalArgumentException("request must not be null");
         }
 
-        // Only owner/editor can update rights.
-        accessValidatorService.validateCurrentUserHasPermission(objectId, AclPermission.WRITE);
+        accessValidatorService.validateCurrentUserIsSuperAdmin(objectId);
 
         Resource premisXml;
         try {
@@ -179,6 +179,7 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
                 merged.addAll(additional);
                 result.add(AclEntry.builder()
                         .principal(AclPrincipal.builder().type(AclPrincipalType.USER).id(userId).build())
+                        .role(e.getRole() == null ? AclRole.USER : e.getRole())
                         .permissions(merged)
                         .build());
             } else {
@@ -188,6 +189,7 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
         if (!found) {
             result.add(AclEntry.builder()
                     .principal(AclPrincipal.builder().type(AclPrincipalType.USER).id(userId).build())
+                    .role(AclRole.USER)
                     .permissions(additional)
                     .build());
         }
@@ -211,7 +213,7 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
                         .name(grant.userId())
                         .type(com.deposition.domain.models.enums.AgentType.PERSON)
                         .identifiers(List.of(com.deposition.domain.models.valueobject.Identifier.builder()
-                                .type(ObjectIdentifierType.SYSTEM.name())
+                                .type(ObjectIdentifierType.OTHER.name())
                                 .value(grant.userId())
                                 .build()))
                         .build());
