@@ -26,6 +26,7 @@ import com.deposition.domain.port.in.object.DeponeFileParam;
 import com.deposition.domain.port.in.object.DeponeInPort;
 import com.deposition.domain.port.in.object.DeponeIntellectualEntityParams;
 import com.deposition.domain.port.in.object.DeponeRepresentationParam;
+import com.deposition.domain.port.in.object.DownloadSourceFilesInPort;
 import com.deposition.domain.port.in.object.FileMetadataParam;
 import com.deposition.domain.port.in.object.GetCachedObjectMetadataInPort;
 import com.deposition.domain.port.in.object.GetPremisMetadataInPort;
@@ -54,6 +55,7 @@ public class ObjectController {
     private final DeponeInPort deponeInPort;
     private final UpdateMetadataInPort updateMetadataInPort;
     private final GetPremisMetadataInPort getPremisMetadataInPort;
+    private final DownloadSourceFilesInPort downloadSourceFilesInPort;
     private final GetCachedObjectMetadataInPort getCachedObjectMetadataInPort;
     private final VerifyPremisInPort verifyPremisInPort;
     private final SearchObjectsInPort searchObjectsInPort;
@@ -131,6 +133,18 @@ public class ObjectController {
             @RequestParam(name = "versionId", required = false) String versionId) {
         var premis = getPremisMetadataInPort.getPremisMetadata(objectId, versionId);
         return ResponseEntity.ok(premis);
+    }
+
+    @GetMapping(value = "/objects/{objectId}/source-files", produces = "application/zip")
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<Resource> downloadSourceFiles(
+            @PathVariable("objectId") UUID objectId,
+            @RequestParam(name = "fileId") List<UUID> fileIds) {
+        var zip = downloadSourceFilesInPort.downloadSourceFilesAsZip(objectId, fileIds);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/zip"))
+                .header("Content-Disposition", "attachment; filename=\"" + zip.getFilename() + "\"")
+                .body(zip);
     }
 
     @GetMapping(value = "/objects/{objectId}/cached-metadata", produces = MediaType.APPLICATION_JSON_VALUE)

@@ -1,5 +1,6 @@
 package com.deposition.domain.port.out;
 
+import java.net.URI;
 import java.util.UUID;
 
 import org.springframework.core.io.Resource;
@@ -14,11 +15,8 @@ public interface FileStorageOutPort {
 
     Resource loadPremisMetadataByObjectId(UUID objectId);
 
-    /**
-     * Loads PREMIS metadata for given objectId.
-     *
-     * @param versionId S3 versionId (null -> latest)
-     */
     Resource loadPremisMetadataByObjectId(UUID objectId, @Nullable String versionId);
+
+    Resource loadByContentLocation(URI contentLocation);
 
 }

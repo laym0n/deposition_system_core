@@ -86,6 +86,38 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
         }
     }
 
+    @Override
+    public Resource loadByContentLocation(URI contentLocation) {
+        if (contentLocation == null) {
+            throw new IllegalArgumentException("contentLocation must not be null");
+        }
+
+        try {
+            String objectKey = extractObjectKey(contentLocation);
+            var bucketName = s3Properties.getBucketName();
+
+            var request = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .build();
+
+            var responseBytes = s3Client.getObjectAsBytes(request);
+            var bytes = responseBytes.asByteArray();
+
+            return new ByteArrayResource(bytes) {
+                @Override
+                public String getFilename() {
+                    return extractFilename(objectKey);
+                }
+            };
+        } catch (NoSuchKeyException exception) {
+            throw new IllegalArgumentException("Object not found for contentLocation=" + contentLocation, exception);
+        } catch (SdkException exception) {
+            throw new IllegalStateException("Failed to load object from S3 for contentLocation=" + contentLocation,
+                    exception);
+        }
+    }
+
     private static String buildPremisObjectKey(UUID objectId) {
         return "object/" + objectId + "/deposition-metadata.premis.xml";
     }
@@ -110,5 +142,25 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
         }
 
         return contentType;
+    }
+
+    private static String extractObjectKey(URI contentLocation) {
+        String path = contentLocation.getPath();
+        if (path == null || path.isBlank()) {
+            throw new IllegalArgumentException("Invalid contentLocation (path is empty): " + contentLocation);
+        }
+        // Path begins with '/', S3 key should not.
+        return path.startsWith("/") ? path.substring(1) : path;
+    }
+
+    private static String extractFilename(String objectKey) {
+        if (objectKey == null || objectKey.isBlank()) {
+            return null;
+        }
+        int idx = objectKey.lastIndexOf('/');
+        if (idx < 0 || idx == objectKey.length() - 1) {
+            return objectKey;
+        }
+        return objectKey.substring(idx + 1);
     }
 }
