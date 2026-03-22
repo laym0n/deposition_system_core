@@ -12,7 +12,6 @@ import com.deposition.domain.models.acl.ObjectAcl;
 import com.deposition.domain.port.out.ObjectIndexDocument;
 import com.deposition.domain.port.out.ObjectIndexOutPort;
 
-import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -23,8 +22,7 @@ public class ObjectIndexingService {
 
     public void indexIntellectualEntity(UUID intellectualEntityId,
             ObjectAcl acl,
-            @Nullable String blockchainTxId,
-            @Nullable String storageVersionId,
+            List<ObjectIndexDocument.Anchor> anchors,
             PremisSnapshot snapshot,
             Map<String, Object> intellectualEntityDescriptiveFields) {
         if (intellectualEntityId == null) {
@@ -61,12 +59,6 @@ public class ObjectIndexingService {
 
         if (entity == null) {
             return;
-        }
-
-        List<ObjectIndexDocument.Anchor> anchors = null;
-        if ((storageVersionId != null && !storageVersionId.isBlank())
-                || (blockchainTxId != null && !blockchainTxId.isBlank())) {
-            anchors = List.of(new ObjectIndexDocument.Anchor(storageVersionId, blockchainTxId, null));
         }
 
         ObjectIndexDocument doc = new ObjectIndexDocument(

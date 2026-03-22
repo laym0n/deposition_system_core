@@ -2,7 +2,14 @@ package com.deposition.domain.port.in.rights;
 
 import java.util.List;
 
+import com.deposition.domain.models.enums.AgentType;
 import com.deposition.domain.models.enums.RightsBasis;
+import com.deposition.domain.models.valueobject.CopyrightInformation;
+import com.deposition.domain.models.valueobject.Identifier;
+import com.deposition.domain.models.valueobject.LicenseInformation;
+import com.deposition.domain.models.valueobject.OtherRightsInformation;
+import com.deposition.domain.models.valueobject.RightsGranted;
+import com.deposition.domain.models.valueobject.StatuteInformation;
 
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
@@ -26,44 +33,35 @@ public record UpsertRightsStatementRequest(
      */
     public record RightsStatementPayload(
             @Nullable
-            com.deposition.domain.models.valueobject.CopyrightInformation copyrightInformation,
+            CopyrightInformation copyrightInformation,
             @Nullable
-            com.deposition.domain.models.valueobject.LicenseInformation licenseInformation,
+            LicenseInformation licenseInformation,
             @Nullable
-            List<com.deposition.domain.models.valueobject.StatuteInformation> statuteInformation,
+            List<StatuteInformation> statuteInformation,
             @Nullable
-            com.deposition.domain.models.valueobject.OtherRightsInformation otherRightsInformation,
+            OtherRightsInformation otherRightsInformation,
             @Nullable
-            List<com.deposition.domain.models.valueobject.RightsGranted> rightsGranted) {
+            List<RightsGranted> rightsGranted) {
 
     }
 
-    /**
-     * Agent participating in rights statement. If userId is set, it refers to a
-     * system user, and the specified permissions should be granted via ACL in
-     * OpenSearch.
-     */
     public record AgentGrant(
-            @Nullable
-            AbstractAgent agent,
-            @Nullable
-            String userId,
-            @Nullable
-            List<String> permissions,
+            @NotNull
+            AgentDto agent,
             @Nullable
             List<String> linkingAgentRoles) {
 
     }
 
-    public record AbstractAgent(
+    public record AgentDto(
             @NotBlank
             String id,
             @NotBlank
             String name,
             @NotNull
-            com.deposition.domain.models.enums.AgentType type,
+            AgentType type,
             @Nullable
-            List<com.deposition.domain.models.valueobject.Identifier> identifiers) {
+            List<Identifier> identifiers) {
 
     }
 }

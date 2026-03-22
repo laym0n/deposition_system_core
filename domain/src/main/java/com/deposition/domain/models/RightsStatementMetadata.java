@@ -3,7 +3,6 @@ package com.deposition.domain.models;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.deposition.domain.models.enums.RightsBasis;
 import com.deposition.domain.models.valueobject.CopyrightInformation;
 import com.deposition.domain.models.valueobject.Identifier;
 import com.deposition.domain.models.valueobject.LicenseInformation;
@@ -24,15 +23,14 @@ import lombok.experimental.SuperBuilder;
 public class RightsStatementMetadata {
 
     private String id;
-    private RightsBasis rightsBasis;
+    private String rightsBasis;
     @Default
     private List<CopyrightInformation> copyrightInformation = new ArrayList<>();
     @Default
     private List<LicenseInformation> licenseInformation = new ArrayList<>();
     @Default
     private List<StatuteInformation> statuteInformation = new ArrayList<>();
-    @Default
-    private List<OtherRightsInformation> otherRightsInformation = new ArrayList<>();
+    private OtherRightsInformation otherRightsInformation;
     @Default
     private List<RightsGranted> rightsGranted = new ArrayList<>();
     @Default
