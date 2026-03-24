@@ -23,4 +23,7 @@ public class PremisSnapshot {
 
     @Default
     private List<AgentMetadata> agents = new ArrayList<>();
+
+    @Default
+    private List<RightsStatementMetadata> rightsStatements = new ArrayList<>();
 }

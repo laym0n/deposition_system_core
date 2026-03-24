@@ -1,0 +1,45 @@
+package com.deposition.infra.api.controller.acl;
+
+import java.util.UUID;
+
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.deposition.domain.port.in.acl.UpsertObjectAclEntryInPort;
+import com.deposition.domain.port.in.acl.UpsertObjectAclEntryRequest;
+import com.deposition.domain.port.in.common.DepositionResult;
+
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping
+@RequiredArgsConstructor
+public class ObjectAclController {
+
+    private final UpsertObjectAclEntryInPort upsertObjectAclEntryInPort;
+
+    @PostMapping(value = "/objects/{objectId}/acl/users", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<DepositionResult> upsertUserAclEntry(
+            @PathVariable("objectId") UUID objectId,
+            @RequestBody @jakarta.validation.Valid UpsertObjectAclEntryRequest request) {
+        var result = upsertObjectAclEntryInPort.upsertUserEntry(objectId, request);
+        return ResponseEntity.ok(result);
+    }
+
+    @DeleteMapping(value = "/objects/{objectId}/acl/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<DepositionResult> removeUserAclEntry(
+            @PathVariable("objectId") UUID objectId,
+            @PathVariable("userId") String userId) {
+        var result = upsertObjectAclEntryInPort.removeUserEntry(objectId, userId);
+        return ResponseEntity.ok(result);
+    }
+}

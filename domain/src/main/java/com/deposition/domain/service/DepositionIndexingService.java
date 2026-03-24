@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import com.deposition.domain.dto.schema.premis.v3.PremisComplexType;
 import com.deposition.domain.dto.schema.premis.v3.converter.PremisSnapshotConverter;
 import com.deposition.domain.exception.ResourceNotFoundException;
+import com.deposition.domain.models.acl.ObjectAcl;
 import com.deposition.domain.port.out.ObjectIndexDocument;
 import com.deposition.domain.port.out.ObjectIndexLookupOutPort;
 import com.deposition.domain.service.acl.AclMapper;
@@ -62,6 +63,29 @@ public class DepositionIndexingService {
         objectIndexingService.indexIntellectualEntity(
                 objectId,
                 existing.acl(),
+                updatedAnchors,
+                snapshot,
+                existing.descriptive());
+    }
+
+    public void updatePremisAnchorsAndAcl(UUID objectId,
+            PremisComplexType premis,
+            String blockchainTxId,
+            String storageVersionId,
+            ObjectAcl acl) {
+
+        var existing = objectIndexLookupOutPort.findByObjectId(objectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Object", objectId.toString()));
+
+        var snapshot = premisSnapshotConverter.map(premis);
+
+        List<ObjectIndexDocument.Anchor> updatedAnchors = mergeAnchors(existing.anchors(), storageVersionId, blockchainTxId);
+
+        ObjectAcl resolvedAcl = acl == null ? existing.acl() : acl;
+
+        objectIndexingService.indexIntellectualEntity(
+                objectId,
+                resolvedAcl,
                 updatedAnchors,
                 snapshot,
                 existing.descriptive());

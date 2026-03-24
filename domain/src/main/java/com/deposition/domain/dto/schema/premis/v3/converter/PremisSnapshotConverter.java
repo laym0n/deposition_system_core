@@ -19,6 +19,7 @@ import com.deposition.domain.models.PremisSnapshot;
     PremisIntellectualEntityMetadataConverter.class,
     PremisEventConverter.class,
     PremisAgentConverter.class,
+    PremisRightsStatementConverter.class,
     CommonConverter.class
 })
 public abstract class PremisSnapshotConverter {
@@ -30,11 +31,15 @@ public abstract class PremisSnapshotConverter {
     protected PremisRepresentationMetadataConverter premisRepresentationMetadataConverter;
 
     @Autowired
+    protected PremisRightsStatementConverter premisRightsStatementConverter;
+
+    @Autowired
     protected PremisIntellectualEntityMetadataConverter premisIntellectualEntityMetadataConverter;
 
     @Mapping(target = "objects", source = "object")
     @Mapping(target = "events", source = "event")
     @Mapping(target = "agents", source = "agent")
+    @Mapping(target = "rightsStatements", expression = "java(flattenRightsStatements(premis))")
     public abstract PremisSnapshot map(PremisComplexType premis);
 
     protected AbstractObjectMetadata map(ObjectComplexType objectComplexType) {
@@ -52,6 +57,25 @@ public abstract class PremisSnapshotConverter {
             default ->
                 null;
         };
+    }
+
+    protected java.util.List<com.deposition.domain.models.RightsStatementMetadata> flattenRightsStatements(PremisComplexType premis) {
+        if (premis == null || premis.getRights() == null || premis.getRights().isEmpty()) {
+            return java.util.List.of();
+        }
+
+        var result = new java.util.ArrayList<com.deposition.domain.models.RightsStatementMetadata>();
+        for (var rights : premis.getRights()) {
+            if (rights == null) {
+                continue;
+            }
+            var mapped = premisRightsStatementConverter.map(rights);
+            if (mapped == null || mapped.isEmpty()) {
+                continue;
+            }
+            result.addAll(mapped);
+        }
+        return java.util.List.copyOf(result);
     }
 
 }

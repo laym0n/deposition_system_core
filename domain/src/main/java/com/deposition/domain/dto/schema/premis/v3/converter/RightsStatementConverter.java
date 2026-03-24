@@ -7,6 +7,7 @@ import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.deposition.domain.dto.schema.premis.v3.RightsComplexType;
 import com.deposition.domain.dto.schema.premis.v3.RightsStatementComplexType;
 import com.deposition.domain.dto.schema.premis.v3.RightsStatementIdentifierComplexType;
 import com.deposition.domain.dto.schema.premis.v3.StringPlusAuthority;
@@ -32,6 +33,18 @@ public abstract class RightsStatementConverter {
     @Mapping(target = "linkingAgentIdentifier", ignore = true)
     @BeanMapping(ignoreUnmappedSourceProperties = "identifiers")
     public abstract RightsStatementComplexType map(RightsStatementMetadata metadata);
+
+    /**
+     * Wraps a rights statement into PREMIS <rights> container.
+     */
+    public RightsComplexType wrap(RightsStatementMetadata metadata) {
+        var rights = new RightsComplexType();
+        rights.setVersion("3.0");
+        if (metadata != null) {
+            rights.getRightsStatementOrRightsExtension().add(map(metadata));
+        }
+        return rights;
+    }
 
     protected RightsStatementIdentifierComplexType map(String rightsStatementId) {
         if (rightsStatementId == null || rightsStatementId.isBlank()) {

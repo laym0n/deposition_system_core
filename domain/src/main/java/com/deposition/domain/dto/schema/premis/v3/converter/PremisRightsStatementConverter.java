@@ -9,6 +9,7 @@ import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.deposition.domain.dto.schema.premis.v3.RightsComplexType;
 import com.deposition.domain.dto.schema.premis.v3.RightsStatementComplexType;
 import com.deposition.domain.dto.schema.premis.v3.StringPlusAuthority;
 import com.deposition.domain.models.RightsStatementMetadata;
@@ -36,6 +37,27 @@ public abstract class PremisRightsStatementConverter {
     @Mapping(target = "rightsGranted", source = "rightsGranted")
     @Mapping(target = "identifiers", ignore = true)
     public abstract RightsStatementMetadata map(RightsStatementComplexType complex);
+
+    /**
+     * Maps PREMIS <rights> container to a flat list of rights statements.
+     */
+    public List<RightsStatementMetadata> map(RightsComplexType rights) {
+        if (rights == null || rights.getRightsStatementOrRightsExtension() == null) {
+            return List.of();
+        }
+
+        var result = new ArrayList<RightsStatementMetadata>();
+        for (var item : rights.getRightsStatementOrRightsExtension()) {
+            if (!(item instanceof RightsStatementComplexType rs)) {
+                continue;
+            }
+            var mapped = map(rs);
+            if (mapped != null) {
+                result.add(mapped);
+            }
+        }
+        return List.copyOf(result);
+    }
 
     protected String extractRightsStatementId(RightsStatementComplexType complex) {
         if (complex == null || complex.getRightsStatementIdentifier() == null) {
