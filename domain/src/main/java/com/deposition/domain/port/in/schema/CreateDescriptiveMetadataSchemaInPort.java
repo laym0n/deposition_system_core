@@ -1,7 +1,6 @@
 package com.deposition.domain.port.in.schema;
 
 import com.deposition.domain.models.DescriptiveMetadataSchema;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 

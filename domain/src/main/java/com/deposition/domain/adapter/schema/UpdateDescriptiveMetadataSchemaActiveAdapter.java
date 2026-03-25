@@ -1,14 +1,12 @@
 package com.deposition.domain.adapter.schema;
 
-import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
-
 import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.DescriptiveMetadataSchema;
 import com.deposition.domain.port.in.schema.UpdateDescriptiveMetadataSchemaActiveInPort;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 
 @Component
 @RequiredArgsConstructor
@@ -21,7 +19,7 @@ public class UpdateDescriptiveMetadataSchemaActiveAdapter implements UpdateDescr
     public DescriptiveMetadataSchema updateActive(java.util.UUID schemaId, UpdateActiveCommand command) {
         var existing = outPort.findById(schemaId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                "DescriptiveMetadataSchema", schemaId.toString()));
+                        "DescriptiveMetadataSchema", schemaId.toString()));
 
         var updated = new DescriptiveMetadataSchema(
                 existing.id(),

@@ -1,24 +1,14 @@
 package com.deposition.domain.dto.schema.premis.v3.converter;
 
-import org.mapstruct.AfterMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.ReportingPolicy;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.deposition.domain.dto.schema.premis.v3.EventComplexType;
-import com.deposition.domain.dto.schema.premis.v3.EventDetailInformationComplexType;
-import com.deposition.domain.dto.schema.premis.v3.EventIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.EventOutcomeInformationComplexType;
-import com.deposition.domain.dto.schema.premis.v3.LinkingAgentIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.LinkingObjectIdentifierComplexType;
+import com.deposition.domain.dto.schema.premis.v3.*;
 import com.deposition.domain.models.EventMetadata;
 import com.deposition.domain.models.enums.EventIdentifierType;
 import com.deposition.domain.models.valueobject.EventAgentLink;
 import com.deposition.domain.models.valueobject.EventDetailInformation;
 import com.deposition.domain.models.valueobject.EventObjectLink;
 import com.deposition.domain.models.valueobject.EventOutcomeInformation;
+import org.mapstruct.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(componentModel = "spring", unmappedSourcePolicy = ReportingPolicy.ERROR, uses = CommonConverter.class)
 public abstract class EventConverter {
@@ -57,7 +47,7 @@ public abstract class EventConverter {
 
     @AfterMapping
     protected void convertNameToUpperCase(@MappingTarget EventComplexType eventComplexType,
-            EventMetadata eventMetadata) {
+                                          EventMetadata eventMetadata) {
         var eventIdentifier = new EventIdentifierComplexType();
         eventIdentifier.setEventIdentifierType(commonConverter.toStringPlusAuthority(EventIdentifierType.SYSTEM.name()));
         eventIdentifier.setEventIdentifierValue(eventMetadata.getId().toString());

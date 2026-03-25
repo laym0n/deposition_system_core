@@ -1,19 +1,17 @@
 package com.deposition.infra.opensearch.adapter;
 
-import java.time.OffsetDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
+import com.deposition.domain.port.in.schema.IntellectualEntityType;
+import com.deposition.domain.port.out.DescriptiveMetadataIndexOutPort;
+import com.deposition.infra.opensearch.config.OpenSearchProperties;
+import lombok.RequiredArgsConstructor;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import com.deposition.domain.port.in.schema.IntellectualEntityType;
-import com.deposition.domain.port.out.DescriptiveMetadataIndexOutPort;
-import com.deposition.infra.opensearch.config.OpenSearchProperties;
-
-import lombok.RequiredArgsConstructor;
+import java.time.OffsetDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor

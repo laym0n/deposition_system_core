@@ -1,25 +1,22 @@
 package com.deposition.domain.adapter.rights;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
-
 import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.AgentMetadata;
-
+import com.deposition.domain.port.in.common.DepositionResult;
 import com.deposition.domain.port.in.rights.UpsertRightsStatementInPort;
 import com.deposition.domain.port.in.rights.UpsertRightsStatementRequest;
-import com.deposition.domain.port.in.common.DepositionResult;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.domain.service.PremisPersistenceService;
 import com.deposition.domain.service.XmlUtils;
 import com.deposition.domain.service.acl.AccessValidatorService;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Component
 @Validated
@@ -30,6 +27,27 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
     private final RightsStatementPremisUpdater rightsStatementPremisUpdater;
     private final AccessValidatorService accessValidatorService;
     private final PremisPersistenceService premisPersistenceService;
+
+    private static List<AgentMetadata> resolveAgentsToEnsure(UpsertRightsStatementRequest request) {
+        if (request == null || request.agents() == null) {
+            return List.of();
+        }
+        var result = new ArrayList<AgentMetadata>();
+        for (var grant : request.agents()) {
+            if (grant == null) {
+                continue;
+            }
+
+            var a = grant.agent();
+            result.add(AgentMetadata.builder()
+                    .id(a.id())
+                    .name(a.name())
+                    .type(a.type())
+                    .identifiers(a.identifiers() == null ? List.of() : List.copyOf(a.identifiers()))
+                    .build());
+        }
+        return result;
+    }
 
     @Override
     public DepositionResult upsertRightsStatement(UUID objectId, UpsertRightsStatementRequest request) {
@@ -59,7 +77,7 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
 
     @Override
     public DepositionResult updateRightsStatement(UUID objectId, String rightsStatementId,
-            UpsertRightsStatementRequest request) {
+                                                  UpsertRightsStatementRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("request must not be null");
         }
@@ -72,27 +90,6 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
                 request.agents());
 
         return upsertRightsStatement(objectId, normalizedRequest);
-    }
-
-    private static List<AgentMetadata> resolveAgentsToEnsure(UpsertRightsStatementRequest request) {
-        if (request == null || request.agents() == null) {
-            return List.of();
-        }
-        var result = new ArrayList<AgentMetadata>();
-        for (var grant : request.agents()) {
-            if (grant == null) {
-                continue;
-            }
-
-            var a = grant.agent();
-            result.add(AgentMetadata.builder()
-                    .id(a.id())
-                    .name(a.name())
-                    .type(a.type())
-                    .identifiers(a.identifiers() == null ? List.of() : List.copyOf(a.identifiers()))
-                    .build());
-        }
-        return result;
     }
 
 }

@@ -1,11 +1,5 @@
 package com.deposition.domain.adapter.object;
 
-import java.util.UUID;
-
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
-
 import com.deposition.domain.exception.ModuleException;
 import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.AnchorRecord;
@@ -22,8 +16,12 @@ import com.deposition.domain.service.ResourceHashCalculatorUtils;
 import com.deposition.domain.service.StatisticsEventReporter;
 import com.deposition.domain.service.XmlUtils;
 import com.deposition.domain.service.acl.AccessValidatorService;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
+
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -37,6 +35,17 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
     private final DepositionIndexingService depositionIndexingService;
     private final StatisticsEventReporter statisticsEventReporter;
     private final UserOutPort userService;
+
+    private static AnchorRecord buildAnchorRecord(UUID objectId, String versionId, Resource premisMetadata) {
+        String algorithm = ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM;
+        var premisMetadataHash = ResourceHashCalculatorUtils.calculateHash(premisMetadata, algorithm);
+        return AnchorRecord.builder()
+                .objectId(objectId.toString())
+                .versionId(versionId)
+                .hash(premisMetadataHash)
+                .hashAlgorithm(algorithm)
+                .build();
+    }
 
     @Override
     public DepositionResult updateMetadata(UUID objectId, UpdateMetadataParams params) {
@@ -72,22 +81,11 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
 
         userService.getOptinalCurrentUserId()
                 .ifPresent(userId -> statisticsEventReporter.report(
-                StatisticsEventType.OBJECT_METADATA_UPDATE,
-                objectId,
-                premisStorage.getVersionId(),
-                userId));
+                        StatisticsEventType.OBJECT_METADATA_UPDATE,
+                        objectId,
+                        premisStorage.getVersionId(),
+                        userId));
 
         return new DepositionResult(objectId, txId, premisStorage.getVersionId());
-    }
-
-    private static AnchorRecord buildAnchorRecord(UUID objectId, String versionId, Resource premisMetadata) {
-        String algorithm = ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM;
-        var premisMetadataHash = ResourceHashCalculatorUtils.calculateHash(premisMetadata, algorithm);
-        return AnchorRecord.builder()
-                .objectId(objectId.toString())
-                .versionId(versionId)
-                .hash(premisMetadataHash)
-                .hashAlgorithm(algorithm)
-                .build();
     }
 }

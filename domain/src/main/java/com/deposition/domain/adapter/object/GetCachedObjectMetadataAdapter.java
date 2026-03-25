@@ -1,21 +1,19 @@
 package com.deposition.domain.adapter.object;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
+import com.deposition.domain.exception.ResourceNotFoundException;
+import com.deposition.domain.models.acl.ObjectAcl;
+import com.deposition.domain.port.in.object.CachedObjectMetadataResponse;
+import com.deposition.domain.port.in.object.CachedObjectMetadataResponse.PremisMetadata;
+import com.deposition.domain.port.in.object.GetCachedObjectMetadataInPort;
+import com.deposition.domain.port.out.ObjectIndexLookupOutPort;
+import jakarta.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-import com.deposition.domain.exception.ResourceNotFoundException;
-import com.deposition.domain.models.acl.ObjectAcl;
-import com.deposition.domain.port.in.object.GetCachedObjectMetadataInPort;
-import com.deposition.domain.port.in.object.CachedObjectMetadataResponse;
-import com.deposition.domain.port.in.object.CachedObjectMetadataResponse.PremisMetadata;
-import com.deposition.domain.port.out.ObjectIndexLookupOutPort;
-
-import jakarta.annotation.Nullable;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @Component
 @Validated
@@ -24,13 +22,24 @@ public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataIn
 
     private final ObjectIndexLookupOutPort objectIndexLookupOutPort;
 
+    private static List<com.deposition.domain.models.acl.AclEntry> filterAclEntriesForUser(
+            List<com.deposition.domain.models.acl.AclEntry> entries,
+            String userId) {
+        if (entries == null || entries.isEmpty()) {
+            return List.of();
+        }
+        return entries.stream()
+                .filter(Objects::nonNull)
+                .filter(e -> e.isForUser(userId))
+                .toList();
+    }
+
     @Override
     public CachedObjectMetadataResponse getCachedMetadata(UUID objectId, @Nullable String currentUserId) {
         var doc = objectIndexLookupOutPort.findByObjectId(objectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Object", objectId.toString()));
 
         var premisMetadata = new PremisMetadata(
-                doc.entityType(),
                 doc.originalName(),
                 doc.anchors(),
                 doc.identifiers(),
@@ -49,17 +58,5 @@ public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataIn
                 premisMetadata,
                 doc.descriptive(),
                 userAcl);
-    }
-
-    private static List<com.deposition.domain.models.acl.AclEntry> filterAclEntriesForUser(
-            List<com.deposition.domain.models.acl.AclEntry> entries,
-            String userId) {
-        if (entries == null || entries.isEmpty()) {
-            return List.of();
-        }
-        return entries.stream()
-                .filter(Objects::nonNull)
-                .filter(e -> e.isForUser(userId))
-                .toList();
     }
 }

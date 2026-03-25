@@ -1,26 +1,19 @@
 package com.deposition.domain.service;
 
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-
-import javax.xml.XMLConstants;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
-
 import com.deposition.domain.dto.schema.premis.v3.ObjectFactory;
 import com.deposition.domain.dto.schema.premis.v3.PremisComplexType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import jakarta.xml.bind.*;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBElement;
-import jakarta.xml.bind.JAXBException;
-import jakarta.xml.bind.Marshaller;
-import jakarta.xml.bind.Unmarshaller;
+import javax.xml.XMLConstants;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 
 public class XmlUtils {
 

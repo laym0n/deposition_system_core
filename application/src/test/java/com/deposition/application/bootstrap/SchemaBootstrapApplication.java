@@ -1,10 +1,9 @@
 package com.deposition.application.bootstrap;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-
 import com.deposition.application.Application;
 import com.deposition.application.config.LocalDevTestContainersConfiguration;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class SchemaBootstrapApplication {

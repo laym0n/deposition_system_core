@@ -1,12 +1,11 @@
 package com.deposition.domain.port.in.object;
 
-import java.util.Map;
-import java.util.UUID;
-
 import com.deposition.domain.models.acl.ObjectAcl;
-
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
+
+import java.util.Map;
+import java.util.UUID;
 
 public record CachedObjectMetadataResponse(
         @NotNull
@@ -22,8 +21,6 @@ public record CachedObjectMetadataResponse(
      * PREMIS-like metadata fields cached in the `objects` OpenSearch index.
      */
     public record PremisMetadata(
-            @NotNull
-            String entityType,
             @Nullable
             String originalName,
             @Nullable

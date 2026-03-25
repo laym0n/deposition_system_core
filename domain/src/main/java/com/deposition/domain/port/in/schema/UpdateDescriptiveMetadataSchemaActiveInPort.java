@@ -1,11 +1,10 @@
 package com.deposition.domain.port.in.schema;
 
-import java.util.UUID;
-
 import com.deposition.domain.models.DescriptiveMetadataSchema;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+
+import java.util.UUID;
 
 public interface UpdateDescriptiveMetadataSchemaActiveInPort {
 

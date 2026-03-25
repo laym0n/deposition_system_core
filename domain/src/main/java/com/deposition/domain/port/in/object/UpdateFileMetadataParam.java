@@ -1,10 +1,10 @@
 package com.deposition.domain.port.in.object;
 
-import java.util.UUID;
-
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+
+import java.util.UUID;
 
 public record UpdateFileMetadataParam(
         @NotNull

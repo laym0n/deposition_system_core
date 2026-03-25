@@ -1,5 +1,7 @@
 package com.deposition.domain.service;
 
+import org.springframework.core.io.Resource;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
@@ -7,8 +9,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
-
-import org.springframework.core.io.Resource;
 
 public final class ResourceHashCalculatorUtils {
 

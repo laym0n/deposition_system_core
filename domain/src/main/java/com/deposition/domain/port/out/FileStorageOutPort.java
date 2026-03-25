@@ -1,13 +1,11 @@
 package com.deposition.domain.port.out;
 
-import java.net.URI;
-import java.util.UUID;
-
+import com.deposition.domain.models.valueobject.Storage;
+import jakarta.annotation.Nullable;
 import org.springframework.core.io.Resource;
 
-import com.deposition.domain.models.valueobject.Storage;
-
-import jakarta.annotation.Nullable;
+import java.net.URI;
+import java.util.UUID;
 
 public interface FileStorageOutPort {
 

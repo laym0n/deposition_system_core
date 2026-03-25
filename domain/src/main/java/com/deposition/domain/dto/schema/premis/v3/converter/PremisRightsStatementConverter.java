@@ -1,25 +1,23 @@
 package com.deposition.domain.dto.schema.premis.v3.converter;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.ReportingPolicy;
-import org.springframework.beans.factory.annotation.Autowired;
-
+import com.deposition.domain.dto.schema.premis.v3.LinkingAgentIdentifierComplexType;
 import com.deposition.domain.dto.schema.premis.v3.RightsComplexType;
 import com.deposition.domain.dto.schema.premis.v3.RightsStatementComplexType;
 import com.deposition.domain.dto.schema.premis.v3.StringPlusAuthority;
 import com.deposition.domain.models.RightsStatementMetadata;
 import com.deposition.domain.models.valueobject.CopyrightInformation;
 import com.deposition.domain.models.valueobject.LicenseInformation;
+import com.deposition.domain.models.valueobject.RightsStatementAgentLink;
+import org.mapstruct.*;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR, uses = {
-    PremisCommonConverter.class,
-    RightsStatementNestedConverter.class
-})
+        PremisCommonConverter.class,
+        RightsStatementNestedConverter.class
+}, builder = @Builder(disableBuilder = true))
 public abstract class PremisRightsStatementConverter {
 
     @Autowired
@@ -35,7 +33,7 @@ public abstract class PremisRightsStatementConverter {
     @Mapping(target = "statuteInformation", source = "statuteInformation")
     @Mapping(target = "otherRightsInformation", source = "otherRightsInformation")
     @Mapping(target = "rightsGranted", source = "rightsGranted")
-    @Mapping(target = "identifiers", ignore = true)
+    @Mapping(target = "linkingAgentIdentifiers", source = "linkingAgentIdentifier")
     public abstract RightsStatementMetadata map(RightsStatementComplexType complex);
 
     /**
@@ -103,4 +101,9 @@ public abstract class PremisRightsStatementConverter {
         }
         return new ArrayList<>(in);
     }
+
+    @Mapping(target = "roles", source = "linkingAgentRole")
+    @Mapping(target = "agentIdentifier.type", source = "linkingAgentIdentifierType.value")
+    @Mapping(target = "agentIdentifier.value", source = "linkingAgentIdentifierValue")
+    protected abstract RightsStatementAgentLink map(LinkingAgentIdentifierComplexType linkingAgentIdentifier);
 }

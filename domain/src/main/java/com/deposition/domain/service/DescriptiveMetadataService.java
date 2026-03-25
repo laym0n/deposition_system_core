@@ -1,14 +1,5 @@
 package com.deposition.domain.service;
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
-
 import com.deposition.domain.exception.DescriptiveMetadataValidationException;
 import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.port.in.schema.IntellectualEntityType;
@@ -21,9 +12,16 @@ import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
-
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -35,16 +33,21 @@ public class DescriptiveMetadataService {
     private final FileStorageOutPort fileStorage;
     private final ObjectMapper objectMapper;
 
+    private static JsonSchema loadSchema(JsonNode schemaNode) {
+        JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012);
+        return factory.getSchema(schemaNode);
+    }
+
     public Map<String, Object> validateAndPersistIfPresent(UUID intellectualEntityId,
-            IntellectualEntityType entityType,
-            String metadataJson) {
+                                                           IntellectualEntityType entityType,
+                                                           String metadataJson) {
         if (metadataJson == null || metadataJson.isBlank()) {
             return Map.of();
         }
 
         var schemaJson = schemaOutPort.findActiveSchemaJsonByEntityType(entityType.name())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                "DescriptiveMetadataSchema", "entityType=" + entityType));
+                        "DescriptiveMetadataSchema", "entityType=" + entityType));
 
         try {
             JsonNode schemaNode = objectMapper.readTree(schemaJson);
@@ -69,11 +72,6 @@ public class DescriptiveMetadataService {
                     "Descriptive metadata validation failed for entityType=" + entityType,
                     List.of(ex.getMessage()));
         }
-    }
-
-    private static JsonSchema loadSchema(JsonNode schemaNode) {
-        JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012);
-        return factory.getSchema(schemaNode);
     }
 
     private void persistJson(UUID intellectualEntityId, String json) {

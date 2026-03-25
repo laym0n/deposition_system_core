@@ -1,13 +1,11 @@
 package com.deposition.domain.dto.schema.premis.v3.converter;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.ReportingPolicy;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.deposition.domain.dto.schema.premis.v3.AgentComplexType;
 import com.deposition.domain.models.AgentMetadata;
+import com.deposition.domain.models.enums.AgentIdentifierType;
 import com.deposition.domain.models.enums.AgentType;
+import org.mapstruct.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR, uses = PremisCommonConverter.class)
 public abstract class PremisAgentConverter {
@@ -38,5 +36,11 @@ public abstract class PremisAgentConverter {
         }
         var first = agentComplexType.getAgentName().getFirst();
         return first == null ? null : first.getValue();
+    }
+
+    @AfterMapping
+    protected void convertNameToUpperCase(@MappingTarget AgentMetadata agentMetadata, AgentComplexType agentComplexType) {
+        var identifiers = agentMetadata.getIdentifiers().stream().filter(identifier -> identifier.getType() != AgentIdentifierType.SYSTEM).toList();
+        agentMetadata.setIdentifiers(identifiers);
     }
 }

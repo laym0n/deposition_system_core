@@ -1,12 +1,5 @@
 package com.deposition.domain.adapter.builder;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Component;
-
 import com.deposition.domain.adapter.converter.IntellectualEntityParamConverter;
 import com.deposition.domain.dto.schema.premis.v3.IntellectualEntity;
 import com.deposition.domain.dto.schema.premis.v3.converter.IntellectualEntityConverter;
@@ -17,8 +10,13 @@ import com.deposition.domain.models.enums.ObjectRelationshipType;
 import com.deposition.domain.models.valueobject.RelationObjectIdentifier;
 import com.deposition.domain.models.valueobject.Relationship;
 import com.deposition.domain.port.in.object.IntellectualEntityMetadataParam;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Component
@@ -40,7 +38,7 @@ final class IntellectualEntityMetadataBuilder {
     }
 
     private IntellectualEntity buildIntellectualEntityObject(IntellectualEntityMetadataParam baseMetadata,
-            UUID objectId, List<UUID> representationObjectIds) {
+                                                             UUID objectId, List<UUID> representationObjectIds) {
         var intellectualEntity = IntellectualEntityMetadata.builder()
                 .id(objectId)
                 .relationships(new ArrayList<>(List.of(

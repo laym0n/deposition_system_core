@@ -1,10 +1,10 @@
 package com.deposition.domain.port.in.schema;
 
+import jakarta.validation.Valid;
+
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
-
-import jakarta.validation.Valid;
 
 public interface GetDescriptiveMetadataSchemasInPort {
 

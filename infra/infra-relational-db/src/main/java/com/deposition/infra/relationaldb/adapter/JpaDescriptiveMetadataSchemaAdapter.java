@@ -1,27 +1,35 @@
 package com.deposition.infra.relationaldb.adapter;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.deposition.domain.models.DescriptiveMetadataSchema;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
 import com.deposition.infra.relationaldb.entity.DescriptiveMetadataSchemaEntity;
 import com.deposition.infra.relationaldb.repository.DescriptiveMetadataSchemaJpaRepository;
 import com.deposition.infra.relationaldb.repository.spec.DescriptiveMetadataSchemaSpecifications;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class JpaDescriptiveMetadataSchemaAdapter implements DescriptiveMetadataSchemaOutPort {
 
     private final DescriptiveMetadataSchemaJpaRepository repository;
+
+    private static DescriptiveMetadataSchema toDomain(DescriptiveMetadataSchemaEntity entity) {
+        return new DescriptiveMetadataSchema(
+                entity.getId(),
+                com.deposition.domain.port.in.schema.IntellectualEntityType.valueOf(entity.getEntityType()),
+                entity.getSchemaJson(),
+                entity.isActive(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt());
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -68,7 +76,7 @@ public class JpaDescriptiveMetadataSchemaAdapter implements DescriptiveMetadataS
 
         Specification<com.deposition.infra.relationaldb.entity.DescriptiveMetadataSchemaEntity> spec
                 = DescriptiveMetadataSchemaSpecifications.entityTypeEquals(entityType)
-                        .and(DescriptiveMetadataSchemaSpecifications.activeEquals(active));
+                .and(DescriptiveMetadataSchemaSpecifications.activeEquals(active));
 
         var sort = Sort.by(
                 Sort.Order.asc("entityType"),
@@ -76,21 +84,11 @@ public class JpaDescriptiveMetadataSchemaAdapter implements DescriptiveMetadataS
 
         return repository.findAll(spec, sort).stream()
                 .map(s -> new DescriptiveMetadataSchemaSummary(
-                s.getId(),
-                s.getEntityType(),
-                s.isActive(),
-                s.getCreatedAt(),
-                s.getUpdatedAt()))
+                        s.getId(),
+                        s.getEntityType(),
+                        s.isActive(),
+                        s.getCreatedAt(),
+                        s.getUpdatedAt()))
                 .toList();
-    }
-
-    private static DescriptiveMetadataSchema toDomain(DescriptiveMetadataSchemaEntity entity) {
-        return new DescriptiveMetadataSchema(
-                entity.getId(),
-                com.deposition.domain.port.in.schema.IntellectualEntityType.valueOf(entity.getEntityType()),
-                entity.getSchemaJson(),
-                entity.isActive(),
-                entity.getCreatedAt(),
-                entity.getUpdatedAt());
     }
 }

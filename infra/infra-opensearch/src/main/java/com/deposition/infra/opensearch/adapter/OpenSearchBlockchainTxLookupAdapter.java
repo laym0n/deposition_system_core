@@ -1,8 +1,9 @@
 package com.deposition.infra.opensearch.adapter;
 
-import java.util.Optional;
-import java.util.UUID;
-
+import com.deposition.domain.port.out.BlockchainTxLookupOutPort;
+import com.deposition.infra.opensearch.config.OpenSearchProperties;
+import jakarta.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.query_dsl.BoolQuery;
@@ -11,11 +12,8 @@ import org.opensearch.client.opensearch.core.SearchRequest;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import com.deposition.domain.port.out.BlockchainTxLookupOutPort;
-import com.deposition.infra.opensearch.config.OpenSearchProperties;
-
-import jakarta.annotation.Nullable;
-import lombok.RequiredArgsConstructor;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Resolves blockchain txId for a specific stored PREMIS version using
@@ -28,6 +26,51 @@ public class OpenSearchBlockchainTxLookupAdapter implements BlockchainTxLookupOu
 
     private final OpenSearchClient client;
     private final OpenSearchProperties properties;
+
+    private static Optional<String> extractAnyTxId(java.util.Map<?, ?> source) {
+        Object anchors = source.get("anchors");
+        if (!(anchors instanceof java.util.List<?> list) || list.isEmpty()) {
+            return Optional.empty();
+        }
+        for (Object a : list) {
+            if (a instanceof java.util.Map<?, ?> am) {
+                Object txId = am.get("blockchainTxId");
+                if (txId != null && !txId.toString().isBlank()) {
+                    return Optional.of(txId.toString());
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static Optional<String> extractTxIdByStorageVersionId(java.util.Map<?, ?> source, String storageVersionId) {
+        if (storageVersionId == null || storageVersionId.isBlank()) {
+            return Optional.empty();
+        }
+
+        Object anchors = source.get("anchors");
+        if (!(anchors instanceof java.util.List<?> list) || list.isEmpty()) {
+            return Optional.empty();
+        }
+
+        for (Object a : list) {
+            if (!(a instanceof java.util.Map<?, ?> am)) {
+                continue;
+            }
+            Object vid = am.get("storageVersionId");
+            if (vid == null || !storageVersionId.equals(vid.toString())) {
+                continue;
+            }
+
+            Object txId = am.get("blockchainTxId");
+            if (txId == null || txId.toString().isBlank()) {
+                return Optional.empty();
+            }
+            return Optional.of(txId.toString());
+        }
+
+        return Optional.empty();
+    }
 
     @Override
     public Optional<String> findTxId(UUID objectId, @Nullable String storageVersionId) {
@@ -73,53 +116,8 @@ public class OpenSearchBlockchainTxLookupAdapter implements BlockchainTxLookupOu
         } catch (Exception ex) {
             throw new IllegalStateException(
                     "OpenSearch txId lookup failed for objectId=" + objectId + ", storageVersionId="
-                    + storageVersionId,
+                            + storageVersionId,
                     ex);
         }
-    }
-
-    private static Optional<String> extractAnyTxId(java.util.Map<?, ?> source) {
-        Object anchors = source.get("anchors");
-        if (!(anchors instanceof java.util.List<?> list) || list.isEmpty()) {
-            return Optional.empty();
-        }
-        for (Object a : list) {
-            if (a instanceof java.util.Map<?, ?> am) {
-                Object txId = am.get("blockchainTxId");
-                if (txId != null && !txId.toString().isBlank()) {
-                    return Optional.of(txId.toString());
-                }
-            }
-        }
-        return Optional.empty();
-    }
-
-    private static Optional<String> extractTxIdByStorageVersionId(java.util.Map<?, ?> source, String storageVersionId) {
-        if (storageVersionId == null || storageVersionId.isBlank()) {
-            return Optional.empty();
-        }
-
-        Object anchors = source.get("anchors");
-        if (!(anchors instanceof java.util.List<?> list) || list.isEmpty()) {
-            return Optional.empty();
-        }
-
-        for (Object a : list) {
-            if (!(a instanceof java.util.Map<?, ?> am)) {
-                continue;
-            }
-            Object vid = am.get("storageVersionId");
-            if (vid == null || !storageVersionId.equals(vid.toString())) {
-                continue;
-            }
-
-            Object txId = am.get("blockchainTxId");
-            if (txId == null || txId.toString().isBlank()) {
-                return Optional.empty();
-            }
-            return Optional.of(txId.toString());
-        }
-
-        return Optional.empty();
     }
 }

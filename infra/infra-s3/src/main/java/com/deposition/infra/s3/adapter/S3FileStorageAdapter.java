@@ -1,20 +1,13 @@
 package com.deposition.infra.s3.adapter;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URLConnection;
-import java.util.UUID;
-
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
-
 import com.deposition.domain.models.valueobject.Storage;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.infra.s3.config.S3Properties;
-
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -22,12 +15,41 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URLConnection;
+import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 public class S3FileStorageAdapter implements FileStorageOutPort {
 
     private final S3Client s3Client;
     private final S3Properties s3Properties;
+
+    private static String buildPremisObjectKey(UUID objectId) {
+        return "object/" + objectId + "/deposition-metadata.premis.xml";
+    }
+
+    private static String extractObjectKey(URI contentLocation) {
+        String path = contentLocation.getPath();
+        if (path == null || path.isBlank()) {
+            throw new IllegalArgumentException("Invalid contentLocation (path is empty): " + contentLocation);
+        }
+        // Path begins with '/', S3 key should not.
+        return path.startsWith("/") ? path.substring(1) : path;
+    }
+
+    private static String extractFilename(String objectKey) {
+        if (objectKey == null || objectKey.isBlank()) {
+            return null;
+        }
+        int idx = objectKey.lastIndexOf('/');
+        if (idx < 0 || idx == objectKey.length() - 1) {
+            return objectKey;
+        }
+        return objectKey.substring(idx + 1);
+    }
 
     @Override
     public Storage persist(Resource resource, String entityId) {
@@ -118,10 +140,6 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
         }
     }
 
-    private static String buildPremisObjectKey(UUID objectId) {
-        return "object/" + objectId + "/deposition-metadata.premis.xml";
-    }
-
     @SneakyThrows
     private URI buildObjectUri(String bucketName, String objectKey) {
         var endpoint = s3Client.utilities().getUrl(builder -> builder
@@ -142,25 +160,5 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
         }
 
         return contentType;
-    }
-
-    private static String extractObjectKey(URI contentLocation) {
-        String path = contentLocation.getPath();
-        if (path == null || path.isBlank()) {
-            throw new IllegalArgumentException("Invalid contentLocation (path is empty): " + contentLocation);
-        }
-        // Path begins with '/', S3 key should not.
-        return path.startsWith("/") ? path.substring(1) : path;
-    }
-
-    private static String extractFilename(String objectKey) {
-        if (objectKey == null || objectKey.isBlank()) {
-            return null;
-        }
-        int idx = objectKey.lastIndexOf('/');
-        if (idx < 0 || idx == objectKey.length() - 1) {
-            return objectKey;
-        }
-        return objectKey.substring(idx + 1);
     }
 }

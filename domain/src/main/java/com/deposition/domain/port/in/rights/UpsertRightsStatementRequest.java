@@ -1,19 +1,13 @@
 package com.deposition.domain.port.in.rights;
 
-import java.util.List;
-
 import com.deposition.domain.models.enums.AgentType;
 import com.deposition.domain.models.enums.RightsBasis;
-import com.deposition.domain.models.valueobject.CopyrightInformation;
-import com.deposition.domain.models.valueobject.Identifier;
-import com.deposition.domain.models.valueobject.LicenseInformation;
-import com.deposition.domain.models.valueobject.OtherRightsInformation;
-import com.deposition.domain.models.valueobject.RightsGranted;
-import com.deposition.domain.models.valueobject.StatuteInformation;
-
+import com.deposition.domain.models.valueobject.*;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
+import java.util.List;
 
 /**
  * Request to add/update a rights statement in PREMIS metadata.
@@ -61,7 +55,7 @@ public record UpsertRightsStatementRequest(
             @NotNull
             AgentType type,
             @Nullable
-            List<Identifier> identifiers) {
+            List<AgentIdentifier> identifiers) {
 
     }
 }

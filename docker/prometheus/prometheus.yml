@@ -7,4 +7,4 @@ scrape_configs:
     metrics_path: /actuator/prometheus
     static_configs:
       # If you run the app on host (port 8082 in local-dev profile), Prometheus container can access it via host.docker.internal.
-      - targets: ["host.docker.internal:8082"]
+      - targets: [ "host.docker.internal:8082" ]

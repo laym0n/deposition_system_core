@@ -1,57 +1,24 @@
 package com.deposition.domain.adapter.object;
 
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
+import com.deposition.domain.adapter.converter.FileParamConverter;
+import com.deposition.domain.adapter.converter.IntellectualEntityParamConverter;
+import com.deposition.domain.adapter.converter.RepresentationParamConverter;
+import com.deposition.domain.dto.schema.premis.v3.*;
+import com.deposition.domain.dto.schema.premis.v3.converter.*;
+import com.deposition.domain.exception.ResourceNotFoundException;
+import com.deposition.domain.models.*;
+import com.deposition.domain.models.enums.*;
+import com.deposition.domain.models.valueobject.*;
+import com.deposition.domain.port.in.object.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import com.deposition.domain.adapter.converter.FileParamConverter;
-import com.deposition.domain.adapter.converter.IntellectualEntityParamConverter;
-import com.deposition.domain.adapter.converter.RepresentationParamConverter;
-import com.deposition.domain.dto.schema.premis.v3.EventComplexType;
-import com.deposition.domain.dto.schema.premis.v3.File;
-import com.deposition.domain.dto.schema.premis.v3.IntellectualEntity;
-import com.deposition.domain.dto.schema.premis.v3.ObjectComplexType;
-import com.deposition.domain.dto.schema.premis.v3.ObjectIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.PremisComplexType;
-import com.deposition.domain.dto.schema.premis.v3.Representation;
-import com.deposition.domain.dto.schema.premis.v3.converter.AgentConverter;
-import com.deposition.domain.dto.schema.premis.v3.converter.EventConverter;
-import com.deposition.domain.dto.schema.premis.v3.converter.FileMetadataConverter;
-import com.deposition.domain.dto.schema.premis.v3.converter.IntellectualEntityConverter;
-import com.deposition.domain.dto.schema.premis.v3.converter.PremisSnapshotConverter;
-import com.deposition.domain.dto.schema.premis.v3.converter.RepresentationMetadataConverter;
-import com.deposition.domain.exception.ResourceNotFoundException;
-import com.deposition.domain.models.EventMetadata;
-import com.deposition.domain.models.FileMetadata;
-import com.deposition.domain.models.IntellectualEntityMetadata;
-import com.deposition.domain.models.PremisSnapshot;
-import com.deposition.domain.models.RepresentationMetadata;
-import com.deposition.domain.models.enums.AgentIdentifierType;
-import com.deposition.domain.models.enums.EventAgentLinkRole;
-import com.deposition.domain.models.enums.EventIdentifierType;
-import com.deposition.domain.models.enums.EventObjectLinkRole;
-import com.deposition.domain.models.enums.EventType;
-import com.deposition.domain.models.enums.ObjectIdentifierType;
-import com.deposition.domain.models.valueobject.AgentIdentifier;
-import com.deposition.domain.models.valueobject.EventAgentLink;
-import com.deposition.domain.models.valueobject.EventDetailInformation;
-import com.deposition.domain.models.valueobject.EventIdentifier;
-import com.deposition.domain.models.valueobject.EventObjectLink;
-import com.deposition.domain.models.valueobject.Identifier;
-import com.deposition.domain.models.valueobject.ObjectIdentifier;
-import com.deposition.domain.port.in.object.FileMetadataParam;
-import com.deposition.domain.port.in.object.IntellectualEntityMetadataParam;
-import com.deposition.domain.port.in.object.RepresentationMetadataParam;
-import com.deposition.domain.port.in.object.UpdateFileMetadataParam;
-import com.deposition.domain.port.in.object.UpdateMetadataParams;
-import com.deposition.domain.port.in.object.UpdateRepresentationMetadataParam;
-
-import lombok.RequiredArgsConstructor;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -68,9 +35,73 @@ final class PremisMetadataUpdater {
     private final RepresentationParamConverter representationParamConverter;
     private final FileParamConverter fileParamConverter;
 
+    private static boolean hasAnyValue(IntellectualEntityMetadataParam patch) {
+        return patch.originalName() != null
+                || patch.identifiers() != null
+                || patch.relationships() != null;
+    }
+
+    private static boolean hasAnyValue(RepresentationMetadataParam patch) {
+        return patch.originalName() != null;
+    }
+
+    private static boolean hasAnyValue(FileMetadataParam patch) {
+        return patch.originalName() != null;
+    }
+
+    private static UUID extractLocalId(ObjectComplexType obj) {
+        if (obj == null) {
+            return null;
+        }
+        try {
+            if (obj instanceof IntellectualEntity ie) {
+                return extractLocalIdFromIdentifiers(ie.getObjectIdentifier());
+            }
+            if (obj instanceof Representation rep) {
+                return extractLocalIdFromIdentifiers(rep.getObjectIdentifier());
+            }
+            if (obj instanceof File file) {
+                return extractLocalIdFromIdentifiers(file.getObjectIdentifier());
+            }
+        } catch (RuntimeException ex) {
+            // ignore and return null
+        }
+        return null;
+    }
+
+    private static UUID extractLocalIdFromIdentifiers(
+            List<ObjectIdentifierComplexType> identifiers) {
+        if (identifiers == null) {
+            return null;
+        }
+        for (var id : identifiers) {
+            if (id == null || id.getObjectIdentifierType() == null) {
+                continue;
+            }
+            var type = id.getObjectIdentifierType().getValue();
+            if (!Objects.equals(ObjectIdentifierType.SYSTEM.name(), type)) {
+                continue;
+            }
+            var value = id.getObjectIdentifierValue();
+            if (value == null || value.isBlank()) {
+                continue;
+            }
+            return UUID.fromString(value);
+        }
+        return null;
+    }
+
+    private static List<EventAgentLink> buildAgentLinks(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return List.of();
+        }
+        var agentIdentifier = new AgentIdentifier(AgentIdentifierType.SYSTEM, authentication.getName());
+        return List.of(new EventAgentLink(agentIdentifier, List.of(EventAgentLinkRole.AUTHORIZER)));
+    }
+
     public UpdateResult applyUpdate(PremisComplexType premis,
-            UUID objectId,
-            UpdateMetadataParams params) {
+                                    UUID objectId,
+                                    UpdateMetadataParams params) {
         if (premis == null) {
             throw new IllegalArgumentException("premis must not be null");
         }
@@ -200,23 +231,9 @@ final class PremisMetadataUpdater {
         return true;
     }
 
-    private static boolean hasAnyValue(IntellectualEntityMetadataParam patch) {
-        return patch.originalName() != null
-                || patch.identifiers() != null
-                || patch.relationships() != null;
-    }
-
-    private static boolean hasAnyValue(RepresentationMetadataParam patch) {
-        return patch.originalName() != null;
-    }
-
-    private static boolean hasAnyValue(FileMetadataParam patch) {
-        return patch.originalName() != null;
-    }
-
     private void replacePremisObject(PremisComplexType premis,
-            UUID objectId,
-            ObjectComplexType replacement) {
+                                     UUID objectId,
+                                     ObjectComplexType replacement) {
         if (replacement == null) {
             throw new IllegalStateException("Replacement PREMIS object is null for objectId=" + objectId);
         }
@@ -232,48 +249,6 @@ final class PremisMetadataUpdater {
         }
 
         throw new ResourceNotFoundException("Object", objectId.toString());
-    }
-
-    private static UUID extractLocalId(ObjectComplexType obj) {
-        if (obj == null) {
-            return null;
-        }
-        try {
-            if (obj instanceof IntellectualEntity ie) {
-                return extractLocalIdFromIdentifiers(ie.getObjectIdentifier());
-            }
-            if (obj instanceof Representation rep) {
-                return extractLocalIdFromIdentifiers(rep.getObjectIdentifier());
-            }
-            if (obj instanceof File file) {
-                return extractLocalIdFromIdentifiers(file.getObjectIdentifier());
-            }
-        } catch (RuntimeException ex) {
-            // ignore and return null
-        }
-        return null;
-    }
-
-    private static UUID extractLocalIdFromIdentifiers(
-            List<ObjectIdentifierComplexType> identifiers) {
-        if (identifiers == null) {
-            return null;
-        }
-        for (var id : identifiers) {
-            if (id == null || id.getObjectIdentifierType() == null) {
-                continue;
-            }
-            var type = id.getObjectIdentifierType().getValue();
-            if (!Objects.equals(ObjectIdentifierType.SYSTEM.name(), type)) {
-                continue;
-            }
-            var value = id.getObjectIdentifierValue();
-            if (value == null || value.isBlank()) {
-                continue;
-            }
-            return UUID.fromString(value);
-        }
-        return null;
     }
 
     private <T> T findObjectById(PremisSnapshot snapshot, UUID objectId, Class<T> type) {
@@ -325,17 +300,9 @@ final class PremisMetadataUpdater {
         ensureAgentPresent(premis, snapshot, authentication);
     }
 
-    private static List<EventAgentLink> buildAgentLinks(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return List.of();
-        }
-        var agentIdentifier = new AgentIdentifier(AgentIdentifierType.SYSTEM, authentication.getName());
-        return List.of(new EventAgentLink(agentIdentifier, List.of(EventAgentLinkRole.AUTHORIZER)));
-    }
-
     private void ensureAgentPresent(PremisComplexType premis,
-            PremisSnapshot snapshot,
-            Authentication authentication) {
+                                    PremisSnapshot snapshot,
+                                    Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return;
         }
@@ -357,8 +324,8 @@ final class PremisMetadataUpdater {
                 .id(agentId)
                 .name(agentId)
                 .type(com.deposition.domain.models.enums.AgentType.PERSON)
-                .identifiers(List.of(Identifier.builder()
-                        .type(ObjectIdentifierType.SYSTEM.name())
+                .identifiers(List.of(AgentIdentifier.builder()
+                        .type(AgentIdentifierType.SYSTEM)
                         .value(agentId)
                         .build()))
                 .build();

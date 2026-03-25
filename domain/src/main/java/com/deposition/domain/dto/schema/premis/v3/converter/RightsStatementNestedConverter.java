@@ -1,38 +1,18 @@
 package com.deposition.domain.dto.schema.premis.v3.converter;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import com.deposition.domain.dto.schema.premis.v3.*;
+import com.deposition.domain.models.valueobject.*;
 import jakarta.xml.bind.JAXBElement;
-
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.deposition.domain.dto.schema.premis.v3.CopyrightDocumentationIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.CopyrightInformationComplexType;
-import com.deposition.domain.dto.schema.premis.v3.CountryCode;
-import com.deposition.domain.dto.schema.premis.v3.LicenseDocumentationIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.LicenseInformationComplexType;
-import com.deposition.domain.dto.schema.premis.v3.ObjectFactory;
-import com.deposition.domain.dto.schema.premis.v3.OtherRightsDocumentationIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.OtherRightsInformationComplexType;
-import com.deposition.domain.dto.schema.premis.v3.RightsGrantedComplexType;
-import com.deposition.domain.dto.schema.premis.v3.StartAndEndDateComplexType;
-import com.deposition.domain.dto.schema.premis.v3.StatuteDocumentationIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.StatuteInformationComplexType;
-import com.deposition.domain.dto.schema.premis.v3.StringPlusAuthority;
-import com.deposition.domain.models.valueobject.ApplicableDates;
-import com.deposition.domain.models.valueobject.CopyrightInformation;
-import com.deposition.domain.models.valueobject.DocumentationIdentifier;
-import com.deposition.domain.models.valueobject.LicenseInformation;
-import com.deposition.domain.models.valueobject.OtherRightsInformation;
-import com.deposition.domain.models.valueobject.RightsGranted;
-import com.deposition.domain.models.valueobject.StatuteInformation;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Helper converter for nested structures of PREMIS rightsStatement.
@@ -47,6 +27,8 @@ public abstract class RightsStatementNestedConverter {
 
     @Autowired
     protected CommonConverter commonConverter;
+    @Autowired
+    protected PremisCommonConverter premisCommonConverter;
 
     /* =========================
      * Model -> PREMIS (JAXB)
@@ -172,24 +154,24 @@ public abstract class RightsStatementNestedConverter {
     /* =========================
      * PREMIS (JAXB) -> Model
      * ========================= */
-    @Mapping(target = "type", expression = "java(unwrapStringPlusAuthority(in.getCopyrightDocumentationIdentifierType()))")
+    @Mapping(target = "type", expression = "java(premisCommonConverter.unwrapStringPlusAuthority(in.getCopyrightDocumentationIdentifierType()))")
     @Mapping(target = "value", source = "copyrightDocumentationIdentifierValue")
-    @Mapping(target = "role", expression = "java(unwrapStringPlusAuthority(in.getCopyrightDocumentationRole()))")
+    @Mapping(target = "role", expression = "java(premisCommonConverter.unwrapStringPlusAuthority(in.getCopyrightDocumentationRole()))")
     protected abstract DocumentationIdentifier mapCopyrightDoc(CopyrightDocumentationIdentifierComplexType in);
 
-    @Mapping(target = "type", expression = "java(unwrapStringPlusAuthority(in.getLicenseDocumentationIdentifierType()))")
+    @Mapping(target = "type", expression = "java(premisCommonConverter.unwrapStringPlusAuthority(in.getLicenseDocumentationIdentifierType()))")
     @Mapping(target = "value", source = "licenseDocumentationIdentifierValue")
-    @Mapping(target = "role", expression = "java(unwrapStringPlusAuthority(in.getLicenseDocumentationRole()))")
+    @Mapping(target = "role", expression = "java(premisCommonConverter.unwrapStringPlusAuthority(in.getLicenseDocumentationRole()))")
     protected abstract DocumentationIdentifier mapLicenseDoc(LicenseDocumentationIdentifierComplexType in);
 
-    @Mapping(target = "type", expression = "java(unwrapStringPlusAuthority(in.getOtherRightsDocumentationIdentifierType()))")
+    @Mapping(target = "type", expression = "java(premisCommonConverter.unwrapStringPlusAuthority(in.getOtherRightsDocumentationIdentifierType()))")
     @Mapping(target = "value", source = "otherRightsDocumentationIdentifierValue")
-    @Mapping(target = "role", expression = "java(unwrapStringPlusAuthority(in.getOtherRightsDocumentationRole()))")
+    @Mapping(target = "role", expression = "java(premisCommonConverter.unwrapStringPlusAuthority(in.getOtherRightsDocumentationRole()))")
     protected abstract DocumentationIdentifier mapOtherRightsDoc(OtherRightsDocumentationIdentifierComplexType in);
 
-    @Mapping(target = "type", expression = "java(unwrapStringPlusAuthority(in.getStatuteDocumentationIdentifierType()))")
+    @Mapping(target = "type", expression = "java(premisCommonConverter.unwrapStringPlusAuthority(in.getStatuteDocumentationIdentifierType()))")
     @Mapping(target = "value", source = "statuteDocumentationIdentifierValue")
-    @Mapping(target = "role", expression = "java(unwrapStringPlusAuthority(in.getStatuteDocumentationRole()))")
+    @Mapping(target = "role", expression = "java(premisCommonConverter.unwrapStringPlusAuthority(in.getStatuteDocumentationRole()))")
     protected abstract DocumentationIdentifier mapStatuteDoc(StatuteDocumentationIdentifierComplexType in);
 
     public CopyrightInformation map(CopyrightInformationComplexType in) {
@@ -197,8 +179,8 @@ public abstract class RightsStatementNestedConverter {
             return null;
         }
         return CopyrightInformation.builder()
-                .copyrightStatus(unwrapStringPlusAuthority(in.getCopyrightStatus()))
-                .copyrightJurisdiction(unwrapStringPlusAuthority(in.getCopyrightJurisdiction()))
+                .copyrightStatus(premisCommonConverter.unwrapStringPlusAuthority(in.getCopyrightStatus()))
+                .copyrightJurisdiction(premisCommonConverter.unwrapStringPlusAuthority(in.getCopyrightJurisdiction()))
                 .copyrightStatusDeterminationDate(parseLocalDate(in.getCopyrightStatusDeterminationDate()))
                 .copyrightNote(in.getCopyrightNote() == null ? null : List.copyOf(in.getCopyrightNote()))
                 .documentationIdentifiers(mapDocumentationIdentifiers(in.getCopyrightDocumentationIdentifier()))
@@ -252,7 +234,7 @@ public abstract class RightsStatementNestedConverter {
         }
         return OtherRightsInformation.builder()
                 .documentationIdentifiers(mapDocumentationIdentifiers(in.getOtherRightsDocumentationIdentifier()))
-                .otherRightsBasis(unwrapStringPlusAuthority(in.getOtherRightsBasis()))
+                .otherRightsBasis(premisCommonConverter.unwrapStringPlusAuthority(in.getOtherRightsBasis()))
                 .applicableDates(mapApplicableDates(in.getOtherRightsApplicableDates()))
                 .otherRightsNote(in.getOtherRightsNote() == null ? null : List.copyOf(in.getOtherRightsNote()))
                 .build();
@@ -263,8 +245,8 @@ public abstract class RightsStatementNestedConverter {
             return null;
         }
         return StatuteInformation.builder()
-                .statuteJurisdiction(unwrapStringPlusAuthority(in.getStatuteJurisdiction()))
-                .statuteCitation(unwrapStringPlusAuthority(in.getStatuteCitation()))
+                .statuteJurisdiction(premisCommonConverter.unwrapStringPlusAuthority(in.getStatuteJurisdiction()))
+                .statuteCitation(premisCommonConverter.unwrapStringPlusAuthority(in.getStatuteCitation()))
                 .statuteInformationDeterminationDate(parseLocalDate(in.getStatuteInformationDeterminationDate()))
                 .statuteNote(in.getStatuteNote() == null ? null : List.copyOf(in.getStatuteNote()))
                 .documentationIdentifiers(mapDocumentationIdentifiers(in.getStatuteDocumentationIdentifier()))
@@ -277,19 +259,12 @@ public abstract class RightsStatementNestedConverter {
             return null;
         }
         return RightsGranted.builder()
-                .act(unwrapStringPlusAuthority(in.getAct()))
+                .act(premisCommonConverter.unwrapStringPlusAuthority(in.getAct()))
                 .restriction(mapStringPlusAuthorityList(in.getRestriction()))
                 .termOfGrant(mapApplicableDates(in.getTermOfGrant()))
                 .termOfRestriction(mapApplicableDates(in.getTermOfRestriction()))
                 .rightsGrantedNote(in.getRightsGrantedNote() == null ? null : List.copyOf(in.getRightsGrantedNote()))
                 .build();
-    }
-
-    protected String unwrapStringPlusAuthority(StringPlusAuthority value) {
-        if (value == null) {
-            return null;
-        }
-        return value.getValue();
     }
 
     /* =========================
@@ -398,7 +373,7 @@ public abstract class RightsStatementNestedConverter {
         }
         var result = new ArrayList<String>(in.size());
         for (var v : in) {
-            var raw = unwrapStringPlusAuthority(v);
+            var raw = premisCommonConverter.unwrapStringPlusAuthority(v);
             if (raw == null || raw.isBlank()) {
                 continue;
             }

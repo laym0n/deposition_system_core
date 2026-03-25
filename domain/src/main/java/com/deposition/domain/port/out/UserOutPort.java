@@ -1,8 +1,8 @@
 package com.deposition.domain.port.out;
 
-import java.util.Optional;
-
 import com.deposition.domain.exception.ResourceNotFoundException;
+
+import java.util.Optional;
 
 public interface UserOutPort {
 

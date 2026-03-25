@@ -1,8 +1,7 @@
 package com.deposition.infra.relationaldb.repository.spec;
 
-import org.springframework.data.jpa.domain.Specification;
-
 import com.deposition.infra.relationaldb.entity.DescriptiveMetadataSchemaEntity;
+import org.springframework.data.jpa.domain.Specification;
 
 public final class DescriptiveMetadataSchemaSpecifications {
 

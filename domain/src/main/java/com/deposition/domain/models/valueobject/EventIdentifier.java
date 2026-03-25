@@ -1,7 +1,6 @@
 package com.deposition.domain.models.valueobject;
 
 import com.deposition.domain.models.enums.EventIdentifierType;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

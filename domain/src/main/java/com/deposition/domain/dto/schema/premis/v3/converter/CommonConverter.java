@@ -1,32 +1,16 @@
 package com.deposition.domain.dto.schema.premis.v3.converter;
 
-import java.time.OffsetDateTime;
-import java.util.List;
-
-import org.mapstruct.AfterMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.Named;
-import org.mapstruct.ReportingPolicy;
-
-import com.deposition.domain.dto.schema.premis.v3.Bitstream;
-import com.deposition.domain.dto.schema.premis.v3.File;
-import com.deposition.domain.dto.schema.premis.v3.IntellectualEntity;
-import com.deposition.domain.dto.schema.premis.v3.ObjectComplexType;
-import com.deposition.domain.dto.schema.premis.v3.ObjectIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.OriginalNameComplexType;
-import com.deposition.domain.dto.schema.premis.v3.RelatedEventIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.RelatedObjectIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.RelationshipComplexType;
-import com.deposition.domain.dto.schema.premis.v3.Representation;
-import com.deposition.domain.dto.schema.premis.v3.StringPlusAuthority;
+import com.deposition.domain.dto.schema.premis.v3.*;
 import com.deposition.domain.models.AbstractObjectMetadata;
 import com.deposition.domain.models.enums.ObjectIdentifierType;
 import com.deposition.domain.models.valueobject.ObjectIdentifier;
 import com.deposition.domain.models.valueobject.RelationEventIdentifier;
 import com.deposition.domain.models.valueobject.RelationObjectIdentifier;
 import com.deposition.domain.models.valueobject.Relationship;
+import org.mapstruct.*;
+
+import java.time.OffsetDateTime;
+import java.util.List;
 
 @Mapper(componentModel = "spring", unmappedSourcePolicy = ReportingPolicy.ERROR)
 public abstract class CommonConverter {
@@ -71,17 +55,13 @@ public abstract class CommonConverter {
 
     @AfterMapping
     protected void convertNameToUpperCase(@MappingTarget ObjectComplexType objectComplexType,
-            AbstractObjectMetadata objectMetadata) {
+                                          AbstractObjectMetadata objectMetadata) {
         List<ObjectIdentifierComplexType> objectIdentifiers;
         switch (objectComplexType) {
-            case File file ->
-                objectIdentifiers = file.getObjectIdentifier();
-            case IntellectualEntity intellectualEntity ->
-                objectIdentifiers = intellectualEntity.getObjectIdentifier();
-            case Representation representation ->
-                objectIdentifiers = representation.getObjectIdentifier();
-            case Bitstream bitstream ->
-                objectIdentifiers = bitstream.getObjectIdentifier();
+            case File file -> objectIdentifiers = file.getObjectIdentifier();
+            case IntellectualEntity intellectualEntity -> objectIdentifiers = intellectualEntity.getObjectIdentifier();
+            case Representation representation -> objectIdentifiers = representation.getObjectIdentifier();
+            case Bitstream bitstream -> objectIdentifiers = bitstream.getObjectIdentifier();
             default -> {
                 return;
             }

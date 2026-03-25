@@ -1,15 +1,13 @@
 package com.deposition.infra.relationaldb.adapter;
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.deposition.domain.models.statistics.StatisticsEvent;
 import com.deposition.domain.port.out.StatisticsEventOutPort;
 import com.deposition.infra.relationaldb.mapper.StatisticsEventMapper;
 import com.deposition.infra.relationaldb.repository.StatisticsEventJpaRepository;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Qualifier("jpaStatisticsEventAdapter")

@@ -1,11 +1,5 @@
 package com.deposition.domain.adapter.object;
 
-import java.util.UUID;
-
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
-
 import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.statistics.StatisticsEventType;
@@ -18,9 +12,13 @@ import com.deposition.domain.port.out.UserOutPort;
 import com.deposition.domain.service.ResourceHashCalculatorUtils;
 import com.deposition.domain.service.StatisticsEventReporter;
 import com.deposition.domain.service.acl.AccessValidatorService;
-
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
+
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -62,10 +60,10 @@ public class VerifyPremisAdapter implements VerifyPremisInPort {
 
         userService.getOptinalCurrentUserId()
                 .ifPresent(userId -> statisticsEventReporter.report(
-                StatisticsEventType.PROOF_REQUEST,
-                objectId,
-                versionId,
-                userId));
+                        StatisticsEventType.PROOF_REQUEST,
+                        objectId,
+                        versionId,
+                        userId));
 
         return new VerifyPremisResult(expectedHash.equalsIgnoreCase(actualHash));
     }

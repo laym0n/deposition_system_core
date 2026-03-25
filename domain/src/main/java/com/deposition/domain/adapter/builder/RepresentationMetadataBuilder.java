@@ -1,12 +1,5 @@
 package com.deposition.domain.adapter.builder;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Component;
-
 import com.deposition.domain.adapter.converter.RepresentationParamConverter;
 import com.deposition.domain.dto.schema.premis.v3.converter.RepresentationMetadataConverter;
 import com.deposition.domain.models.RepresentationMetadata;
@@ -16,8 +9,13 @@ import com.deposition.domain.models.enums.ObjectRelationshipType;
 import com.deposition.domain.models.valueobject.RelationObjectIdentifier;
 import com.deposition.domain.models.valueobject.Relationship;
 import com.deposition.domain.port.in.object.RepresentationMetadataParam;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Component
@@ -28,8 +26,8 @@ final class RepresentationMetadataBuilder {
     private final CommonMetadataBuilder commonMetadataBuilder;
 
     public CommonMetadataBuilder.MetadataStructure buildForRepresentation(List<UUID> fileObjectIds,
-            RepresentationMetadataParam baseMetadata,
-            Authentication authentication) {
+                                                                          RepresentationMetadataParam baseMetadata,
+                                                                          Authentication authentication) {
         var objectId = UUID.randomUUID();
         var representation = RepresentationMetadata.builder()
                 .id(objectId)
@@ -40,11 +38,11 @@ final class RepresentationMetadataBuilder {
                                 .relatedObjects(
                                         fileObjectIds.stream()
                                                 .map(fileObjectId -> (RelationObjectIdentifier) RelationObjectIdentifier
-                                                .builder()
-                                                .type(ObjectIdentifierType.SYSTEM)
-                                                .value(fileObjectId
-                                                        .toString())
-                                                .build())
+                                                        .builder()
+                                                        .type(ObjectIdentifierType.SYSTEM)
+                                                        .value(fileObjectId
+                                                                .toString())
+                                                        .build())
                                                 .toList())
                                 .build())))
                 .build();

@@ -1,15 +1,13 @@
 package com.deposition.domain.adapter.schema;
 
-import java.util.List;
-
-import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
-
 import com.deposition.domain.port.in.schema.GetDescriptiveMetadataSchemasInPort;
 import com.deposition.domain.port.in.schema.IntellectualEntityType;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
+
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -27,10 +25,10 @@ public class GetDescriptiveMetadataSchemasAdapter implements GetDescriptiveMetad
         return schemaOutPort.findSchemas(outFilter)
                 .stream()
                 .map(s -> new DescriptiveMetadataSchemaSummary(s.id(),
-                IntellectualEntityType.valueOf(s.entityType()),
-                s.active(),
-                s.createdAt(),
-                s.updatedAt()))
+                        IntellectualEntityType.valueOf(s.entityType()),
+                        s.active(),
+                        s.createdAt(),
+                        s.updatedAt()))
                 .toList();
     }
 }

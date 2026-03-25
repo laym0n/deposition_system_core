@@ -1,24 +1,22 @@
 package com.deposition.domain.adapter.builder;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
+import com.deposition.domain.dto.schema.premis.v3.AgentComplexType;
+import com.deposition.domain.dto.schema.premis.v3.PremisComplexType;
+import com.deposition.domain.dto.schema.premis.v3.converter.AgentConverter;
+import com.deposition.domain.dto.schema.premis.v3.converter.PremisMetadataConverter;
+import com.deposition.domain.models.AgentMetadata;
+import com.deposition.domain.models.enums.AgentIdentifierType;
+import com.deposition.domain.models.enums.AgentType;
+import com.deposition.domain.models.valueobject.AgentIdentifier;
+import com.deposition.domain.port.in.object.IntellectualEntityMetadataParam;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import com.deposition.domain.dto.schema.premis.v3.PremisComplexType;
-import com.deposition.domain.dto.schema.premis.v3.AgentComplexType;
-import com.deposition.domain.dto.schema.premis.v3.converter.AgentConverter;
-import com.deposition.domain.dto.schema.premis.v3.converter.PremisMetadataConverter;
-import com.deposition.domain.models.AgentMetadata;
-import com.deposition.domain.models.enums.AgentType;
-import com.deposition.domain.models.enums.ObjectIdentifierType;
-import com.deposition.domain.models.valueobject.Identifier;
-import com.deposition.domain.port.in.object.IntellectualEntityMetadataParam;
-
-import lombok.RequiredArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -29,6 +27,23 @@ public final class PremisMetadataBuilder {
     private final IntellectualEntityMetadataBuilder intellectualEntityMetadataBuilder;
     private final PremisMetadataConverter premisConverter;
     private final AgentConverter agentConverter;
+
+    private static AgentMetadata buildCurrentUserAgent(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+
+        var agentId = authentication.getName();
+        return AgentMetadata.builder()
+                .id(agentId)
+                .name(agentId)
+                .type(AgentType.PERSON)
+                .identifiers(List.of(AgentIdentifier.builder()
+                        .type(AgentIdentifierType.SYSTEM)
+                        .value(agentId)
+                        .build()))
+                .build();
+    }
 
     public PremisComplexType buildPremisWithEntities(
             List<CommonMetadataBuilder.PersistedRepresentationMetadataInput> persistedRepresentations,
@@ -72,22 +87,5 @@ public final class PremisMetadataBuilder {
         }
 
         return premisConverter.map(objects, events, agents);
-    }
-
-    private static AgentMetadata buildCurrentUserAgent(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return null;
-        }
-
-        var agentId = authentication.getName();
-        return AgentMetadata.builder()
-                .id(agentId)
-                .name(agentId)
-                .type(AgentType.PERSON)
-                .identifiers(List.of(Identifier.builder()
-                        .type(ObjectIdentifierType.SYSTEM.name())
-                        .value(agentId)
-                        .build()))
-                .build();
     }
 }

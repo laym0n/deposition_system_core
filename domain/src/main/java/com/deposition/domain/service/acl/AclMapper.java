@@ -1,26 +1,15 @@
 package com.deposition.domain.service.acl;
 
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
-
-import org.springframework.stereotype.Component;
-
 import com.deposition.domain.models.EventMetadata;
 import com.deposition.domain.models.PremisSnapshot;
 import com.deposition.domain.models.RightsStatementMetadata;
-import com.deposition.domain.models.acl.AclEntry;
-import com.deposition.domain.models.acl.AclPermission;
-import com.deposition.domain.models.acl.AclPrincipal;
-import com.deposition.domain.models.acl.AclPrincipalType;
-import com.deposition.domain.models.acl.AclRole;
-import com.deposition.domain.models.acl.ObjectAcl;
+import com.deposition.domain.models.acl.*;
 import com.deposition.domain.models.enums.AgentIdentifierType;
 import com.deposition.domain.models.enums.EventType;
 import com.deposition.domain.models.enums.ObjectIdentifierType;
+import org.springframework.stereotype.Component;
+
+import java.util.*;
 
 @Component
 public final class AclMapper {
@@ -41,13 +30,13 @@ public final class AclMapper {
                 .filter(Objects::nonNull)
                 .map(link -> link.getAgentIdentifier())
                 .filter(Objects::nonNull)
-                .filter(agentIdentifier -> agentIdentifier.getType() == AgentIdentifierType.OTHER)
+                .filter(agentIdentifier -> agentIdentifier.getType() == AgentIdentifierType.SYSTEM)
                 .map(agentIdentifier -> agentIdentifier.getValue())
                 .filter(Objects::nonNull)
                 .filter(value -> !value.isBlank())
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(
-                "Unable to build default ACL: CREATION event agentLinks not found for objectId=" + objectId));
+                        "Unable to build default ACL: CREATION event agentLinks not found for objectId=" + objectId));
 
         Map<String, AclEntry> byUserId = new HashMap<>();
         byUserId.put(creatorUserId, AclEntry.builder()
@@ -61,22 +50,11 @@ public final class AclMapper {
 
         if (snapshot.getRightsStatements() != null) {
             for (RightsStatementMetadata rs : snapshot.getRightsStatements()) {
-                if (rs == null || rs.getIdentifiers() == null || rs.getIdentifiers().isEmpty()) {
-                    continue;
-                }
-
-                for (var id : rs.getIdentifiers()) {
-                    if (id == null || id.getValue() == null) {
+                for (var linkingAgentIdentifier : rs.getLinkingAgentIdentifiers()) {
+                    if (linkingAgentIdentifier.getAgentIdentifier().getType() != AgentIdentifierType.SYSTEM) {
                         continue;
                     }
-                    if (!"PREMIS_LINKING_AGENT".equals(id.getType())) {
-                        continue;
-                    }
-                    String userId = id.getValue();
-                    if (userId.isBlank()) {
-                        continue;
-                    }
-
+                    var userId = linkingAgentIdentifier.getAgentIdentifier().getValue();
                     EnumSet<AclPermission> permissions = EnumSet.noneOf(AclPermission.class);
                     if (rs.getRightsGranted() != null) {
                         for (var g : rs.getRightsGranted()) {
@@ -90,7 +68,6 @@ public final class AclMapper {
                             }
                         }
                     }
-
                     boolean hasPerms = !permissions.isEmpty();
 
                     AclEntry existing = byUserId.get(userId);
@@ -138,6 +115,6 @@ public final class AclMapper {
                 .map(link -> link.getObjectIdentifier())
                 .filter(Objects::nonNull)
                 .anyMatch(identifier -> identifier.getType() == ObjectIdentifierType.SYSTEM
-                && Objects.equals(identifier.getValue(), objectId.toString()));
+                        && Objects.equals(identifier.getValue(), objectId.toString()));
     }
 }

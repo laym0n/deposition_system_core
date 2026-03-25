@@ -1,13 +1,12 @@
 package com.deposition.domain.port.in.object;
 
-import java.util.List;
-import java.util.UUID;
-
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.core.io.Resource;
 import org.springframework.validation.annotation.Validated;
 
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import java.util.List;
+import java.util.UUID;
 
 @Validated
 public interface DownloadSourceFilesInPort {

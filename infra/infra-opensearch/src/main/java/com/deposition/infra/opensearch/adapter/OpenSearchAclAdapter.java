@@ -1,18 +1,16 @@
 package com.deposition.infra.opensearch.adapter;
 
-import java.util.Optional;
-import java.util.UUID;
-
-import org.opensearch.client.opensearch.OpenSearchClient;
-import org.opensearch.client.opensearch.core.GetRequest;
-import org.springframework.stereotype.Component;
-
 import com.deposition.domain.models.acl.ObjectAcl;
 import com.deposition.domain.port.out.AclOutPort;
 import com.deposition.domain.port.out.ObjectIndexDocument;
 import com.deposition.infra.opensearch.config.OpenSearchProperties;
-
 import lombok.RequiredArgsConstructor;
+import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch.core.GetRequest;
+import org.springframework.stereotype.Component;
+
+import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -69,7 +67,6 @@ public class OpenSearchAclAdapter implements AclOutPort {
             // Re-index the whole document to avoid losing any fields.
             var updated = new ObjectIndexDocument(
                     existing.objectId(),
-                    existing.entityType(),
                     acl,
                     existing.originalName(),
                     existing.anchors(),

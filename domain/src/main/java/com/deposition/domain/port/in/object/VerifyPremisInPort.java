@@ -1,11 +1,10 @@
 package com.deposition.domain.port.in.object;
 
-import java.util.UUID;
-
-import org.springframework.validation.annotation.Validated;
-
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.validation.annotation.Validated;
+
+import java.util.UUID;
 
 @Validated
 public interface VerifyPremisInPort {

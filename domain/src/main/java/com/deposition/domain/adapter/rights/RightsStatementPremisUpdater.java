@@ -1,21 +1,6 @@
 package com.deposition.domain.adapter.rights;
 
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-
-import com.deposition.domain.dto.schema.premis.v3.LinkingAgentIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.LinkingObjectIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.PremisComplexType;
-import com.deposition.domain.dto.schema.premis.v3.RightsComplexType;
-import com.deposition.domain.dto.schema.premis.v3.RightsStatementComplexType;
-import com.deposition.domain.dto.schema.premis.v3.StringPlusAuthority;
+import com.deposition.domain.dto.schema.premis.v3.*;
 import com.deposition.domain.dto.schema.premis.v3.converter.AgentConverter;
 import com.deposition.domain.dto.schema.premis.v3.converter.EventConverter;
 import com.deposition.domain.dto.schema.premis.v3.converter.PremisRightsStatementConverter;
@@ -23,24 +8,19 @@ import com.deposition.domain.dto.schema.premis.v3.converter.RightsStatementConve
 import com.deposition.domain.models.AgentMetadata;
 import com.deposition.domain.models.EventMetadata;
 import com.deposition.domain.models.RightsStatementMetadata;
-import com.deposition.domain.models.enums.AgentIdentifierType;
-import com.deposition.domain.models.enums.AgentType;
-import com.deposition.domain.models.enums.EventAgentLinkRole;
-import com.deposition.domain.models.enums.EventIdentifierType;
-import com.deposition.domain.models.enums.EventObjectLinkRole;
-import com.deposition.domain.models.enums.EventType;
-import com.deposition.domain.models.enums.ObjectIdentifierType;
-import com.deposition.domain.models.valueobject.AgentIdentifier;
-import com.deposition.domain.models.valueobject.EventAgentLink;
-import com.deposition.domain.models.valueobject.EventDetailInformation;
-import com.deposition.domain.models.valueobject.EventIdentifier;
-import com.deposition.domain.models.valueobject.EventObjectLink;
-import com.deposition.domain.models.valueobject.Identifier;
-import com.deposition.domain.models.valueobject.ObjectIdentifier;
+import com.deposition.domain.models.enums.*;
+import com.deposition.domain.models.valueobject.*;
 import com.deposition.domain.port.in.rights.UpsertRightsStatementRequest;
 import com.deposition.domain.port.in.rights.UpsertRightsStatementRequest.AgentGrant;
-
+import com.deposition.domain.port.out.UserOutPort;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -50,9 +30,73 @@ public final class RightsStatementPremisUpdater {
     private final EventConverter eventConverter;
     private final RightsStatementConverter rightsStatementConverter;
     private final PremisRightsStatementConverter premisRightsStatementConverter;
+    private final UserOutPort userOutPort;
+
+    private static List<EventAgentLink> buildAgentLinks(String authenticactedUserId) {
+        var agentIdentifier = new AgentIdentifier(AgentIdentifierType.SYSTEM, authenticactedUserId.toString());
+        return List.of(new EventAgentLink(agentIdentifier, List.of(EventAgentLinkRole.AUTHORIZER)));
+    }
+
+    private static RightsStatementComplexType findExistingRightsStatement(RightsComplexType rights, String rightsStatementId) {
+        if (rights == null || rights.getRightsStatementOrRightsExtension() == null) {
+            return null;
+        }
+        for (var item : rights.getRightsStatementOrRightsExtension()) {
+            if (!(item instanceof RightsStatementComplexType rs)) {
+                continue;
+            }
+            if (Objects.equals(extractRightsStatementIdentifierValue(rs), rightsStatementId)) {
+                return rs;
+            }
+        }
+        return null;
+    }
+
+    private static void applyPayload(RightsStatementMetadata model, UpsertRightsStatementRequest.RightsStatementPayload payload) {
+        if (model == null || payload == null) {
+            return;
+        }
+
+        if (payload.copyrightInformation() != null) {
+            model.setCopyrightInformation(List.of(payload.copyrightInformation()));
+        }
+        if (payload.licenseInformation() != null) {
+            model.setLicenseInformation(List.of(payload.licenseInformation()));
+        }
+        if (payload.otherRightsInformation() != null) {
+            model.setOtherRightsInformation(payload.otherRightsInformation());
+        }
+        if (payload.statuteInformation() != null) {
+            model.setStatuteInformation(new ArrayList<>(payload.statuteInformation()));
+        }
+        if (payload.rightsGranted() != null) {
+            model.setRightsGranted(new ArrayList<>(payload.rightsGranted()));
+        }
+    }
+
+    private static String extractRightsStatementIdentifierValue(RightsStatementComplexType rs) {
+        if (rs == null || rs.getRightsStatementIdentifier() == null) {
+            return null;
+        }
+        return rs.getRightsStatementIdentifier().getRightsStatementIdentifierValue();
+    }
+
+    private static String resolveAgentId(AgentGrant grant) {
+        if (grant == null || grant.agent() == null) {
+            return null;
+        }
+        if (grant.agent().id() != null && !grant.agent().id().isBlank()) {
+            return grant.agent().id();
+        }
+        return null;
+    }
+
+    private static String toXmlId(String id) {
+        return "id_" + id;
+    }
 
     public void upsertRightsStatement(PremisComplexType premis, UUID objectId, UpsertRightsStatementRequest request,
-            List<AgentMetadata> agentsToEnsure) {
+                                      List<AgentMetadata> agentsToEnsure) {
         if (premis == null) {
             throw new IllegalArgumentException("premis must not be null");
         }
@@ -97,7 +141,7 @@ public final class RightsStatementPremisUpdater {
 
     private void addRightsStatementUpdateEvent(PremisComplexType premis, UUID objectId, String rightsStatementId) {
         var eventId = UUID.randomUUID();
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        var authenticatedUserId = userOutPort.getCurrentUserId();
 
         var detail = "RightsStatement updated via REST API: rightsStatementId=" + rightsStatementId;
 
@@ -110,32 +154,16 @@ public final class RightsStatementPremisUpdater {
                 .objectLinks(List.of(new EventObjectLink(
                         new ObjectIdentifier(ObjectIdentifierType.SYSTEM, objectId.toString()),
                         List.of(EventObjectLinkRole.OUTCOME))))
-                .agentLinks(buildAgentLinks(authentication))
+                .agentLinks(buildAgentLinks(authenticatedUserId))
                 .build();
 
         // Use Spring-managed converter; ensure current user agent is present.
         premis.getEvent().add(eventConverter.map(event));
-        ensureCurrentUserAgentPresent(premis, authentication);
+        ensureCurrentUserAgentPresent(premis, authenticatedUserId);
     }
 
-    private static List<EventAgentLink> buildAgentLinks(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return List.of();
-        }
-        var agentIdentifier = new AgentIdentifier(AgentIdentifierType.SYSTEM, authentication.getName());
-        return List.of(new EventAgentLink(agentIdentifier, List.of(EventAgentLinkRole.AUTHORIZER)));
-    }
-
-    private void ensureCurrentUserAgentPresent(PremisComplexType premis, Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return;
-        }
-        String agentId = authentication.getName();
-        if (agentId == null || agentId.isBlank()) {
-            return;
-        }
-
-        var agentXmlId = toXmlId(agentId);
+    private void ensureCurrentUserAgentPresent(PremisComplexType premis, String authenticactedUserId) {
+        var agentXmlId = toXmlId(authenticactedUserId);
         if (premis.getAgent() != null && premis.getAgent().stream()
                 .filter(Objects::nonNull)
                 .anyMatch(agent -> Objects.equals(agentXmlId, agent.getXmlID()))) {
@@ -143,12 +171,11 @@ public final class RightsStatementPremisUpdater {
         }
 
         var agent = AgentMetadata.builder()
-                .id(agentId)
-                .name(agentId)
+                .id(authenticactedUserId)
                 .type(AgentType.PERSON)
-                .identifiers(List.of(Identifier.builder()
-                        .type(ObjectIdentifierType.SYSTEM.name())
-                        .value(agentId)
+                .identifiers(List.of(AgentIdentifier.builder()
+                        .type(AgentIdentifierType.SYSTEM)
+                        .value(authenticactedUserId)
                         .build()))
                 .build();
 
@@ -214,43 +241,6 @@ public final class RightsStatementPremisUpdater {
         return rs;
     }
 
-    private static RightsStatementComplexType findExistingRightsStatement(RightsComplexType rights, String rightsStatementId) {
-        if (rights == null || rights.getRightsStatementOrRightsExtension() == null) {
-            return null;
-        }
-        for (var item : rights.getRightsStatementOrRightsExtension()) {
-            if (!(item instanceof RightsStatementComplexType rs)) {
-                continue;
-            }
-            if (Objects.equals(extractRightsStatementIdentifierValue(rs), rightsStatementId)) {
-                return rs;
-            }
-        }
-        return null;
-    }
-
-    private static void applyPayload(RightsStatementMetadata model, UpsertRightsStatementRequest.RightsStatementPayload payload) {
-        if (model == null || payload == null) {
-            return;
-        }
-
-        if (payload.copyrightInformation() != null) {
-            model.setCopyrightInformation(List.of(payload.copyrightInformation()));
-        }
-        if (payload.licenseInformation() != null) {
-            model.setLicenseInformation(List.of(payload.licenseInformation()));
-        }
-        if (payload.otherRightsInformation() != null) {
-            model.setOtherRightsInformation(payload.otherRightsInformation());
-        }
-        if (payload.statuteInformation() != null) {
-            model.setStatuteInformation(new ArrayList<>(payload.statuteInformation()));
-        }
-        if (payload.rightsGranted() != null) {
-            model.setRightsGranted(new ArrayList<>(payload.rightsGranted()));
-        }
-    }
-
     private LinkingObjectIdentifierComplexType buildLinkingObjectIdentifier(UUID objectId) {
         var link = new LinkingObjectIdentifierComplexType();
         link.setLinkingObjectIdentifierType(toStringPlusAuthority(ObjectIdentifierType.SYSTEM.name()));
@@ -261,7 +251,7 @@ public final class RightsStatementPremisUpdater {
 
     private LinkingAgentIdentifierComplexType buildLinkingAgentIdentifier(String agentId, List<String> roles) {
         var link = new LinkingAgentIdentifierComplexType();
-        link.setLinkingAgentIdentifierType(toStringPlusAuthority("LOCAL"));
+        link.setLinkingAgentIdentifierType(toStringPlusAuthority(AgentIdentifierType.SYSTEM.name()));
         link.setLinkingAgentIdentifierValue(agentId);
         if (roles != null) {
             for (var r : roles) {
@@ -272,13 +262,6 @@ public final class RightsStatementPremisUpdater {
             }
         }
         return link;
-    }
-
-    private static String extractRightsStatementIdentifierValue(RightsStatementComplexType rs) {
-        if (rs == null || rs.getRightsStatementIdentifier() == null) {
-            return null;
-        }
-        return rs.getRightsStatementIdentifier().getRightsStatementIdentifierValue();
     }
 
     private void ensureAgentPresent(PremisComplexType premis, AgentMetadata agent) {
@@ -294,24 +277,10 @@ public final class RightsStatementPremisUpdater {
         premis.getAgent().add(agentConverter.map(agent));
     }
 
-    private static String resolveAgentId(AgentGrant grant) {
-        if (grant == null || grant.agent() == null) {
-            return null;
-        }
-        if (grant.agent().id() != null && !grant.agent().id().isBlank()) {
-            return grant.agent().id();
-        }
-        return null;
-    }
-
     private StringPlusAuthority toStringPlusAuthority(String value) {
         var out = new StringPlusAuthority();
         out.setValue(value);
         return out;
-    }
-
-    private static String toXmlId(String id) {
-        return "id_" + id;
     }
 
 }

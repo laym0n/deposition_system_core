@@ -1,31 +1,15 @@
 package com.deposition.domain.dto.schema.premis.v3.converter;
 
+import com.deposition.domain.dto.schema.premis.v3.*;
+import com.deposition.domain.models.AbstractObjectMetadata;
+import com.deposition.domain.models.enums.*;
+import com.deposition.domain.models.valueobject.*;
+import org.mapstruct.*;
+
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.ReportingPolicy;
-
-import com.deposition.domain.dto.schema.premis.v3.LinkingAgentIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.ObjectIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.RelatedEventIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.RelatedObjectIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.RelationshipComplexType;
-import com.deposition.domain.dto.schema.premis.v3.StringPlusAuthority;
-import com.deposition.domain.models.enums.AgentIdentifierType;
-import com.deposition.domain.models.enums.EventIdentifierType;
-import com.deposition.domain.models.enums.ObjectIdentifierType;
-import com.deposition.domain.models.enums.ObjectRelationshipSubType;
-import com.deposition.domain.models.enums.ObjectRelationshipType;
-import com.deposition.domain.models.valueobject.AgentIdentifier;
-import com.deposition.domain.models.valueobject.ObjectIdentifier;
-import com.deposition.domain.models.valueobject.RelationEventIdentifier;
-import com.deposition.domain.models.valueobject.RelationObjectIdentifier;
-import com.deposition.domain.models.valueobject.Relationship;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public abstract class PremisCommonConverter {
@@ -147,5 +131,11 @@ public abstract class PremisCommonConverter {
         }
 
         return null;
+    }
+
+    @AfterMapping
+    protected void convertNameToUpperCase(@MappingTarget AbstractObjectMetadata objectMetadata) {
+        var identifiers = objectMetadata.getIdentifiers().stream().filter(identifier -> identifier.getType() != ObjectIdentifierType.SYSTEM).toList();
+        objectMetadata.setIdentifiers(identifiers);
     }
 }

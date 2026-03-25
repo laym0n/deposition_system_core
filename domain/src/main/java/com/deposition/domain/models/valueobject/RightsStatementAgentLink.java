@@ -1,8 +1,11 @@
 package com.deposition.domain.models.valueobject;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+
+import java.util.Set;
 
 @Data
 @SuperBuilder
@@ -10,6 +13,6 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class RightsStatementAgentLink {
 
-    private String agentId;
-    private String linkingAgentRole;
+    private AgentIdentifier agentIdentifier;
+    private Set<String> roles;
 }

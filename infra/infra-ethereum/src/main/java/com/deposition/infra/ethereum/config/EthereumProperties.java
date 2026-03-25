@@ -1,11 +1,10 @@
 package com.deposition.infra.ethereum.config;
 
-import java.math.BigInteger;
-
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.math.BigInteger;
 
 @ConfigurationProperties(prefix = "integration.ethereum")
 @Data

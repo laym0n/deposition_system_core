@@ -1,43 +1,28 @@
 package com.deposition.domain.adapter.event;
 
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.UUID;
-
+import com.deposition.domain.exception.ResourceNotFoundException;
+import com.deposition.domain.models.AnchorRecord;
+import com.deposition.domain.models.EventMetadata;
+import com.deposition.domain.models.acl.AclPermission;
+import com.deposition.domain.models.enums.*;
+import com.deposition.domain.models.valueobject.*;
+import com.deposition.domain.port.in.common.DepositionResult;
+import com.deposition.domain.port.in.event.RecordObjectEventInPort;
+import com.deposition.domain.port.in.event.RecordObjectEventRequest;
+import com.deposition.domain.port.out.*;
+import com.deposition.domain.service.ResourceHashCalculatorUtils;
+import com.deposition.domain.service.XmlUtils;
+import com.deposition.domain.service.acl.AccessValidatorService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-import com.deposition.domain.exception.ResourceNotFoundException;
-import com.deposition.domain.models.AnchorRecord;
-import com.deposition.domain.models.EventMetadata;
-import com.deposition.domain.models.acl.AclPermission;
-import com.deposition.domain.models.enums.AgentIdentifierType;
-import com.deposition.domain.models.enums.EventAgentLinkRole;
-import com.deposition.domain.models.enums.EventIdentifierType;
-import com.deposition.domain.models.enums.EventObjectLinkRole;
-import com.deposition.domain.models.enums.ObjectIdentifierType;
-import com.deposition.domain.models.valueobject.AgentIdentifier;
-import com.deposition.domain.models.valueobject.EventAgentLink;
-import com.deposition.domain.models.valueobject.EventDetailInformation;
-import com.deposition.domain.models.valueobject.EventIdentifier;
-import com.deposition.domain.models.valueobject.EventObjectLink;
-import com.deposition.domain.models.valueobject.ObjectIdentifier;
-import com.deposition.domain.port.in.event.RecordObjectEventInPort;
-import com.deposition.domain.port.in.common.DepositionResult;
-import com.deposition.domain.port.in.event.RecordObjectEventRequest;
-import com.deposition.domain.port.out.BlockchainOutPort;
-import com.deposition.domain.port.out.FileStorageOutPort;
-import com.deposition.domain.port.out.ObjectIndexDocument;
-import com.deposition.domain.port.out.ObjectIndexLookupOutPort;
-import com.deposition.domain.port.out.ObjectIndexOutPort;
-import com.deposition.domain.service.ResourceHashCalculatorUtils;
-import com.deposition.domain.service.XmlUtils;
-import com.deposition.domain.service.acl.AccessValidatorService;
-
-import lombok.RequiredArgsConstructor;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Component
 @Validated
@@ -51,6 +36,29 @@ public class RecordObjectEventAdapter implements RecordObjectEventInPort {
     private final com.deposition.domain.dto.schema.premis.v3.converter.AgentConverter agentConverter;
     private final ObjectIndexLookupOutPort objectIndexLookupOutPort;
     private final ObjectIndexOutPort objectIndexOutPort;
+
+    private static List<EventAgentLink> buildAgentLinks(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return List.of();
+        }
+        String userId = authentication.getName();
+        if (userId == null || userId.isBlank()) {
+            return List.of();
+        }
+        var agentIdentifier = new AgentIdentifier(AgentIdentifierType.SYSTEM, userId);
+        return List.of(new EventAgentLink(agentIdentifier, List.of(EventAgentLinkRole.AUTHORIZER)));
+    }
+
+    private static AnchorRecord buildAnchorRecord(UUID objectId, String versionId, Resource premisMetadata) {
+        String algorithm = ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM;
+        var premisMetadataHash = ResourceHashCalculatorUtils.calculateHash(premisMetadata, algorithm);
+        return AnchorRecord.builder()
+                .objectId(objectId.toString())
+                .versionId(versionId)
+                .hash(premisMetadataHash)
+                .hashAlgorithm(algorithm)
+                .build();
+    }
 
     @Override
     public DepositionResult recordEvent(UUID objectId, RecordObjectEventRequest request) {
@@ -109,7 +117,6 @@ public class RecordObjectEventAdapter implements RecordObjectEventInPort {
 
         var updated = new ObjectIndexDocument(
                 existing.objectId(),
-                existing.entityType(),
                 existing.acl(),
                 existing.originalName(),
                 anchors,
@@ -118,18 +125,6 @@ public class RecordObjectEventAdapter implements RecordObjectEventInPort {
                 existing.descriptive());
 
         objectIndexOutPort.index(updated);
-    }
-
-    private static List<EventAgentLink> buildAgentLinks(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return List.of();
-        }
-        String userId = authentication.getName();
-        if (userId == null || userId.isBlank()) {
-            return List.of();
-        }
-        var agentIdentifier = new AgentIdentifier(AgentIdentifierType.SYSTEM, userId);
-        return List.of(new EventAgentLink(agentIdentifier, List.of(EventAgentLinkRole.AUTHORIZER)));
     }
 
     private void ensureCurrentUserAgentPresent(
@@ -154,23 +149,12 @@ public class RecordObjectEventAdapter implements RecordObjectEventInPort {
                 .id(agentId)
                 .name(agentId)
                 .type(com.deposition.domain.models.enums.AgentType.PERSON)
-                .identifiers(List.of(com.deposition.domain.models.valueobject.Identifier.builder()
-                        .type(ObjectIdentifierType.SYSTEM.name())
+                .identifiers(List.of(AgentIdentifier.builder()
+                        .type(AgentIdentifierType.SYSTEM)
                         .value(agentId)
                         .build()))
                 .build();
 
         premis.getAgent().add(agentConverter.map(agent));
-    }
-
-    private static AnchorRecord buildAnchorRecord(UUID objectId, String versionId, Resource premisMetadata) {
-        String algorithm = ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM;
-        var premisMetadataHash = ResourceHashCalculatorUtils.calculateHash(premisMetadata, algorithm);
-        return AnchorRecord.builder()
-                .objectId(objectId.toString())
-                .versionId(versionId)
-                .hash(premisMetadataHash)
-                .hashAlgorithm(algorithm)
-                .build();
     }
 }

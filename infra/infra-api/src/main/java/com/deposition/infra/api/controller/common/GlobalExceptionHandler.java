@@ -1,9 +1,10 @@
 package com.deposition.infra.api.controller.common;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
+import com.deposition.domain.exception.DescriptiveMetadataValidationException;
+import com.deposition.domain.exception.ObjectAccessDeniedException;
+import com.deposition.domain.exception.ResourceNotFoundException;
+import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +17,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
-import com.deposition.domain.exception.DescriptiveMetadataValidationException;
-import com.deposition.domain.exception.ObjectAccessDeniedException;
-import com.deposition.domain.exception.ResourceNotFoundException;
-
-import jakarta.validation.ConstraintViolationException;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 @Slf4j
@@ -42,15 +40,15 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({
-        MissingServletRequestPartException.class,
-        MethodArgumentNotValidException.class,
-        BindException.class,
-        HttpMessageNotReadableException.class,
-        MethodArgumentTypeMismatchException.class,
-        ServletRequestBindingException.class,
-        ConstraintViolationException.class,
-        IllegalArgumentException.class,
-        DescriptiveMetadataValidationException.class
+            MissingServletRequestPartException.class,
+            MethodArgumentNotValidException.class,
+            BindException.class,
+            HttpMessageNotReadableException.class,
+            MethodArgumentTypeMismatchException.class,
+            ServletRequestBindingException.class,
+            ConstraintViolationException.class,
+            IllegalArgumentException.class,
+            DescriptiveMetadataValidationException.class
     })
     public ResponseEntity<Map<String, String>> handleBadRequestExceptions(Exception exception) {
         if (exception instanceof DescriptiveMetadataValidationException ex) {
@@ -61,6 +59,13 @@ public class GlobalExceptionHandler {
         }
 
         return ResponseEntity.badRequest().body(Map.of("reason", resolveReason(exception)));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> handleForbidden(Exception ex) {
+        log.error(ExceptionUtils.getMessage(ex), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiError("INTERNAL_SERVER_ERROR", ex.getMessage()));
     }
 
     private String resolveReason(Exception exception) {

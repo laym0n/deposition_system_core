@@ -1,21 +1,6 @@
 package com.deposition.domain.dto.schema.premis.v3.converter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.ReportingPolicy;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.deposition.domain.dto.schema.premis.v3.EventComplexType;
-import com.deposition.domain.dto.schema.premis.v3.EventIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.LinkingAgentIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.LinkingObjectIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.StringPlusAuthority;
+import com.deposition.domain.dto.schema.premis.v3.*;
 import com.deposition.domain.models.EventMetadata;
 import com.deposition.domain.models.enums.EventAgentLinkRole;
 import com.deposition.domain.models.enums.EventObjectLinkRole;
@@ -24,6 +9,16 @@ import com.deposition.domain.models.valueobject.EventAgentLink;
 import com.deposition.domain.models.valueobject.EventIdentifier;
 import com.deposition.domain.models.valueobject.EventObjectLink;
 import com.deposition.domain.models.valueobject.ObjectIdentifier;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+import org.mapstruct.ReportingPolicy;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR, uses = PremisCommonConverter.class)
 public abstract class PremisEventConverter {

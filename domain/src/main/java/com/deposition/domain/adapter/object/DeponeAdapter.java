@@ -1,12 +1,5 @@
 package com.deposition.domain.adapter.object;
 
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
-
 import com.deposition.domain.adapter.builder.CommonMetadataBuilder;
 import com.deposition.domain.adapter.builder.PremisMetadataBuilder;
 import com.deposition.domain.models.AnchorRecord;
@@ -19,14 +12,15 @@ import com.deposition.domain.port.in.object.DeponeRepresentationParam;
 import com.deposition.domain.port.out.BlockchainOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.domain.port.out.UserOutPort;
-import com.deposition.domain.service.DepositionIndexingService;
-import com.deposition.domain.service.DescriptiveMetadataService;
-import com.deposition.domain.service.ResourceHashCalculatorUtils;
-import com.deposition.domain.service.StatisticsEventReporter;
-import com.deposition.domain.service.XmlUtils;
+import com.deposition.domain.service.*;
 import com.deposition.domain.service.acl.AccessValidatorService;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
+
+import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -41,6 +35,18 @@ public class DeponeAdapter implements DeponeInPort {
     private final DepositionIndexingService depositionIndexingService;
     private final StatisticsEventReporter statisticsEventReporter;
     private final UserOutPort userService;
+
+    private static AnchorRecord buildAnchorRecord(UUID objectId, String versionId, Resource premisMetadata) {
+        String algorithm = ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM;
+        var premisMetadataHash = ResourceHashCalculatorUtils.calculateHash(premisMetadata, algorithm);
+
+        return AnchorRecord.builder()
+                .objectId(objectId.toString())
+                .versionId(versionId)
+                .hash(premisMetadataHash)
+                .hashAlgorithm(algorithm)
+                .build();
+    }
 
     @Override
     public DepositionResult depone(DeponeIntellectualEntityParams params) {
@@ -71,10 +77,10 @@ public class DeponeAdapter implements DeponeInPort {
 
         userService.getOptinalCurrentUserId()
                 .ifPresent(userId -> statisticsEventReporter.report(
-                StatisticsEventType.OBJECT_DEPOSIT,
-                intellectualEntityId,
-                null,
-                userId));
+                        StatisticsEventType.OBJECT_DEPOSIT,
+                        intellectualEntityId,
+                        null,
+                        userId));
 
         return new DepositionResult(intellectualEntityId, txId, premisStorage.getVersionId());
     }
@@ -89,7 +95,7 @@ public class DeponeAdapter implements DeponeInPort {
                 .filter(relationship -> relationship != null && relationship.getRelatedObjects() != null)
                 .flatMap(relationship -> relationship.getRelatedObjects().stream())
                 .filter(relatedObject -> relatedObject != null && relatedObject.getValue() != null
-                && !relatedObject.getValue().isBlank())
+                        && !relatedObject.getValue().isBlank())
                 .forEach(relatedObject -> {
                     UUID objectId;
                     try {
@@ -120,18 +126,6 @@ public class DeponeAdapter implements DeponeInPort {
                             persistedFiles);
                 })
                 .toList();
-    }
-
-    private static AnchorRecord buildAnchorRecord(UUID objectId, String versionId, Resource premisMetadata) {
-        String algorithm = ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM;
-        var premisMetadataHash = ResourceHashCalculatorUtils.calculateHash(premisMetadata, algorithm);
-
-        return AnchorRecord.builder()
-                .objectId(objectId.toString())
-                .versionId(versionId)
-                .hash(premisMetadataHash)
-                .hashAlgorithm(algorithm)
-                .build();
     }
 
 }

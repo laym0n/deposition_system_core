@@ -1,8 +1,8 @@
 package com.deposition.config;
 
-import java.time.Duration;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.time.Duration;
 
 @ConfigurationProperties(prefix = "statistics.events.executor")
 public record StatisticsEventExecutorProperties(

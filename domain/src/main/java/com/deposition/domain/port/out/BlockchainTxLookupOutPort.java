@@ -1,9 +1,9 @@
 package com.deposition.domain.port.out;
 
+import jakarta.annotation.Nullable;
+
 import java.util.Optional;
 import java.util.UUID;
-
-import jakarta.annotation.Nullable;
 
 public interface BlockchainTxLookupOutPort {
 

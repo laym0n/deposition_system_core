@@ -1,22 +1,17 @@
 package com.deposition.domain.models;
 
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 import com.deposition.domain.models.enums.EventType;
-import com.deposition.domain.models.valueobject.EventAgentLink;
-import com.deposition.domain.models.valueobject.EventDetailInformation;
-import com.deposition.domain.models.valueobject.EventIdentifier;
-import com.deposition.domain.models.valueobject.EventObjectLink;
-import com.deposition.domain.models.valueobject.EventOutcomeInformation;
-
+import com.deposition.domain.models.valueobject.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Data
 @SuperBuilder

@@ -1,21 +1,17 @@
 package com.deposition.domain.dto.schema.premis.v3.converter;
 
-import org.mapstruct.BeanMapping;
+import com.deposition.domain.dto.schema.premis.v3.*;
+import com.deposition.domain.models.RightsStatementMetadata;
+import com.deposition.domain.models.valueobject.RightsStatementAgentLink;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.deposition.domain.dto.schema.premis.v3.RightsComplexType;
-import com.deposition.domain.dto.schema.premis.v3.RightsStatementComplexType;
-import com.deposition.domain.dto.schema.premis.v3.RightsStatementIdentifierComplexType;
-import com.deposition.domain.dto.schema.premis.v3.StringPlusAuthority;
-import com.deposition.domain.models.RightsStatementMetadata;
-
 @Mapper(componentModel = "spring", unmappedSourcePolicy = ReportingPolicy.ERROR, uses = {
-    CommonConverter.class,
-    RightsStatementNestedConverter.class
+        CommonConverter.class,
+        RightsStatementNestedConverter.class
 })
 public abstract class RightsStatementConverter {
 
@@ -30,8 +26,7 @@ public abstract class RightsStatementConverter {
     @Mapping(target = "otherRightsInformation", source = "otherRightsInformation")
     @Mapping(target = "rightsGranted", source = "rightsGranted")
     @Mapping(target = "linkingObjectIdentifier", ignore = true)
-    @Mapping(target = "linkingAgentIdentifier", ignore = true)
-    @BeanMapping(ignoreUnmappedSourceProperties = "identifiers")
+    @Mapping(target = "linkingAgentIdentifier", source = "linkingAgentIdentifiers")
     public abstract RightsStatementComplexType map(RightsStatementMetadata metadata);
 
     /**
@@ -63,4 +58,11 @@ public abstract class RightsStatementConverter {
         }
         return commonConverter.toStringPlusAuthority(rightsBasis);
     }
+
+    @Mapping(target = "linkingAgentRole", source = "roles")
+    @Mapping(target = "linkingAgentIdentifierType", source = "agentIdentifier.type")
+    @Mapping(target = "linkingAgentIdentifierValue", source = "agentIdentifier.value")
+    @Mapping(target = "linkAgentXmlID", ignore = true)
+    @Mapping(target = "simpleLink", ignore = true)
+    protected abstract LinkingAgentIdentifierComplexType map(RightsStatementAgentLink linkingAgentIdentifiers);
 }

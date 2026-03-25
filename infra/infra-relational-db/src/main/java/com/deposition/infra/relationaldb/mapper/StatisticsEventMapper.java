@@ -1,11 +1,10 @@
 package com.deposition.infra.relationaldb.mapper;
 
+import com.deposition.domain.models.statistics.StatisticsEvent;
+import com.deposition.infra.relationaldb.entity.StatisticsEventEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
-
-import com.deposition.domain.models.statistics.StatisticsEvent;
-import com.deposition.infra.relationaldb.entity.StatisticsEventEntity;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface StatisticsEventMapper {

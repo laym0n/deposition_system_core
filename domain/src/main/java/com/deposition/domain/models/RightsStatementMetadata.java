@@ -1,20 +1,14 @@
 package com.deposition.domain.models;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.deposition.domain.models.valueobject.CopyrightInformation;
-import com.deposition.domain.models.valueobject.Identifier;
-import com.deposition.domain.models.valueobject.LicenseInformation;
-import com.deposition.domain.models.valueobject.OtherRightsInformation;
-import com.deposition.domain.models.valueobject.RightsGranted;
-import com.deposition.domain.models.valueobject.StatuteInformation;
-
+import com.deposition.domain.models.valueobject.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @SuperBuilder
@@ -34,5 +28,5 @@ public class RightsStatementMetadata {
     @Default
     private List<RightsGranted> rightsGranted = new ArrayList<>();
     @Default
-    private List<Identifier> identifiers = new ArrayList<>();
+    private List<RightsStatementAgentLink> linkingAgentIdentifiers = new ArrayList<>();
 }

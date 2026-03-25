@@ -1,23 +1,21 @@
 package com.deposition.infra.ethereum.adapter;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-
+import com.deposition.domain.models.AnchorRecord;
+import com.deposition.domain.port.out.BlockchainOutPort;
+import com.deposition.infra.ethereum.config.EthereumProperties;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.utils.Numeric;
 
-import com.deposition.domain.models.AnchorRecord;
-import com.deposition.domain.port.out.BlockchainOutPort;
-import com.deposition.infra.ethereum.config.EthereumProperties;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 
 @Component
 @RequiredArgsConstructor
@@ -27,6 +25,18 @@ public class EthereumAdapter implements BlockchainOutPort {
     private final Web3j web3j;
     private final ObjectMapper objectMapper;
     private final EthereumProperties properties;
+
+    private static String fromHexInputToString(String input) {
+        var normalized = input;
+        if (normalized.startsWith("0x")) {
+            normalized = normalized.substring(2);
+        }
+        if (normalized.isBlank()) {
+            return "";
+        }
+        var bytes = Numeric.hexStringToByteArray("0x" + normalized);
+        return new String(bytes, StandardCharsets.UTF_8);
+    }
 
     @Override
     public String persistAnchorRecord(AnchorRecord anchorRecord) {
@@ -113,17 +123,5 @@ public class EthereumAdapter implements BlockchainOutPort {
         } catch (JsonProcessingException ex) {
             throw new IllegalStateException("Failed to serialize payload for Ethereum transaction", ex);
         }
-    }
-
-    private static String fromHexInputToString(String input) {
-        var normalized = input;
-        if (normalized.startsWith("0x")) {
-            normalized = normalized.substring(2);
-        }
-        if (normalized.isBlank()) {
-            return "";
-        }
-        var bytes = Numeric.hexStringToByteArray("0x" + normalized);
-        return new String(bytes, StandardCharsets.UTF_8);
     }
 }

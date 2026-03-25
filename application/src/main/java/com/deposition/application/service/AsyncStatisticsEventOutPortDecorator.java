@@ -1,14 +1,12 @@
 package com.deposition.application.service;
 
+import com.deposition.domain.models.statistics.StatisticsEvent;
+import com.deposition.domain.port.out.StatisticsEventOutPort;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-
-import com.deposition.domain.models.statistics.StatisticsEvent;
-import com.deposition.domain.port.out.StatisticsEventOutPort;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Primary

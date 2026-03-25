@@ -1,20 +1,5 @@
 package com.deposition.domain.adapter.object;
 
-import java.io.ByteArrayOutputStream;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
-
 import com.deposition.domain.dto.schema.premis.v3.PremisComplexType;
 import com.deposition.domain.dto.schema.premis.v3.converter.PremisSnapshotConverter;
 import com.deposition.domain.exception.ResourceNotFoundException;
@@ -25,8 +10,17 @@ import com.deposition.domain.port.in.object.DownloadSourceFilesInPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.domain.service.XmlUtils;
 import com.deposition.domain.service.acl.AccessValidatorService;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
+
+import java.io.ByteArrayOutputStream;
+import java.net.URI;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Component
 @RequiredArgsConstructor
@@ -36,6 +30,58 @@ public class DownloadSourceFilesAdapter implements DownloadSourceFilesInPort {
     private final FileStorageOutPort fileStorage;
     private final AccessValidatorService accessValidatorService;
     private final PremisSnapshotConverter premisSnapshotConverter;
+
+    private static Map<UUID, FileMetadata> indexFiles(PremisSnapshot snapshot) {
+        if (snapshot == null || snapshot.getObjects() == null) {
+            return Map.of();
+        }
+
+        Map<UUID, FileMetadata> map = new HashMap<>();
+        for (var obj : snapshot.getObjects()) {
+            if (obj instanceof FileMetadata f && f.getId() != null) {
+                map.put(f.getId(), f);
+            }
+        }
+        return map;
+    }
+
+    private static URI resolveContentLocation(FileMetadata fileMeta, UUID fileId) {
+        if (fileMeta.getStorages() == null || fileMeta.getStorages().isEmpty()) {
+            throw new IllegalStateException("File has no storage locations: fileId=" + fileId);
+        }
+        var storage = fileMeta.getStorages().stream().filter(Objects::nonNull).findFirst().orElse(null);
+        if (storage == null || storage.getContentLocation() == null) {
+            throw new IllegalStateException("File has no contentLocation: fileId=" + fileId);
+        }
+        return storage.getContentLocation();
+    }
+
+    private static String resolveZipEntryName(FileMetadata fileMeta,
+                                              UUID fileId,
+                                              Resource fileResource,
+                                              Map<String, Integer> usedNames) {
+        String base = fileMeta.getOriginalName();
+        if (base == null || base.isBlank()) {
+            base = fileResource.getFilename();
+        }
+        if (base == null || base.isBlank()) {
+            base = fileId.toString();
+        }
+
+        // Make unique to avoid ZipException: duplicate entry.
+        String normalized = base.replace('\\', '/');
+        Integer idx = usedNames.get(normalized);
+        if (idx == null) {
+            usedNames.put(normalized, 1);
+            return normalized;
+        }
+        usedNames.put(normalized, idx + 1);
+        int dot = normalized.lastIndexOf('.');
+        if (dot > 0 && dot < normalized.length() - 1) {
+            return normalized.substring(0, dot) + " (" + idx + ")" + normalized.substring(dot);
+        }
+        return normalized + " (" + idx + ")";
+    }
 
     @Override
     public Resource downloadSourceFilesAsZip(UUID objectId, List<UUID> fileIds) {
@@ -100,57 +146,5 @@ public class DownloadSourceFilesAdapter implements DownloadSourceFilesInPort {
         } catch (IllegalArgumentException ex) {
             throw new ResourceNotFoundException("Object", objectId.toString());
         }
-    }
-
-    private static Map<UUID, FileMetadata> indexFiles(PremisSnapshot snapshot) {
-        if (snapshot == null || snapshot.getObjects() == null) {
-            return Map.of();
-        }
-
-        Map<UUID, FileMetadata> map = new HashMap<>();
-        for (var obj : snapshot.getObjects()) {
-            if (obj instanceof FileMetadata f && f.getId() != null) {
-                map.put(f.getId(), f);
-            }
-        }
-        return map;
-    }
-
-    private static URI resolveContentLocation(FileMetadata fileMeta, UUID fileId) {
-        if (fileMeta.getStorages() == null || fileMeta.getStorages().isEmpty()) {
-            throw new IllegalStateException("File has no storage locations: fileId=" + fileId);
-        }
-        var storage = fileMeta.getStorages().stream().filter(Objects::nonNull).findFirst().orElse(null);
-        if (storage == null || storage.getContentLocation() == null) {
-            throw new IllegalStateException("File has no contentLocation: fileId=" + fileId);
-        }
-        return storage.getContentLocation();
-    }
-
-    private static String resolveZipEntryName(FileMetadata fileMeta,
-            UUID fileId,
-            Resource fileResource,
-            Map<String, Integer> usedNames) {
-        String base = fileMeta.getOriginalName();
-        if (base == null || base.isBlank()) {
-            base = fileResource.getFilename();
-        }
-        if (base == null || base.isBlank()) {
-            base = fileId.toString();
-        }
-
-        // Make unique to avoid ZipException: duplicate entry.
-        String normalized = base.replace('\\', '/');
-        Integer idx = usedNames.get(normalized);
-        if (idx == null) {
-            usedNames.put(normalized, 1);
-            return normalized;
-        }
-        usedNames.put(normalized, idx + 1);
-        int dot = normalized.lastIndexOf('.');
-        if (dot > 0 && dot < normalized.length() - 1) {
-            return normalized.substring(0, dot) + " (" + idx + ")" + normalized.substring(dot);
-        }
-        return normalized + " (" + idx + ")";
     }
 }

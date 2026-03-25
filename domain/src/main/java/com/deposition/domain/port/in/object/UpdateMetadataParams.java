@@ -1,9 +1,9 @@
 package com.deposition.domain.port.in.object;
 
-import java.util.List;
-
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
+
+import java.util.List;
 
 public record UpdateMetadataParams(
         @Nullable

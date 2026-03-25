@@ -1,12 +1,11 @@
 package com.deposition.domain.port.in.event;
 
-import java.util.List;
-
 import com.deposition.domain.models.enums.EventType;
-
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
+import java.util.List;
 
 public record RecordObjectEventRequest(
         @NotNull

@@ -1,9 +1,9 @@
 package com.deposition.domain.models.statistics;
 
+import jakarta.annotation.Nullable;
+
 import java.time.OffsetDateTime;
 import java.util.UUID;
-
-import jakarta.annotation.Nullable;
 
 public record StatisticsEvent(
         UUID id,

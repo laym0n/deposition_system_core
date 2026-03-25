@@ -1,7 +1,5 @@
 package com.deposition.infra.api.config;
 
-import java.util.List;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,23 +14,25 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.List;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
-            Customizer<OAuth2ResourceServerConfigurer<HttpSecurity>> oAuth2ResourceServerCustomizer)
+                                           Customizer<OAuth2ResourceServerConfigurer<HttpSecurity>> oAuth2ResourceServerCustomizer)
             throws Exception {
         http
                 .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/actuator/**", "/swagger-ui/**", "/v3/api-docs/**",
-                        "/swagger-ui.html")
-                .permitAll()
-                .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-                .requestMatchers(HttpMethod.GET, "/descriptive-metadata/schemas/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/objects/*/cached-metadata").permitAll()
-                .anyRequest().authenticated())
+                        .requestMatchers("/actuator/**", "/swagger-ui/**", "/v3/api-docs/**",
+                                "/swagger-ui.html")
+                        .permitAll()
+                        .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/descriptive-metadata/schemas/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/objects/*/cached-metadata").permitAll()
+                        .anyRequest().authenticated())
                 .oauth2ResourceServer(oAuth2ResourceServerCustomizer)
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable);

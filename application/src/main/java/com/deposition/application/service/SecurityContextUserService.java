@@ -1,11 +1,10 @@
 package com.deposition.application.service;
 
-import java.util.Optional;
-
+import com.deposition.domain.port.out.UserOutPort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import com.deposition.domain.port.out.UserOutPort;
+import java.util.Optional;
 
 @Component
 public class SecurityContextUserService implements UserOutPort {

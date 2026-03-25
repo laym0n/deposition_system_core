@@ -1,13 +1,12 @@
 package com.deposition.domain.port.out;
 
+import com.deposition.domain.models.DescriptiveMetadataSchema;
+import jakarta.validation.constraints.NotBlank;
+
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import com.deposition.domain.models.DescriptiveMetadataSchema;
-
-import jakarta.validation.constraints.NotBlank;
 
 public interface DescriptiveMetadataSchemaOutPort {
 

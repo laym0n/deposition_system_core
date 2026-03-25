@@ -1,21 +1,16 @@
 package com.deposition.domain.dto.schema.premis.v3.converter;
 
-import java.net.URI;
-
+import com.deposition.domain.dto.schema.premis.v3.*;
+import com.deposition.domain.models.FileMetadata;
+import com.deposition.domain.models.valueobject.FixityBlock;
+import com.deposition.domain.models.valueobject.FormatDesignation;
+import com.deposition.domain.models.valueobject.Storage;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
-import com.deposition.domain.dto.schema.premis.v3.ContentLocationComplexType;
-import com.deposition.domain.dto.schema.premis.v3.File;
-import com.deposition.domain.dto.schema.premis.v3.FixityComplexType;
-import com.deposition.domain.dto.schema.premis.v3.FormatDesignationComplexType;
-import com.deposition.domain.dto.schema.premis.v3.StorageComplexType;
-import com.deposition.domain.models.FileMetadata;
-import com.deposition.domain.models.valueobject.FixityBlock;
-import com.deposition.domain.models.valueobject.FormatDesignation;
-import com.deposition.domain.models.valueobject.Storage;
+import java.net.URI;
 
 @Mapper(componentModel = "spring", unmappedSourcePolicy = ReportingPolicy.ERROR, uses = CommonConverter.class)
 public abstract class FileMetadataConverter {

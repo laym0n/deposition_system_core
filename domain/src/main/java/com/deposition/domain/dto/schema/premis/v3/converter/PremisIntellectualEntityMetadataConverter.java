@@ -1,12 +1,11 @@
 package com.deposition.domain.dto.schema.premis.v3.converter;
 
+import com.deposition.domain.dto.schema.premis.v3.IntellectualEntity;
+import com.deposition.domain.models.IntellectualEntityMetadata;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.deposition.domain.dto.schema.premis.v3.IntellectualEntity;
-import com.deposition.domain.models.IntellectualEntityMetadata;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR, uses = PremisCommonConverter.class)
 public abstract class PremisIntellectualEntityMetadataConverter {

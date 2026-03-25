@@ -1,4 +1,5 @@
 package com.deposition.domain.models.valueobject;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

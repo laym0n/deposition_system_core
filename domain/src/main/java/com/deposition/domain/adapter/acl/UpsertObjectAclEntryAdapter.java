@@ -1,16 +1,8 @@
 package com.deposition.domain.adapter.acl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
-
 import com.deposition.domain.adapter.rights.RightsStatementPremisUpdater;
 import com.deposition.domain.dto.schema.premis.v3.PremisComplexType;
+import com.deposition.domain.dto.schema.premis.v3.converter.PremisSnapshotConverter;
 import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.AgentMetadata;
 import com.deposition.domain.models.acl.AclPermission;
@@ -25,14 +17,20 @@ import com.deposition.domain.port.in.rights.UpsertRightsStatementRequest;
 import com.deposition.domain.port.in.rights.UpsertRightsStatementRequest.AgentDto;
 import com.deposition.domain.port.in.rights.UpsertRightsStatementRequest.AgentGrant;
 import com.deposition.domain.port.in.rights.UpsertRightsStatementRequest.RightsStatementPayload;
-import com.deposition.domain.dto.schema.premis.v3.converter.PremisSnapshotConverter;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.domain.service.PremisPersistenceService;
 import com.deposition.domain.service.XmlUtils;
-import com.deposition.domain.service.acl.AclMapper;
 import com.deposition.domain.service.acl.AccessValidatorService;
-
+import com.deposition.domain.service.acl.AclMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Updates ACL entry for a specific user and records the change in PREMIS as a
@@ -48,6 +46,60 @@ public class UpsertObjectAclEntryAdapter implements UpsertObjectAclEntryInPort {
     private final RightsStatementPremisUpdater rightsStatementPremisUpdater;
     private final PremisPersistenceService premisPersistenceService;
     private final PremisSnapshotConverter premisSnapshotConverter;
+
+    private static UpsertRightsStatementRequest buildRightsStatementRequest(UUID objectId, String targetUserId,
+                                                                            Set<AclPermission> permissions) {
+
+        String rightsStatementId = "acl_" + objectId + "_" + targetUserId + "_" + UUID.randomUUID();
+
+        var rightsGranted = new ArrayList<RightsGranted>();
+        if (permissions != null) {
+            for (var p : permissions) {
+                if (p == null) {
+                    continue;
+                }
+                rightsGranted.add(RightsGranted.builder().act(p.name()).build());
+            }
+        }
+
+        var payload = new RightsStatementPayload(
+                null,
+                null,
+                null,
+                null,
+                rightsGranted);
+
+        var agent = new AgentDto(
+                targetUserId,
+                targetUserId,
+                AgentType.PERSON,
+                List.of());
+
+        var agentGrant = new AgentGrant(agent, List.of("GRANTEE"));
+
+        return new UpsertRightsStatementRequest(
+                rightsStatementId,
+                RightsBasis.OTHER,
+                payload,
+                List.of(agentGrant));
+    }
+
+    private static AgentMetadata toAgentMetadata(UpsertRightsStatementRequest request) {
+        if (request == null || request.agents() == null || request.agents().isEmpty()) {
+            return null;
+        }
+        AgentGrant grant = request.agents().getFirst();
+        if (grant == null || grant.agent() == null) {
+            return null;
+        }
+        var a = grant.agent();
+        return AgentMetadata.builder()
+                .id(a.id())
+                .name(a.name())
+                .type(a.type())
+                .identifiers(a.identifiers() == null ? List.of() : List.copyOf(a.identifiers()))
+                .build();
+    }
 
     @Override
     public DepositionResult upsertUserEntry(UUID objectId, UpsertObjectAclEntryRequest request) {
@@ -108,59 +160,5 @@ public class UpsertObjectAclEntryAdapter implements UpsertObjectAclEntryInPort {
             throw new ResourceNotFoundException("Object", objectId.toString());
         }
         return XmlUtils.parsePremis(premisXml);
-    }
-
-    private static UpsertRightsStatementRequest buildRightsStatementRequest(UUID objectId, String targetUserId,
-            Set<AclPermission> permissions) {
-
-        String rightsStatementId = "acl_" + objectId + "_" + targetUserId + "_" + UUID.randomUUID();
-
-        var rightsGranted = new ArrayList<RightsGranted>();
-        if (permissions != null) {
-            for (var p : permissions) {
-                if (p == null) {
-                    continue;
-                }
-                rightsGranted.add(RightsGranted.builder().act(p.name()).build());
-            }
-        }
-
-        var payload = new RightsStatementPayload(
-                null,
-                null,
-                null,
-                null,
-                rightsGranted);
-
-        var agent = new AgentDto(
-                targetUserId,
-                targetUserId,
-                AgentType.PERSON,
-                List.of());
-
-        var agentGrant = new AgentGrant(agent, List.of("GRANTEE"));
-
-        return new UpsertRightsStatementRequest(
-                rightsStatementId,
-                RightsBasis.OTHER,
-                payload,
-                List.of(agentGrant));
-    }
-
-    private static AgentMetadata toAgentMetadata(UpsertRightsStatementRequest request) {
-        if (request == null || request.agents() == null || request.agents().isEmpty()) {
-            return null;
-        }
-        AgentGrant grant = request.agents().getFirst();
-        if (grant == null || grant.agent() == null) {
-            return null;
-        }
-        var a = grant.agent();
-        return AgentMetadata.builder()
-                .id(a.id())
-                .name(a.name())
-                .type(a.type())
-                .identifiers(a.identifiers() == null ? List.of() : List.copyOf(a.identifiers()))
-                .build();
     }
 }

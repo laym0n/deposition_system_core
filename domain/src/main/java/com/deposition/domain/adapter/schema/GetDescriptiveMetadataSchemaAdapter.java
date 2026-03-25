@@ -1,18 +1,16 @@
 package com.deposition.domain.adapter.schema;
 
-import java.util.Map;
-
-import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
-
 import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.port.in.schema.GetDescriptiveMetadataSchemaInPort;
 import com.deposition.domain.port.in.schema.IntellectualEntityType;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
+
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -26,7 +24,7 @@ public class GetDescriptiveMetadataSchemaAdapter implements GetDescriptiveMetada
     public Map<String, Object> getSchema(IntellectualEntityType entityType) {
         var schemaJson = schemaOutPort.findActiveSchemaJsonByEntityType(entityType.name())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                "DescriptiveMetadataSchema", "entityType=" + entityType));
+                        "DescriptiveMetadataSchema", "entityType=" + entityType));
 
         try {
             return objectMapper.readValue(schemaJson, new TypeReference<Map<String, Object>>() {
@@ -34,7 +32,7 @@ public class GetDescriptiveMetadataSchemaAdapter implements GetDescriptiveMetada
         } catch (com.fasterxml.jackson.core.JsonProcessingException ex) {
             throw new IllegalStateException(
                     "Invalid descriptive metadata schema JSON for entityType=" + entityType
-                    + ": " + ex.getOriginalMessage(),
+                            + ": " + ex.getOriginalMessage(),
                     ex);
         }
     }

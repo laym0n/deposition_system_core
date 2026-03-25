@@ -1,9 +1,8 @@
 package com.deposition.application;
 
+import com.deposition.BasePackageScanMarker;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import com.deposition.BasePackageScanMarker;
 
 @SpringBootApplication(scanBasePackageClasses = BasePackageScanMarker.class)
 public class Application {

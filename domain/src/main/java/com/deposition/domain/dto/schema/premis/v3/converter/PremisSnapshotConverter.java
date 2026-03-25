@@ -1,26 +1,25 @@
 package com.deposition.domain.dto.schema.premis.v3.converter;
 
+import com.deposition.domain.dto.schema.premis.v3.*;
+import com.deposition.domain.models.AbstractObjectMetadata;
+import com.deposition.domain.models.PremisSnapshot;
+import com.deposition.domain.models.RightsStatementMetadata;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.deposition.domain.dto.schema.premis.v3.File;
-import com.deposition.domain.dto.schema.premis.v3.IntellectualEntity;
-import com.deposition.domain.dto.schema.premis.v3.ObjectComplexType;
-import com.deposition.domain.dto.schema.premis.v3.PremisComplexType;
-import com.deposition.domain.dto.schema.premis.v3.Representation;
-import com.deposition.domain.models.AbstractObjectMetadata;
-import com.deposition.domain.models.PremisSnapshot;
+import java.util.ArrayList;
+import java.util.List;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR, uses = {
-    FileMetadataConverter.class,
-    PremisRepresentationMetadataConverter.class,
-    PremisIntellectualEntityMetadataConverter.class,
-    PremisEventConverter.class,
-    PremisAgentConverter.class,
-    PremisRightsStatementConverter.class,
-    CommonConverter.class
+        FileMetadataConverter.class,
+        PremisRepresentationMetadataConverter.class,
+        PremisIntellectualEntityMetadataConverter.class,
+        PremisEventConverter.class,
+        PremisAgentConverter.class,
+        PremisRightsStatementConverter.class,
+        CommonConverter.class
 })
 public abstract class PremisSnapshotConverter {
 
@@ -48,23 +47,20 @@ public abstract class PremisSnapshotConverter {
         }
 
         return switch (objectComplexType) {
-            case File file ->
-                premisFileMetadataConverter.map(file);
-            case Representation representation ->
-                premisRepresentationMetadataConverter.map(representation);
+            case File file -> premisFileMetadataConverter.map(file);
+            case Representation representation -> premisRepresentationMetadataConverter.map(representation);
             case IntellectualEntity intellectualEntity ->
-                premisIntellectualEntityMetadataConverter.map(intellectualEntity);
-            default ->
-                null;
+                    premisIntellectualEntityMetadataConverter.map(intellectualEntity);
+            default -> null;
         };
     }
 
-    protected java.util.List<com.deposition.domain.models.RightsStatementMetadata> flattenRightsStatements(PremisComplexType premis) {
+    protected List<RightsStatementMetadata> flattenRightsStatements(PremisComplexType premis) {
         if (premis == null || premis.getRights() == null || premis.getRights().isEmpty()) {
-            return java.util.List.of();
+            return List.of();
         }
 
-        var result = new java.util.ArrayList<com.deposition.domain.models.RightsStatementMetadata>();
+        var result = new ArrayList<RightsStatementMetadata>();
         for (var rights : premis.getRights()) {
             if (rights == null) {
                 continue;
@@ -75,7 +71,7 @@ public abstract class PremisSnapshotConverter {
             }
             result.addAll(mapped);
         }
-        return java.util.List.copyOf(result);
+        return List.copyOf(result);
     }
 
 }

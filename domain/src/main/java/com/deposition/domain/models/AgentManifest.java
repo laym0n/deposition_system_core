@@ -1,17 +1,16 @@
 package com.deposition.domain.models;
 
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.deposition.domain.models.valueobject.AgentEventLink;
 import com.deposition.domain.models.valueobject.AgentRightsStatementLink;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @SuperBuilder

@@ -1,13 +1,11 @@
 package com.deposition.infra.micrometer.metrics;
 
-import java.util.Objects;
-
-import org.springframework.stereotype.Component;
-
 import com.deposition.domain.port.out.BusinessMetricsOutPort;
-
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.stereotype.Component;
+
+import java.util.Objects;
 
 @Component
 public class BusinessMetrics implements BusinessMetricsOutPort {

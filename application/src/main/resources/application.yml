@@ -43,7 +43,6 @@ integration:
     chain-id: ${integration.ethereum.chain-id}
     gas-price-wei: ${integration.ethereum.gas-price-wei:0}
   opensearch:
-    enabled: ${integration.opensearch.enabled:true}
     endpoint: ${integration.opensearch.endpoint:}
     descriptive-metadata-index: ${integration.opensearch.descriptive-metadata-index:descriptive-metadata}
     object-index: ${integration.opensearch.object-index:objects}

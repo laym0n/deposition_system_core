@@ -1,51 +1,24 @@
 package com.deposition.infra.api.controller.object;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.IntStream;
-
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.deposition.domain.port.in.common.DepositionResult;
-import com.deposition.domain.port.in.object.CachedObjectMetadataResponse;
-import com.deposition.domain.port.in.object.DeponeFileParam;
-import com.deposition.domain.port.in.object.DeponeInPort;
-import com.deposition.domain.port.in.object.DeponeIntellectualEntityParams;
-import com.deposition.domain.port.in.object.DeponeRepresentationParam;
-import com.deposition.domain.port.in.object.DownloadSourceFilesInPort;
-import com.deposition.domain.port.in.object.FileMetadataParam;
-import com.deposition.domain.port.in.object.GetCachedObjectMetadataInPort;
-import com.deposition.domain.port.in.object.GetPremisMetadataInPort;
-import com.deposition.domain.port.in.object.IntellectualEntityMetadataParam;
-import com.deposition.domain.port.in.object.ObjectSearchRequest;
-import com.deposition.domain.port.in.object.RepresentationMetadataParam;
-import com.deposition.domain.port.in.object.SearchObjectsInPort;
-import com.deposition.domain.port.in.object.SearchObjectsResult;
-import com.deposition.domain.port.in.object.UpdateMetadataInPort;
-import com.deposition.domain.port.in.object.UpdateMetadataParams;
-import com.deposition.domain.port.in.object.VerifyPremisInPort;
-import com.deposition.domain.port.in.object.VerifyPremisResult;
+import com.deposition.domain.port.in.object.*;
 import com.deposition.domain.port.in.schema.IntellectualEntityType;
-
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.IntStream;
 
 @RestController
 @RequestMapping
@@ -60,12 +33,25 @@ public class ObjectController {
     private final VerifyPremisInPort verifyPremisInPort;
     private final SearchObjectsInPort searchObjectsInPort;
 
+    private static FileMetadataParam resolveFileMetadata(FileMetadataParam fileMetadataParam, MultipartFile file) {
+        if (fileMetadataParam == null) {
+            return new FileMetadataParam(file.getOriginalFilename());
+        }
+
+        // If the client did not provide an originalName, fallback to multipart filename.
+        if (fileMetadataParam.originalName() == null) {
+            return new FileMetadataParam(file.getOriginalFilename());
+        }
+
+        return fileMetadataParam;
+    }
+
     @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = com.deposition.infra.api.controller.DeponeMultipartRequest.class), encoding = {
-        @Encoding(name = "intellectualEntityMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
-        @Encoding(name = "descriptiveMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
-        @Encoding(name = "representationMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
-        @Encoding(name = "fileMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
-        @Encoding(name = "files", contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+            @Encoding(name = "intellectualEntityMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
+            @Encoding(name = "descriptiveMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
+            @Encoding(name = "representationMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
+            @Encoding(name = "fileMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
+            @Encoding(name = "files", contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     }))
     @PostMapping(value = "/depone", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @SecurityRequirement(name = "bearerAuth")
@@ -80,14 +66,14 @@ public class ObjectController {
         var resolvedIntellectualEntityMetadata = intellectualEntityMetadata == null
                 ? new IntellectualEntityMetadataParam(null, List.of(), List.of())
                 : new IntellectualEntityMetadataParam(
-                        intellectualEntityMetadata.originalName(),
-                        intellectualEntityMetadata.identifiers() == null
+                intellectualEntityMetadata.originalName(),
+                intellectualEntityMetadata.identifiers() == null
                         ? List.of()
                         : List.copyOf(intellectualEntityMetadata.identifiers()),
-                        intellectualEntityMetadata.relationships() == null
+                intellectualEntityMetadata.relationships() == null
                         ? List.of()
                         : List.copyOf(intellectualEntityMetadata
-                                .relationships()));
+                        .relationships()));
 
         var resolvedRepresentationMetadata = representationMetadata == null
                 ? new RepresentationMetadataParam(null)
@@ -187,18 +173,5 @@ public class ObjectController {
         } catch (IOException e) {
             throw new IllegalStateException("Failed to read multipart file: " + file.getOriginalFilename(), e);
         }
-    }
-
-    private static FileMetadataParam resolveFileMetadata(FileMetadataParam fileMetadataParam, MultipartFile file) {
-        if (fileMetadataParam == null) {
-            return new FileMetadataParam(file.getOriginalFilename());
-        }
-
-        // If the client did not provide an originalName, fallback to multipart filename.
-        if (fileMetadataParam.originalName() == null) {
-            return new FileMetadataParam(file.getOriginalFilename());
-        }
-
-        return fileMetadataParam;
     }
 }
