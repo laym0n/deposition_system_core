@@ -31,13 +31,25 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
         return "object/" + objectId + "/deposition-metadata.premis.xml";
     }
 
-    private static String extractObjectKey(URI contentLocation) {
+    static String extractObjectKey(URI contentLocation, String bucketName) {
         String path = contentLocation.getPath();
         if (path == null || path.isBlank()) {
             throw new IllegalArgumentException("Invalid contentLocation (path is empty): " + contentLocation);
         }
-        // Path begins with '/', S3 key should not.
-        return path.startsWith("/") ? path.substring(1) : path;
+        String normalized = path.startsWith("/") ? path.substring(1) : path;
+
+        if (bucketName != null && !bucketName.isBlank()) {
+            String bucketPrefix = bucketName + "/";
+            if (normalized.startsWith(bucketPrefix)) {
+                normalized = normalized.substring(bucketPrefix.length());
+            }
+        }
+
+        if (normalized.startsWith("/")) {
+            normalized = normalized.substring(1);
+        }
+
+        return normalized;
     }
 
     private static String extractFilename(String objectKey) {
@@ -114,10 +126,10 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
             throw new IllegalArgumentException("contentLocation must not be null");
         }
 
-        try {
-            String objectKey = extractObjectKey(contentLocation);
-            var bucketName = s3Properties.getBucketName();
+        var bucketName = s3Properties.getBucketName();
+        String objectKey = extractObjectKey(contentLocation, bucketName);
 
+        try {
             var request = GetObjectRequest.builder()
                     .bucket(bucketName)
                     .key(objectKey)
@@ -133,9 +145,14 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
                 }
             };
         } catch (NoSuchKeyException exception) {
-            throw new IllegalArgumentException("Object not found for contentLocation=" + contentLocation, exception);
+            throw new IllegalArgumentException(
+                    "Object not found in S3: bucket=" + bucketName + ", key=" + objectKey
+                            + ", contentLocation=" + contentLocation,
+                    exception);
         } catch (SdkException exception) {
-            throw new IllegalStateException("Failed to load object from S3 for contentLocation=" + contentLocation,
+            throw new IllegalStateException(
+                    "Failed to load object from S3: bucket=" + bucketName + ", key=" + objectKey
+                            + ", contentLocation=" + contentLocation,
                     exception);
         }
     }

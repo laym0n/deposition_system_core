@@ -10,19 +10,19 @@ import com.deposition.domain.models.EventMetadata;
 import com.deposition.domain.models.RightsStatementMetadata;
 import com.deposition.domain.models.enums.*;
 import com.deposition.domain.models.valueobject.*;
-import com.deposition.domain.port.in.rights.UpsertRightsStatementRequest;
-import com.deposition.domain.port.in.rights.UpsertRightsStatementRequest.AgentGrant;
+import com.deposition.domain.models.valueobject.RightsStatementAgentLink;
 import com.deposition.domain.port.out.UserOutPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
+import java.util.stream.Collectors;
 import java.util.UUID;
 
 @Component
@@ -55,28 +55,6 @@ public final class RightsStatementPremisUpdater {
         return null;
     }
 
-    private static void applyPayload(RightsStatementMetadata model, UpsertRightsStatementRequest.RightsStatementPayload payload) {
-        if (model == null || payload == null) {
-            return;
-        }
-
-        if (payload.copyrightInformation() != null) {
-            model.setCopyrightInformation(List.of(payload.copyrightInformation()));
-        }
-        if (payload.licenseInformation() != null) {
-            model.setLicenseInformation(List.of(payload.licenseInformation()));
-        }
-        if (payload.otherRightsInformation() != null) {
-            model.setOtherRightsInformation(payload.otherRightsInformation());
-        }
-        if (payload.statuteInformation() != null) {
-            model.setStatuteInformation(new ArrayList<>(payload.statuteInformation()));
-        }
-        if (payload.rightsGranted() != null) {
-            model.setRightsGranted(new ArrayList<>(payload.rightsGranted()));
-        }
-    }
-
     private static String extractRightsStatementIdentifierValue(RightsStatementComplexType rs) {
         if (rs == null || rs.getRightsStatementIdentifier() == null) {
             return null;
@@ -84,21 +62,98 @@ public final class RightsStatementPremisUpdater {
         return rs.getRightsStatementIdentifier().getRightsStatementIdentifierValue();
     }
 
-    private static String resolveAgentId(AgentGrant grant) {
-        if (grant == null || grant.agent() == null) {
-            return null;
+    private static final Comparator<AgentIdentifier> AGENT_IDENTIFIER_COMPARATOR =
+            Comparator.comparing(AgentIdentifier::getType, Comparator.comparing(Enum::name))
+                    .thenComparing(AgentIdentifier::getValue);
+
+    private static List<AgentIdentifier> normalizeIdentifiers(List<AgentIdentifier> identifiers) {
+        if (identifiers == null || identifiers.isEmpty()) {
+            return List.of();
         }
-        if (grant.agent().id() != null && !grant.agent().id().isBlank()) {
-            return grant.agent().id();
+        // Keep duplicates out, ignore blank values.
+        return identifiers.stream()
+                .filter(Objects::nonNull)
+                .filter(i -> i.getType() != null)
+                .filter(i -> i.getValue() != null && !i.getValue().isBlank())
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toCollection(LinkedHashSet::new),
+                        List::copyOf));
+    }
+
+    private static List<AgentIdentifier> normalizeAgentIdentifiersFromPremis(AgentComplexType agent) {
+        if (agent == null || agent.getAgentIdentifier() == null) {
+            return List.of();
         }
-        return null;
+        var result = new ArrayList<AgentIdentifier>();
+        for (var i : agent.getAgentIdentifier()) {
+            if (i == null || i.getAgentIdentifierType() == null) {
+                continue;
+            }
+            String type = i.getAgentIdentifierType().getValue();
+            String value = i.getAgentIdentifierValue();
+            if (type == null || type.isBlank() || value == null || value.isBlank()) {
+                continue;
+            }
+            try {
+                var mappedType = AgentIdentifierType.valueOf(type.toUpperCase());
+                // ignore technical SYSTEM identifier which is derived from xmlID
+                if (mappedType == AgentIdentifierType.SYSTEM) {
+                    continue;
+                }
+                result.add(new AgentIdentifier(mappedType, value));
+            } catch (RuntimeException ex) {
+                // unknown types: treat as OTHER, but still include in matching
+                result.add(new AgentIdentifier(AgentIdentifierType.OTHER, value));
+            }
+        }
+        return normalizeIdentifiers(result);
+    }
+
+    static boolean agentMatchesExisting(AgentComplexType existing, AgentMetadata desired) {
+        if (existing == null || desired == null) {
+            return false;
+        }
+
+        if (desired.getId() != null && !desired.getId().isBlank()) {
+            return Objects.equals(toXmlId(desired.getId()), existing.getXmlID());
+        }
+
+        var desiredIdentifiers = normalizeIdentifiers(desired.getIdentifiers()).stream()
+                .filter(i -> i.getType() != AgentIdentifierType.SYSTEM)
+                .toList();
+        if (desiredIdentifiers.isEmpty()) {
+            return false;
+        }
+
+        var existingIdentifiers = normalizeAgentIdentifiersFromPremis(existing);
+        if (existingIdentifiers.isEmpty()) {
+            return false;
+        }
+
+        // full match: same set, order doesn't matter
+        return new LinkedHashSet<>(desiredIdentifiers).equals(new LinkedHashSet<>(existingIdentifiers));
     }
 
     private static String toXmlId(String id) {
         return "id_" + id;
     }
 
-    public void upsertRightsStatement(PremisComplexType premis, UUID objectId, UpsertRightsStatementRequest request,
+    private static String resolveStableAgentId(AgentMetadata agent) {
+        var normalized = normalizeIdentifiers(agent == null ? null : agent.getIdentifiers());
+        if (normalized.isEmpty()) {
+            return null;
+        }
+        // Use all identifiers, to be stable regardless of their order.
+        var seed = normalized.stream()
+                .sorted(AGENT_IDENTIFIER_COMPARATOR)
+                .map(i -> i.getType().name() + ":" + i.getValue())
+                .collect(Collectors.joining("|"));
+        return UUID.nameUUIDFromBytes(seed.getBytes(StandardCharsets.UTF_8)).toString();
+    }
+
+    public void upsertRightsStatement(PremisComplexType premis,
+                                      UUID objectId,
+                                      RightsStatementMetadata rightsStatement,
                                       List<AgentMetadata> agentsToEnsure) {
         if (premis == null) {
             throw new IllegalArgumentException("premis must not be null");
@@ -106,8 +161,8 @@ public final class RightsStatementPremisUpdater {
         if (objectId == null) {
             throw new IllegalArgumentException("objectId must not be null");
         }
-        if (request == null) {
-            throw new IllegalArgumentException("request must not be null");
+        if (rightsStatement == null) {
+            throw new IllegalArgumentException("rightsStatement must not be null");
         }
 
         if (agentsToEnsure != null) {
@@ -116,9 +171,17 @@ public final class RightsStatementPremisUpdater {
             }
         }
 
-        RightsComplexType rights = findOrCreateRightsContainer(premis, request.rightsStatementId());
+        String rightsStatementId = rightsStatement.getId() == null || rightsStatement.getId().isBlank()
+                ? UUID.randomUUID().toString()
+                : rightsStatement.getId();
 
-        RightsStatementComplexType rightsStatement = upsertRightsStatement(rights, objectId, request);
+        if (!Objects.equals(rightsStatementId, rightsStatement.getId())) {
+            rightsStatement.setId(rightsStatementId);
+        }
+
+        RightsComplexType rights = findOrCreateRightsContainer(premis, rightsStatementId);
+
+        RightsStatementComplexType rightsStatementXml = upsertRightsStatement(rights, objectId, rightsStatement);
 
         var items = rights.getRightsStatementOrRightsExtension();
         boolean replaced = false;
@@ -128,17 +191,17 @@ public final class RightsStatementPremisUpdater {
                 continue;
             }
             var existingId = extractRightsStatementIdentifierValue(existing);
-            if (Objects.equals(existingId, request.rightsStatementId())) {
-                items.set(i, rightsStatement);
+            if (Objects.equals(existingId, rightsStatementId)) {
+                items.set(i, rightsStatementXml);
                 replaced = true;
                 break;
             }
         }
         if (!replaced) {
-            items.add(rightsStatement);
+            items.add(rightsStatementXml);
         }
 
-        addRightsStatementUpdateEvent(premis, objectId, request.rightsStatementId());
+        addRightsStatementUpdateEvent(premis, objectId, rightsStatementId);
     }
 
     private void addRightsStatementUpdateEvent(PremisComplexType premis, UUID objectId, String rightsStatementId) {
@@ -198,56 +261,44 @@ public final class RightsStatementPremisUpdater {
         return rights;
     }
 
-    private RightsStatementComplexType upsertRightsStatement(
-            RightsComplexType rights,
-            UUID objectId,
-            UpsertRightsStatementRequest request) {
-        RightsStatementComplexType existing = findExistingRightsStatement(rights, request.rightsStatementId());
+    private RightsStatementComplexType upsertRightsStatement(RightsComplexType rights,
+                                                            UUID objectId,
+                                                            RightsStatementMetadata desired) {
+        RightsStatementComplexType existing = findExistingRightsStatement(rights, desired.getId());
 
-        RightsStatementMetadata model;
-        if (existing != null) {
-            model = premisRightsStatementConverter.map(existing);
-        } else {
-            model = RightsStatementMetadata.builder().build();
-        }
+        RightsStatementMetadata model = existing != null
+                ? premisRightsStatementConverter.map(existing)
+                : RightsStatementMetadata.builder().build();
 
-        model.setId(request.rightsStatementId());
-        model.setRightsBasis(request.rightsBasis().name());
-
-        if (request.payload() != null) {
-            applyPayload(model, request.payload());
-        }
+        // overwrite from desired
+        model.setId(desired.getId());
+        model.setRightsBasis(desired.getRightsBasis());
+        model.setCopyrightInformation(desired.getCopyrightInformation());
+        model.setLicenseInformation(desired.getLicenseInformation());
+        model.setStatuteInformation(desired.getStatuteInformation());
+        model.setOtherRightsInformation(desired.getOtherRightsInformation());
+        model.setRightsGranted(desired.getRightsGranted());
+        model.setLinkingAgentIdentifiers(desired.getLinkingAgentIdentifiers());
 
         var rs = rightsStatementConverter.map(model);
 
         rs.getLinkingObjectIdentifier().clear();
         rs.getLinkingObjectIdentifier().add(buildLinkingObjectIdentifier(objectId));
 
-        if (request.agents() != null) {
-            Map<String, LinkedHashSet<String>> rolesByAgentId = new TreeMap<>();
-
-            for (var grant : request.agents()) {
-                if (grant == null) {
+        // linkingAgentIdentifier comes from domain model.
+        rs.getLinkingAgentIdentifier().clear();
+        if (desired.getLinkingAgentIdentifiers() != null) {
+            for (RightsStatementAgentLink link : desired.getLinkingAgentIdentifiers()) {
+                if (link == null || link.getAgentIdentifier() == null
+                        || link.getAgentIdentifier().getType() == null
+                        || link.getAgentIdentifier().getValue() == null
+                        || link.getAgentIdentifier().getValue().isBlank()) {
                     continue;
                 }
-                String agentId = resolveAgentId(grant);
-                if (agentId == null) {
-                    continue;
-                }
-                rolesByAgentId.computeIfAbsent(agentId, __ -> new LinkedHashSet<>());
-                if (grant.linkingAgentRoles() != null) {
-                    for (var r : grant.linkingAgentRoles()) {
-                        if (r == null || r.isBlank()) {
-                            continue;
-                        }
-                        rolesByAgentId.get(agentId).add(r);
-                    }
-                }
-            }
-
-            rs.getLinkingAgentIdentifier().clear();
-            for (var e : rolesByAgentId.entrySet()) {
-                rs.getLinkingAgentIdentifier().add(buildLinkingAgentIdentifier(e.getKey(), List.copyOf(e.getValue())));
+                rs.getLinkingAgentIdentifier().add(buildLinkingAgentIdentifier(
+                        link.getAgentIdentifier().getType().name(),
+                        link.getAgentIdentifier().getValue(),
+                        link.getRoles() == null ? List.of() : List.copyOf(link.getRoles())));
             }
         }
 
@@ -262,10 +313,12 @@ public final class RightsStatementPremisUpdater {
         return link;
     }
 
-    private LinkingAgentIdentifierComplexType buildLinkingAgentIdentifier(String agentId, List<String> roles) {
+    private LinkingAgentIdentifierComplexType buildLinkingAgentIdentifier(String agentIdentifierType,
+                                                                          String agentIdentifierValue,
+                                                                          List<String> roles) {
         var link = new LinkingAgentIdentifierComplexType();
-        link.setLinkingAgentIdentifierType(toStringPlusAuthority(AgentIdentifierType.SYSTEM.name()));
-        link.setLinkingAgentIdentifierValue(agentId);
+        link.setLinkingAgentIdentifierType(toStringPlusAuthority(agentIdentifierType));
+        link.setLinkingAgentIdentifierValue(agentIdentifierValue);
         if (roles != null) {
             for (var r : roles) {
                 if (r == null || r.isBlank()) {
@@ -278,13 +331,13 @@ public final class RightsStatementPremisUpdater {
     }
 
     private void ensureAgentPresent(PremisComplexType premis, AgentMetadata agent) {
-        if (premis == null || agent == null || agent.getId() == null || agent.getId().isBlank()) {
+        if (premis == null || agent == null) {
             return;
         }
-        String xmlId = toXmlId(agent.getId());
+
         if (premis.getAgent() != null && premis.getAgent().stream()
                 .filter(Objects::nonNull)
-                .anyMatch(a -> Objects.equals(xmlId, a.getXmlID()))) {
+                .anyMatch(existing -> agentMatchesExisting(existing, agent))) {
             return;
         }
         premis.getAgent().add(agentConverter.map(agent));

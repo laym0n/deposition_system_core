@@ -13,7 +13,7 @@ import java.util.List;
  * Request to add/update a rights statement in PREMIS metadata.
  */
 public record UpsertRightsStatementRequest(
-        @NotBlank
+        @Nullable
         String rightsStatementId,
         @NotNull
         RightsBasis rightsBasis,
@@ -48,8 +48,6 @@ public record UpsertRightsStatementRequest(
     }
 
     public record AgentDto(
-            @NotBlank
-            String id,
             @NotBlank
             String name,
             @NotNull

@@ -134,13 +134,10 @@ public class ObjectController {
     }
 
     @GetMapping(value = "/objects/{objectId}/cached-metadata", produces = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<CachedObjectMetadataResponse> getCachedMetadata(
-            @PathVariable("objectId") UUID objectId,
-            org.springframework.security.core.Authentication authentication) {
-        String userId = (authentication != null && authentication.isAuthenticated())
-                ? authentication.getName()
-                : null;
-        var result = getCachedObjectMetadataInPort.getCachedMetadata(objectId, userId);
+            @PathVariable("objectId") UUID objectId) {
+        var result = getCachedObjectMetadataInPort.getCachedMetadata(objectId);
         return ResponseEntity.ok(result);
     }
 

@@ -1,8 +1,9 @@
 package com.deposition.domain.port.in.event;
 
 import com.deposition.domain.models.enums.EventType;
+import com.deposition.domain.models.valueobject.EventDetailInformation;
+import com.deposition.domain.models.valueobject.EventOutcomeInformation;
 import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
@@ -10,11 +11,9 @@ import java.util.List;
 public record RecordObjectEventRequest(
         @NotNull
         EventType type,
-        @NotBlank
-        String detail,
         @Nullable
-        List<String> outcome,
+        List<EventDetailInformation> detail,
         @Nullable
-        List<String> outcomeDetail) {
+        List<EventOutcomeInformation> outcome) {
 
 }

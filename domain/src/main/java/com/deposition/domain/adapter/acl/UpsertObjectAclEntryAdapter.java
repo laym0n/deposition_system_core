@@ -5,19 +5,19 @@ import com.deposition.domain.dto.schema.premis.v3.PremisComplexType;
 import com.deposition.domain.dto.schema.premis.v3.converter.PremisSnapshotConverter;
 import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.AgentMetadata;
+import com.deposition.domain.models.RightsStatementMetadata;
 import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.acl.ObjectAcl;
+import com.deposition.domain.models.enums.AgentIdentifierType;
 import com.deposition.domain.models.enums.AgentType;
 import com.deposition.domain.models.enums.RightsBasis;
+import com.deposition.domain.models.valueobject.AgentIdentifier;
 import com.deposition.domain.models.valueobject.ApplicableDates;
 import com.deposition.domain.models.valueobject.RightsGranted;
+import com.deposition.domain.models.valueobject.RightsStatementAgentLink;
 import com.deposition.domain.port.in.acl.UpsertObjectAclEntryInPort;
 import com.deposition.domain.port.in.acl.UpsertObjectAclEntryRequest;
 import com.deposition.domain.port.in.common.DepositionResult;
-import com.deposition.domain.port.in.rights.UpsertRightsStatementRequest;
-import com.deposition.domain.port.in.rights.UpsertRightsStatementRequest.AgentDto;
-import com.deposition.domain.port.in.rights.UpsertRightsStatementRequest.AgentGrant;
-import com.deposition.domain.port.in.rights.UpsertRightsStatementRequest.RightsStatementPayload;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.domain.service.PremisPersistenceService;
 import com.deposition.domain.service.XmlUtils;
@@ -31,6 +31,7 @@ import org.springframework.validation.annotation.Validated;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -79,7 +80,7 @@ public class UpsertObjectAclEntryAdapter implements UpsertObjectAclEntryInPort {
         return dates;
     }
 
-    private UpsertRightsStatementRequest buildRightsStatementRequest(PremisComplexType premis,
+    private RightsStatementMetadata buildRightsStatementMetadata(PremisComplexType premis,
                                                                      UUID objectId,
                                                                      String targetUserId,
                                                                      Set<AclPermission> permissions) {
@@ -155,32 +156,36 @@ public class UpsertObjectAclEntryAdapter implements UpsertObjectAclEntryInPort {
                     .build());
         }
 
-        var payload = new RightsStatementPayload(
-                null,
-                null,
-                null,
-                null,
-                merged);
+        var model = RightsStatementMetadata.builder().build();
+        model.setId(rightsStatementId);
+        model.setRightsBasis(RightsBasis.OTHER.name());
+        model.setRightsGranted(merged);
 
-        var agent = new AgentDto(
-                targetUserId,
-                targetUserId,
-                AgentType.PERSON,
-                List.of());
+        // Link by SYSTEM userId for ACL use-case.
+        model.setLinkingAgentIdentifiers(List.of(RightsStatementAgentLink.builder()
+                .agentIdentifier(new AgentIdentifier(AgentIdentifierType.SYSTEM, targetUserId))
+                .roles(new LinkedHashSet<>(List.of("GRANTEE")))
+                .build()));
 
-        var agentGrant = new AgentGrant(agent, List.of("GRANTEE"));
-
-        return new UpsertRightsStatementRequest(
-                rightsStatementId,
-                RightsBasis.OTHER,
-                payload,
-                List.of(agentGrant));
+        return model;
     }
 
-    private DepositionResult upsertRightsAndPersistAcl(UUID objectId, PremisComplexType premis,
-                                                       UpsertRightsStatementRequest rsRequest) {
-        rightsStatementPremisUpdater.upsertRightsStatement(premis, objectId, rsRequest,
-                toAgentMetadataList(rsRequest));
+    private DepositionResult upsertRightsAndPersistAcl(UUID objectId,
+                                                       PremisComplexType premis,
+                                                       RightsStatementMetadata rightsStatement) {
+        String targetUserId = targetUserIdFromRightsStatement(rightsStatement);
+        if (targetUserId == null || targetUserId.isBlank()) {
+            throw new IllegalArgumentException("targetUserId must not be blank (from rightsStatement.linkingAgentIdentifiers)");
+        }
+
+        // Ensure agent by current user id (system) for ACL use-case.
+        var ensureAgent = AgentMetadata.builder()
+                .id(targetUserId)
+                .name(targetUserId)
+                .type(AgentType.PERSON)
+                .build();
+
+        rightsStatementPremisUpdater.upsertRightsStatement(premis, objectId, rightsStatement, List.of(ensureAgent));
 
         var snapshot = premisSnapshotConverter.map(premis);
         ObjectAcl computedAcl = AclMapper.buildDefaultAclFromSnapshot(snapshot, objectId);
@@ -188,29 +193,22 @@ public class UpsertObjectAclEntryAdapter implements UpsertObjectAclEntryInPort {
         return premisPersistenceService.persistPremis(objectId, premis, computedAcl);
     }
 
-    private static AgentMetadata toAgentMetadata(UpsertRightsStatementRequest request) {
-        if (request == null || request.agents() == null || request.agents().isEmpty()) {
+    private static String targetUserIdFromRightsStatement(RightsStatementMetadata rightsStatement) {
+        if (rightsStatement == null || rightsStatement.getLinkingAgentIdentifiers() == null) {
             return null;
         }
-        AgentGrant grant = request.agents().getFirst();
-        if (grant == null || grant.agent() == null) {
-            return null;
+        for (var link : rightsStatement.getLinkingAgentIdentifiers()) {
+            if (link == null || link.getAgentIdentifier() == null) {
+                continue;
+            }
+            if (link.getAgentIdentifier().getType() == AgentIdentifierType.SYSTEM) {
+                var v = link.getAgentIdentifier().getValue();
+                if (v != null && !v.isBlank()) {
+                    return v;
+                }
+            }
         }
-        var a = grant.agent();
-        return AgentMetadata.builder()
-                .id(a.id())
-                .name(a.name())
-                .type(a.type())
-                .identifiers(a.identifiers() == null ? List.of() : List.copyOf(a.identifiers()))
-                .build();
-    }
-
-    private static List<AgentMetadata> toAgentMetadataList(UpsertRightsStatementRequest request) {
-        AgentMetadata agent = toAgentMetadata(request);
-        if (agent == null) {
-            return List.of();
-        }
-        return List.of(agent);
+        return null;
     }
 
     @Override
@@ -230,8 +228,8 @@ public class UpsertObjectAclEntryAdapter implements UpsertObjectAclEntryInPort {
 
         PremisComplexType premis = loadPremis(objectId);
 
-        var rsRequest = buildRightsStatementRequest(premis, objectId, request.userId(), request.permissions());
-        return upsertRightsAndPersistAcl(objectId, premis, rsRequest);
+        var rightsStatement = buildRightsStatementMetadata(premis, objectId, request.userId(), request.permissions());
+        return upsertRightsAndPersistAcl(objectId, premis, rightsStatement);
     }
 
     private PremisComplexType loadPremis(UUID objectId) {

@@ -21,7 +21,7 @@ public abstract class AgentConverter {
     @Mapping(target = "agentName", source = "name", qualifiedByName = "toAgentNames")
     @Mapping(target = "agentType", source = "type")
     @Mapping(target = "version", constant = CommonConverter.PREMIS_VERSION)
-    @Mapping(target = "xmlID", source = "id", qualifiedByName = "toXmlId")
+    @Mapping(target = "xmlID", source = "id", qualifiedByName = "toXmlId", conditionExpression = "java(agentMetadata.getId() != null)")
     public abstract AgentComplexType map(AgentMetadata agentMetadata);
 
     @Mapping(target = "agentIdentifierType", source = "type")
@@ -42,9 +42,11 @@ public abstract class AgentConverter {
                                           AgentMetadata agentMetadata) {
         var agentIdentifiers = agentComplexType.getAgentIdentifier();
 
-        var agentIdentifier = new AgentIdentifierComplexType();
-        agentIdentifier.setAgentIdentifierType(commonConverter.toStringPlusAuthority(AgentIdentifierType.SYSTEM.name()));
-        agentIdentifier.setAgentIdentifierValue(agentMetadata.getId().toString());
-        agentIdentifiers.add(agentIdentifier);
+        if(agentMetadata.getId() != null) {
+            var agentIdentifier = new AgentIdentifierComplexType();
+            agentIdentifier.setAgentIdentifierType(commonConverter.toStringPlusAuthority(AgentIdentifierType.SYSTEM.name()));
+            agentIdentifier.setAgentIdentifierValue(agentMetadata.getId().toString());
+            agentIdentifiers.add(agentIdentifier);
+        }
     }
 }

@@ -1,6 +1,5 @@
 package com.deposition.domain.port.in.object;
 
-import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
@@ -10,5 +9,5 @@ import java.util.UUID;
  */
 public interface GetCachedObjectMetadataInPort {
 
-    CachedObjectMetadataResponse getCachedMetadata(@NotNull UUID objectId, @Nullable String currentUserId);
+    CachedObjectMetadataResponse getCachedMetadata(@NotNull UUID objectId);
 }

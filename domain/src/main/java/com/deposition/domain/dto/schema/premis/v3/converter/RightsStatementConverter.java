@@ -3,10 +3,7 @@ package com.deposition.domain.dto.schema.premis.v3.converter;
 import com.deposition.domain.dto.schema.premis.v3.*;
 import com.deposition.domain.models.RightsStatementMetadata;
 import com.deposition.domain.models.valueobject.RightsStatementAgentLink;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(componentModel = "spring", unmappedSourcePolicy = ReportingPolicy.ERROR, uses = {
@@ -46,7 +43,7 @@ public abstract class RightsStatementConverter {
             return null;
         }
         var id = new RightsStatementIdentifierComplexType();
-        id.setRightsStatementIdentifierType(commonConverter.toStringPlusAuthority("LOCAL"));
+        id.setRightsStatementIdentifierType(commonConverter.toStringPlusAuthority("SYSTEM"));
         id.setRightsStatementIdentifierValue(rightsStatementId);
         return id;
     }

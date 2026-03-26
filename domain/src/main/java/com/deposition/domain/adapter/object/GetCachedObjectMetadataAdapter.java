@@ -1,12 +1,13 @@
 package com.deposition.domain.adapter.object;
 
 import com.deposition.domain.exception.ResourceNotFoundException;
+import com.deposition.domain.models.acl.AclEntry;
 import com.deposition.domain.models.acl.ObjectAcl;
 import com.deposition.domain.port.in.object.CachedObjectMetadataResponse;
 import com.deposition.domain.port.in.object.CachedObjectMetadataResponse.PremisMetadata;
 import com.deposition.domain.port.in.object.GetCachedObjectMetadataInPort;
 import com.deposition.domain.port.out.ObjectIndexLookupOutPort;
-import jakarta.annotation.Nullable;
+import com.deposition.domain.port.out.UserOutPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -21,9 +22,10 @@ import java.util.UUID;
 public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataInPort {
 
     private final ObjectIndexLookupOutPort objectIndexLookupOutPort;
+    private final UserOutPort userOutPort;
 
-    private static List<com.deposition.domain.models.acl.AclEntry> filterAclEntriesForUser(
-            List<com.deposition.domain.models.acl.AclEntry> entries,
+    private static List<AclEntry> filterAclEntriesForUser(
+            List<AclEntry> entries,
             String userId) {
         if (entries == null || entries.isEmpty()) {
             return List.of();
@@ -35,7 +37,7 @@ public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataIn
     }
 
     @Override
-    public CachedObjectMetadataResponse getCachedMetadata(UUID objectId, @Nullable String currentUserId) {
+    public CachedObjectMetadataResponse getCachedMetadata(UUID objectId) {
         var doc = objectIndexLookupOutPort.findByObjectId(objectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Object", objectId.toString()));
 
@@ -45,11 +47,12 @@ public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataIn
                 doc.identifiers(),
                 doc.relationships());
 
+        var optionalCurrentUserId = userOutPort.getOptinalCurrentUserId();
         ObjectAcl userAcl = null;
-        if (currentUserId != null && !currentUserId.isBlank() && doc.acl() != null) {
+        if (optionalCurrentUserId.isPresent()) {
             userAcl = ObjectAcl.builder()
                     .objectId(doc.objectId())
-                    .entries(filterAclEntriesForUser(doc.acl().getEntries(), currentUserId))
+                    .entries(filterAclEntriesForUser(doc.acl().getEntries(), optionalCurrentUserId.get()))
                     .build();
         }
 

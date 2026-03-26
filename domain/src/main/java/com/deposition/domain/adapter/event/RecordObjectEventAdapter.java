@@ -88,7 +88,8 @@ public class RecordObjectEventAdapter implements RecordObjectEventInPort {
                 .identifier(new EventIdentifier(EventIdentifierType.SYSTEM, eventId.toString()))
                 .type(request.type())
                 .dateTime(OffsetDateTime.now())
-                .detail(List.of(new EventDetailInformation(request.detail())))
+                .detail(request.detail())
+                .outcome(request.outcome())
                 .objectLinks(List.of(new EventObjectLink(
                         new ObjectIdentifier(ObjectIdentifierType.SYSTEM, objectId.toString()),
                         List.of(EventObjectLinkRole.OUTCOME))))
