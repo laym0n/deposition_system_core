@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
@@ -32,6 +33,7 @@ public class ObjectController {
     private final GetCachedObjectMetadataInPort getCachedObjectMetadataInPort;
     private final VerifyPremisInPort verifyPremisInPort;
     private final SearchObjectsInPort searchObjectsInPort;
+    private final UpsertDescriptiveMetadataInPort upsertDescriptiveMetadataInPort;
 
     private static FileMetadataParam resolveFileMetadata(FileMetadataParam fileMetadataParam, MultipartFile file) {
         if (fileMetadataParam == null) {
@@ -155,6 +157,21 @@ public class ObjectController {
     public ResponseEntity<SearchObjectsResult> searchObjects(
             @RequestBody @jakarta.validation.Valid ObjectSearchRequest request) {
         var result = searchObjectsInPort.search(request);
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping(value = "/objects/{objectId}/descriptive-metadata",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<Map<String, Object>> upsertDescriptiveMetadata(
+            @PathVariable("objectId") UUID objectId,
+            @RequestParam(name = "entityType") IntellectualEntityType entityType,
+            @RequestBody String descriptiveMetadataJson) {
+        var result = upsertDescriptiveMetadataInPort.upsertDescriptiveMetadata(
+                objectId,
+                entityType,
+                descriptiveMetadataJson);
         return ResponseEntity.ok(result);
     }
 
