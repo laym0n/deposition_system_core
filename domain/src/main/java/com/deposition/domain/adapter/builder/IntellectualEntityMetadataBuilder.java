@@ -11,7 +11,6 @@ import com.deposition.domain.models.valueobject.RelationObjectIdentifier;
 import com.deposition.domain.models.valueobject.Relationship;
 import com.deposition.domain.port.in.object.IntellectualEntityMetadataParam;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -28,13 +27,12 @@ final class IntellectualEntityMetadataBuilder {
 
     public CommonMetadataBuilder.MetadataStructure buildForIntellectualEntity(
             IntellectualEntityMetadataParam baseMetadata,
-            List<UUID> representationObjectIds, UUID intellectualEntityId,
-            Authentication authentication) {
+            List<UUID> representationObjectIds, UUID intellectualEntityId) {
 
         var intellectualEntityMetadata = buildIntellectualEntityObject(baseMetadata, intellectualEntityId,
                 representationObjectIds);
 
-        return commonMetadataBuilder.toMetadataStructure(intellectualEntityId, intellectualEntityMetadata, authentication);
+        return commonMetadataBuilder.toMetadataStructure(intellectualEntityId, intellectualEntityMetadata);
     }
 
     private IntellectualEntity buildIntellectualEntityObject(IntellectualEntityMetadataParam baseMetadata,

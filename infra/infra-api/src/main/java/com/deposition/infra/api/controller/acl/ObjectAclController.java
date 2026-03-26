@@ -26,13 +26,4 @@ public class ObjectAclController {
         var result = upsertObjectAclEntryInPort.upsertUserEntry(objectId, request);
         return ResponseEntity.ok(result);
     }
-
-    @DeleteMapping(value = "/objects/{objectId}/acl/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<DepositionResult> removeUserAclEntry(
-            @PathVariable("objectId") UUID objectId,
-            @PathVariable("userId") String userId) {
-        var result = upsertObjectAclEntryInPort.removeUserEntry(objectId, userId);
-        return ResponseEntity.ok(result);
-    }
 }

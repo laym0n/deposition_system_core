@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDate;
+import java.time.ZonedDateTime;
 
 @Data
 @SuperBuilder
@@ -13,6 +13,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class ApplicableDates {
 
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private ZonedDateTime startDate;
+    private ZonedDateTime endDate;
 }

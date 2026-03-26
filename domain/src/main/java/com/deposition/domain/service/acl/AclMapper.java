@@ -7,8 +7,11 @@ import com.deposition.domain.models.acl.*;
 import com.deposition.domain.models.enums.AgentIdentifierType;
 import com.deposition.domain.models.enums.EventType;
 import com.deposition.domain.models.enums.ObjectIdentifierType;
+import com.deposition.domain.models.valueobject.ApplicableDates;
 import org.springframework.stereotype.Component;
 
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 @Component
@@ -59,6 +62,11 @@ public final class AclMapper {
                     if (rs.getRightsGranted() != null) {
                         for (var g : rs.getRightsGranted()) {
                             if (g == null || g.getAct() == null || g.getAct().isBlank()) {
+                                continue;
+                            }
+
+                            // Skip inactive grants (revoked / expired) based on termOfGrant.
+                            if (!isGrantActive(g.getTermOfGrant(), ZonedDateTime.now(ZoneOffset.UTC))) {
                                 continue;
                             }
                             try {
@@ -116,5 +124,19 @@ public final class AclMapper {
                 .filter(Objects::nonNull)
                 .anyMatch(identifier -> identifier.getType() == ObjectIdentifierType.SYSTEM
                         && Objects.equals(identifier.getValue(), objectId.toString()));
+    }
+
+    private static boolean isGrantActive(ApplicableDates termOfGrant,
+                                         ZonedDateTime now) {
+        if (termOfGrant == null) {
+            return true;
+        }
+        if (termOfGrant.getStartDate() != null && now != null && termOfGrant.getStartDate().isAfter(now)) {
+            return false;
+        }
+        if (termOfGrant.getEndDate() != null && now != null && !termOfGrant.getEndDate().isAfter(now)) {
+            return false;
+        }
+        return true;
     }
 }

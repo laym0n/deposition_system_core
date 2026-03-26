@@ -10,7 +10,6 @@ import com.deposition.domain.models.valueobject.RelationObjectIdentifier;
 import com.deposition.domain.models.valueobject.Relationship;
 import com.deposition.domain.port.in.object.RepresentationMetadataParam;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -26,8 +25,7 @@ final class RepresentationMetadataBuilder {
     private final CommonMetadataBuilder commonMetadataBuilder;
 
     public CommonMetadataBuilder.MetadataStructure buildForRepresentation(List<UUID> fileObjectIds,
-                                                                          RepresentationMetadataParam baseMetadata,
-                                                                          Authentication authentication) {
+                                                                          RepresentationMetadataParam baseMetadata) {
         var objectId = UUID.randomUUID();
         var representation = RepresentationMetadata.builder()
                 .id(objectId)
@@ -49,6 +47,6 @@ final class RepresentationMetadataBuilder {
         representationParamConverter.update(representation, baseMetadata);
 
         var premisRepresentationMetadata = representationMetadataConverter.map(representation);
-        return commonMetadataBuilder.toMetadataStructure(objectId, premisRepresentationMetadata, authentication);
+        return commonMetadataBuilder.toMetadataStructure(objectId, premisRepresentationMetadata);
     }
 }

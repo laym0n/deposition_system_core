@@ -18,8 +18,11 @@ import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 import java.util.UUID;
 
 @Component
@@ -117,7 +120,6 @@ public final class RightsStatementPremisUpdater {
 
         RightsStatementComplexType rightsStatement = upsertRightsStatement(rights, objectId, request);
 
-        // Replace existing rightsStatement with same identifier value, otherwise add.
         var items = rights.getRightsStatementOrRightsExtension();
         boolean replaced = false;
         for (int i = 0; i < items.size(); i++) {
@@ -157,7 +159,6 @@ public final class RightsStatementPremisUpdater {
                 .agentLinks(buildAgentLinks(authenticatedUserId))
                 .build();
 
-        // Use Spring-managed converter; ensure current user agent is present.
         premis.getEvent().add(eventConverter.map(event));
         ensureCurrentUserAgentPresent(premis, authenticatedUserId);
     }
@@ -210,22 +211,21 @@ public final class RightsStatementPremisUpdater {
             model = RightsStatementMetadata.builder().build();
         }
 
-        // init / identity fields
         model.setId(request.rightsStatementId());
         model.setRightsBasis(request.rightsBasis().name());
 
-        // payload update (patch semantics: only update if field is provided)
         if (request.payload() != null) {
             applyPayload(model, request.payload());
         }
 
         var rs = rightsStatementConverter.map(model);
 
-        // Always link to target object.
+        rs.getLinkingObjectIdentifier().clear();
         rs.getLinkingObjectIdentifier().add(buildLinkingObjectIdentifier(objectId));
 
-        // Linking agents.
         if (request.agents() != null) {
+            Map<String, LinkedHashSet<String>> rolesByAgentId = new TreeMap<>();
+
             for (var grant : request.agents()) {
                 if (grant == null) {
                     continue;
@@ -234,7 +234,20 @@ public final class RightsStatementPremisUpdater {
                 if (agentId == null) {
                     continue;
                 }
-                rs.getLinkingAgentIdentifier().add(buildLinkingAgentIdentifier(agentId, grant.linkingAgentRoles()));
+                rolesByAgentId.computeIfAbsent(agentId, __ -> new LinkedHashSet<>());
+                if (grant.linkingAgentRoles() != null) {
+                    for (var r : grant.linkingAgentRoles()) {
+                        if (r == null || r.isBlank()) {
+                            continue;
+                        }
+                        rolesByAgentId.get(agentId).add(r);
+                    }
+                }
+            }
+
+            rs.getLinkingAgentIdentifier().clear();
+            for (var e : rolesByAgentId.entrySet()) {
+                rs.getLinkingAgentIdentifier().add(buildLinkingAgentIdentifier(e.getKey(), List.copyOf(e.getValue())));
             }
         }
 

@@ -10,6 +10,7 @@ import org.mapstruct.ReportingPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -310,18 +311,18 @@ public abstract class RightsStatementNestedConverter {
         if (in == null) {
             return null;
         }
-        LocalDate start = null;
-        LocalDate end = null;
+        ZonedDateTime start = null;
+        ZonedDateTime end = null;
         try {
             if (in.getStartDate() != null && !in.getStartDate().isBlank()) {
-                start = LocalDate.parse(in.getStartDate());
+                start = ZonedDateTime.parse(in.getStartDate());
             }
         } catch (RuntimeException ex) {
             // ignore parse errors
         }
         try {
             if (in.getEndDate() != null && !in.getEndDate().isBlank()) {
-                end = LocalDate.parse(in.getEndDate());
+                end = ZonedDateTime.parse(in.getEndDate());
             }
         } catch (RuntimeException ex) {
             // ignore parse errors

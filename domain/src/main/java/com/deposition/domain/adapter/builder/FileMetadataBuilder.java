@@ -12,7 +12,6 @@ import com.deposition.domain.port.in.object.DeponeFileParam;
 import com.deposition.domain.service.ResourceHashCalculatorUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -55,11 +54,10 @@ final class FileMetadataBuilder {
     }
 
     public CommonMetadataBuilder.MetadataStructure buildForFile(
-            CommonMetadataBuilder.PersistedFileMetadataInput persistedFile,
-            Authentication authentication) {
+            CommonMetadataBuilder.PersistedFileMetadataInput persistedFile) {
         var objectId = UUID.randomUUID();
         var objectMetadata = buildFileObject(persistedFile, objectId);
-        return commonMetadataBuilder.toMetadataStructure(objectId, objectMetadata, authentication);
+        return commonMetadataBuilder.toMetadataStructure(objectId, objectMetadata);
     }
 
     private File buildFileObject(CommonMetadataBuilder.PersistedFileMetadataInput persistedFile, UUID objectId) {
