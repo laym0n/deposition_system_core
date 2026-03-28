@@ -42,10 +42,10 @@ public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataIn
                 .orElseThrow(() -> new ResourceNotFoundException("Object", objectId.toString()));
 
         var premisMetadata = new PremisMetadata(
-                doc.originalName(),
+                doc.premis().originalName(),
                 doc.anchors(),
-                doc.identifiers(),
-                doc.relationships());
+                doc.premis().identifiers(),
+                doc.premis().relationships());
 
         var optionalCurrentUserId = userOutPort.getOptinalCurrentUserId();
         ObjectAcl userAcl = null;

@@ -5,6 +5,7 @@ import com.deposition.domain.models.PremisSnapshot;
 import com.deposition.domain.models.acl.ObjectAcl;
 import com.deposition.domain.port.out.ObjectIndexDocument;
 import com.deposition.domain.port.out.ObjectIndexOutPort;
+import com.deposition.domain.port.out.PremisIndexFields;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -59,13 +60,20 @@ public class ObjectIndexingService {
             return;
         }
 
+        ObjectIndexDocument.Visibility visibility = ObjectVisibilityResolver.resolve(snapshot);
+
+        var premis = new PremisIndexFields(
+                intellectualEntityId,
+                entity.getOriginalName(),
+                entity.getIdentifiers() == null ? List.of() : entity.getIdentifiers(),
+                entity.getRelationships() == null ? List.of() : entity.getRelationships());
+
         ObjectIndexDocument doc = new ObjectIndexDocument(
                 intellectualEntityId,
                 acl,
-                entity.getOriginalName(),
                 anchors,
-                entity.getIdentifiers() == null ? List.of() : entity.getIdentifiers(),
-                entity.getRelationships() == null ? List.of() : entity.getRelationships(),
+                visibility,
+                premis,
                 intellectualEntityDescriptiveFields == null || intellectualEntityDescriptiveFields.isEmpty()
                         ? null
                         : intellectualEntityDescriptiveFields);

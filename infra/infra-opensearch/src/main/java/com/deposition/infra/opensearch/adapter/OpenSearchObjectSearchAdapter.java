@@ -3,6 +3,7 @@ package com.deposition.infra.opensearch.adapter;
 import com.deposition.domain.port.in.object.ObjectSearchRequest;
 import com.deposition.domain.port.in.object.SearchObjectsResult;
 import com.deposition.domain.port.out.ObjectSearchOutPort;
+import com.deposition.domain.port.out.ObjectSearchQuery;
 import com.deposition.infra.opensearch.config.OpenSearchProperties;
 import lombok.RequiredArgsConstructor;
 import org.opensearch.client.opensearch.OpenSearchClient;
@@ -21,18 +22,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OpenSearchObjectSearchAdapter implements ObjectSearchOutPort {
 
-    static final List<String> FULL_TEXT_FIELDS = List.of("descriptive.*");
+    static final List<String> FULL_TEXT_FIELDS = List.of(
+            "descriptive.*",
+            "anchors.*",
+            "premis.**");
 
     private final OpenSearchClient client;
     private final OpenSearchProperties properties;
-
-    private static void applyTxIdFilter(ObjectSearchRequest request, BoolQuery.Builder bool) {
-        if (request.txId() == null || request.txId().isBlank()) {
-            return;
-        }
-
-        bool.filter(f -> f.term(t -> t.field("anchors.blockchainTxId.keyword").value(FieldValue.of(request.txId()))));
-    }
 
     private static void applyFullText(ObjectSearchRequest request, BoolQuery.Builder bool) {
         if (request.searchQuery() == null || request.searchQuery().isBlank()) {
@@ -47,19 +43,65 @@ public class OpenSearchObjectSearchAdapter implements ObjectSearchOutPort {
     }
 
     @Override
-    public SearchObjectsResult search(String userId, ObjectSearchRequest request) {
-        if (request == null) {
-            request = new ObjectSearchRequest(null, null, 0, 50);
+    public SearchObjectsResult search(ObjectSearchQuery query) {
+        if (query == null || query.request() == null || query.filters() == null) {
+            throw new IllegalArgumentException("query, query.request and query.filters must not be null");
         }
+
+        var request = query.request();
+        var filters = query.filters();
 
         var bool = new BoolQuery.Builder();
 
-        bool.filter(f -> f.term(t -> t.field("acl.entries.principal.id.keyword").value(FieldValue.of(userId))));
+        String principalId = filters.principalId();
 
-        // Index contains only intellectual entities.
-        bool.filter(f -> f.term(t -> t.field("entityType.keyword").value(FieldValue.of("INTELLECTUAL_ENTITY"))));
+        var access = new BoolQuery.Builder();
+        boolean hasAccessRule = false;
 
-        applyTxIdFilter(request, bool);
+        if (filters.anyVisibility() != null && !filters.anyVisibility().isEmpty()) {
+            hasAccessRule = true;
+            access.should(s -> s.terms(t -> t
+                    .field("visibility.keyword")
+                    .terms(v -> v.value(filters.anyVisibility().stream()
+                            .filter(Objects::nonNull)
+                            .map(vv -> FieldValue.of(vv.name()))
+                            .toList()))));
+        }
+
+        if (filters.anyAclPermissions() != null && !filters.anyAclPermissions().isEmpty()) {
+            for (var p : filters.anyAclPermissions()) {
+                if (p == null) {
+                    continue;
+                }
+                hasAccessRule = true;
+                access.should(s -> s.bool(b -> b
+                        .filter(f -> f.term(t -> t.field("acl.entries.principal.id.keyword")
+                                .value(FieldValue.of(principalId))))
+                        .filter(f -> f.term(t -> t.field("acl.entries.permissions.keyword")
+                                .value(FieldValue.of(p.name()))))));
+            }
+        }
+
+        if (filters.anyAclRoles() != null && !filters.anyAclRoles().isEmpty()) {
+            for (var r : filters.anyAclRoles()) {
+                if (r == null) {
+                    continue;
+                }
+                hasAccessRule = true;
+                access.should(s -> s.bool(b -> b
+                        .filter(f -> f.term(t -> t.field("acl.entries.principal.id.keyword")
+                                .value(FieldValue.of(principalId))))
+                        .filter(f -> f.term(t -> t.field("acl.entries.role.keyword")
+                                .value(FieldValue.of(r.name()))))));
+            }
+        }
+
+        if (!hasAccessRule) {
+            bool.must(m -> m.term(t -> t.field("__deny").value(FieldValue.of("1"))));
+        } else {
+            bool.filter(f -> f.bool(access.minimumShouldMatch("1").build()));
+        }
+
         applyFullText(request, bool);
 
         var finalQuery = new Query.Builder().bool(bool.build()).build();

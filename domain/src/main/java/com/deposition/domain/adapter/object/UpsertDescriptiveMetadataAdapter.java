@@ -53,10 +53,9 @@ public class UpsertDescriptiveMetadataAdapter implements UpsertDescriptiveMetada
         ObjectIndexDocument updated = new ObjectIndexDocument(
                 existing.objectId(),
                 existing.acl(),
-                existing.originalName(),
                 existing.anchors(),
-                existing.identifiers(),
-                existing.relationships(),
+                existing.visibility(),
+                existing.premis(),
                 extractedFields);
 
         objectIndexOutPort.index(updated);

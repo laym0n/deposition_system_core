@@ -1,8 +1,6 @@
 package com.deposition.domain.port.out;
 
 import com.deposition.domain.models.acl.ObjectAcl;
-import com.deposition.domain.models.valueobject.ObjectIdentifier;
-import com.deposition.domain.models.valueobject.Relationship;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 
@@ -16,16 +14,25 @@ public record ObjectIndexDocument(
         UUID objectId,
         @NotNull
         ObjectAcl acl,
-        @Nullable
-        String originalName,
         @NotNull
         List<Anchor> anchors,
         @Nullable
-        List<ObjectIdentifier> identifiers,
-        @Nullable
-        List<Relationship> relationships,
+        Visibility visibility,
+        @NotNull
+        PremisIndexFields premis,
         @Nullable
         Map<String, Object> descriptive) {
+
+    public ObjectIndexDocument {
+        // Backward compatibility: older OpenSearch documents may not have this field.
+        if (visibility == null) {
+            visibility = Visibility.PRIVATE;
+        }
+
+        if (premis == null) {
+            premis = new PremisIndexFields(objectId, null, null, null);
+        }
+    }
 
     /**
      * Anchoring info for a particular stored PREMIS version.
@@ -38,6 +45,11 @@ public record ObjectIndexDocument(
             @NotNull
             ZonedDateTime anchoredAt) {
 
+    }
+
+    public enum Visibility {
+        PUBLIC,
+        PRIVATE;
     }
 
 }

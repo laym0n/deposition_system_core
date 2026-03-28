@@ -68,10 +68,9 @@ public class OpenSearchAclAdapter implements AclOutPort {
             var updated = new ObjectIndexDocument(
                     existing.objectId(),
                     acl,
-                    existing.originalName(),
                     existing.anchors(),
-                    existing.identifiers(),
-                    existing.relationships(),
+                    existing.visibility(),
+                    existing.premis(),
                     existing.descriptive());
 
             client.index(i -> i

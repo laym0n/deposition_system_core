@@ -113,10 +113,9 @@ public class OpenSearchObjectIndexAdapter implements ObjectIndexOutPort {
         return new ObjectIndexDocument(
                 incoming.objectId(),
                 incoming.acl(),
-                incoming.originalName(),
                 mergedAnchors,
-                incoming.identifiers(),
-                incoming.relationships(),
+                incoming.visibility(),
+                incoming.premis(),
                 incoming.descriptive());
     }
 }

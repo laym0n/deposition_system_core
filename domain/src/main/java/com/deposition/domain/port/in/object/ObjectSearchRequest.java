@@ -6,8 +6,6 @@ import jakarta.validation.constraints.Min;
 
 public record ObjectSearchRequest(
         @Nullable
-        String txId,
-        @Nullable
         String searchQuery,
         @Min(0)
         int offset,
