@@ -3,6 +3,8 @@ package com.deposition.infra.api.controller.object;
 import com.deposition.domain.port.in.common.DepositionResult;
 import com.deposition.domain.port.in.object.*;
 import com.deposition.domain.port.in.schema.IntellectualEntityType;
+import com.deposition.infra.api.controller.DeponeMultipartForm;
+import com.deposition.infra.api.controller.DeponeMultipartRequest;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -48,22 +50,21 @@ public class ObjectController {
         return fileMetadataParam;
     }
 
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = com.deposition.infra.api.controller.DeponeMultipartRequest.class), encoding = {
-            @Encoding(name = "intellectualEntityMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
-            @Encoding(name = "descriptiveMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
-            @Encoding(name = "representationMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
-            @Encoding(name = "fileMetadata", contentType = MediaType.APPLICATION_JSON_VALUE),
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = DeponeMultipartForm.class), encoding = {
+            @Encoding(name = "request", contentType = MediaType.APPLICATION_JSON_VALUE),
             @Encoding(name = "files", contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     }))
     @PostMapping(value = "/depone", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<DepositionResult> depone(
             @RequestParam(name = "intellectualEntityType") IntellectualEntityType intellectualEntityType,
-            @RequestPart(name = "intellectualEntityMetadata", required = false) IntellectualEntityMetadataParam intellectualEntityMetadata,
-            @RequestPart(name = "descriptiveMetadata", required = false) String descriptiveMetadata,
-            @RequestPart(name = "representationMetadata", required = false) RepresentationMetadataParam representationMetadata,
-            @RequestPart(name = "fileMetadata", required = false) List<FileMetadataParam> fileMetadata,
+            @RequestPart(name = "request", required = false) DeponeMultipartRequest request,
             @RequestPart(name = "files") List<MultipartFile> files) {
+
+        var intellectualEntityMetadata = request == null ? null : request.intellectualEntityMetadata;
+        var descriptiveMetadata = request == null ? null : request.descriptiveMetadata;
+        var representationMetadata = request == null ? null : request.representationMetadata;
+        var fileMetadata = request == null ? null : request.fileMetadata;
 
         var resolvedIntellectualEntityMetadata = intellectualEntityMetadata == null
                 ? new IntellectualEntityMetadataParam(null, List.of(), List.of())

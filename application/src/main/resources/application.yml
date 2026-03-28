@@ -42,6 +42,7 @@ integration:
     gas-limit-integer: ${integration.ethereum.gas-limit-integer}
     chain-id: ${integration.ethereum.chain-id}
     gas-price-wei: ${integration.ethereum.gas-price-wei:0}
+    from-address: ${integration.ethereum.from-address}
   opensearch:
     endpoint: ${integration.opensearch.endpoint:}
     descriptive-metadata-index: ${integration.opensearch.descriptive-metadata-index:descriptive-metadata}
