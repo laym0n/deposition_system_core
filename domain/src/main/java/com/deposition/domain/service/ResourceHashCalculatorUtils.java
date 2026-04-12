@@ -27,11 +27,23 @@ public final class ResourceHashCalculatorUtils {
         }
 
         try (InputStream inputStream = resource.getInputStream()) {
-            var payload = inputStream.readAllBytes();
-            var hashBytes = calculateHashInternal(payload, algorithm);
-            return HexFormat.of().formatHex(hashBytes);
+            var digest = MessageDigest.getInstance(algorithm);
+
+            // Stream data in chunks to avoid loading large files into memory.
+            byte[] buffer = new byte[8 * 1024 * 1024]; // 8MB
+            int read;
+            while ((read = inputStream.read(buffer)) >= 0) {
+                if (read == 0) {
+                    continue;
+                }
+                digest.update(buffer, 0, read);
+            }
+
+            return HexFormat.of().formatHex(digest.digest());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to calculate hash for resource", exception);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("Failed to calculate hash (unknown algorithm): " + algorithm, exception);
         }
     }
 

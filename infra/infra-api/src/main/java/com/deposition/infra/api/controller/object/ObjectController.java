@@ -10,14 +10,17 @@ import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.core.io.FileSystemResource;
+
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -102,8 +105,12 @@ public class ObjectController {
                 descriptiveMetadata,
                 List.of(new DeponeRepresentationParam(resolvedRepresentationMetadata, deponeFiles)));
 
-        var deponeResult = deponeInPort.depone(deponeParams);
-        return ResponseEntity.ok(deponeResult);
+        try {
+            var deponeResult = deponeInPort.depone(deponeParams);
+            return ResponseEntity.ok(deponeResult);
+        } finally {
+            cleanupTempResources(deponeFiles);
+        }
     }
 
     @PatchMapping(value = "/objects/{objectId}/metadata", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -178,15 +185,76 @@ public class ObjectController {
 
     private Resource convertToReusableResource(MultipartFile file) {
         try {
-            byte[] bytes = file.getBytes();
-            return new ByteArrayResource(bytes) {
-                @Override
-                public String getFilename() {
-                    return file.getOriginalFilename();
-                }
-            };
+            File tmpDir = new File(System.getProperty("java.io.tmpdir"));
+            Files.createDirectories(tmpDir.toPath());
+
+            String suffix = sanitizeSuffix(file.getOriginalFilename());
+            File tmp = File.createTempFile("deposition-upload-", suffix, tmpDir);
+            file.transferTo(tmp);
+
+            return new TempFileResource(tmp, file.getOriginalFilename());
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to read multipart file: " + file.getOriginalFilename(), e);
+            throw new IllegalStateException("Failed to persist multipart file to temp storage: " + file.getOriginalFilename(), e);
         }
+    }
+
+    private static void cleanupTempResources(List<DeponeFileParam> deponeFiles) {
+        if (deponeFiles == null || deponeFiles.isEmpty()) {
+            return;
+        }
+
+        for (var fileParam : deponeFiles) {
+            if (fileParam == null || fileParam.resource() == null) {
+                continue;
+            }
+
+            var res = fileParam.resource();
+            if (res instanceof TempFileResource temp) {
+                // best-effort cleanup
+                try {
+                    Files.deleteIfExists(temp.getTempFile().toPath());
+                } catch (Exception ignored) {
+                    // ignore cleanup failures: the temp folder will be cleaned by OS eventually
+                }
+            }
+        }
+    }
+
+    private static final class TempFileResource extends FileSystemResource {
+        private final File tempFile;
+        private final String originalFilename;
+
+        private TempFileResource(File tempFile, String originalFilename) {
+            super(tempFile);
+            this.tempFile = tempFile;
+            this.originalFilename = originalFilename;
+        }
+
+        @Override
+        public String getFilename() {
+            return originalFilename;
+        }
+
+        @Override
+        public long contentLength() {
+            return tempFile.length();
+        }
+
+        private File getTempFile() {
+            return tempFile;
+        }
+    }
+
+    private static String sanitizeSuffix(String originalFilename) {
+        if (originalFilename == null || originalFilename.isBlank()) {
+            return ".bin";
+        }
+
+        String safe = originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
+        int dot = safe.lastIndexOf('.');
+        if (dot < 0 || dot == safe.length() - 1) {
+            return ".bin";
+        }
+        return safe.substring(dot);
     }
 }
