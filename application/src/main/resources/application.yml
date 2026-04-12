@@ -3,10 +3,10 @@ spring:
     name: deposition-system
   servlet:
     multipart:
-      max-file-size: ${spring.servlet.multipart.max-file-size:1GB}
-      max-request-size: ${spring.servlet.multipart.max-request-size:1100MB}
-      file-size-threshold: ${spring.servlet.multipart.file-size-threshold:1MB}
-      location: ${spring.servlet.multipart.location:${java.io.tmpdir}}
+      max-file-size: ${oscm.spring.servlet.multipart.max-file-size:1GB}
+      max-request-size: ${oscm.spring.servlet.multipart.max-request-size:1100MB}
+      file-size-threshold: ${oscm.spring.servlet.multipart.file-size-threshold:1MB}
+      location: ${oscm.spring.servlet.multipart.location:${java.io.tmpdir}}
   datasource:
     url: ${spring.datasource.url}
     username: ${spring.datasource.username}
@@ -28,8 +28,8 @@ spring:
 server:
   port: ${server.port}
   tomcat:
-    max-http-form-post-size: ${server.tomcat.max-http-form-post-size:-1}
-    max-swallow-size: ${server.tomcat.max-swallow-size:-1}
+    max-http-form-post-size: ${oscm.server.tomcat.max-http-form-post-size:-1}
+    max-swallow-size: ${oscm.server.tomcat.max-swallow-size:-1}
 
 management:
   endpoints:
