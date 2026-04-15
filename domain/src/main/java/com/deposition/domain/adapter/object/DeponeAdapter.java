@@ -10,6 +10,7 @@ import com.deposition.domain.port.in.object.DeponeInPort;
 import com.deposition.domain.port.in.object.DeponeIntellectualEntityParams;
 import com.deposition.domain.port.in.object.DeponeRepresentationParam;
 import com.deposition.domain.port.out.BlockchainOutPort;
+import com.deposition.domain.port.out.BusinessMetricsOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.domain.port.out.UserOutPort;
 import com.deposition.domain.service.*;
@@ -35,6 +36,7 @@ public class DeponeAdapter implements DeponeInPort {
     private final DepositionIndexingService depositionIndexingService;
     private final StatisticsEventReporter statisticsEventReporter;
     private final UserOutPort userService;
+    private final BusinessMetricsOutPort businessMetrics;
 
     private static AnchorRecord buildAnchorRecord(UUID objectId, String versionId, Resource premisMetadata) {
         String algorithm = ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM;
@@ -72,7 +74,7 @@ public class DeponeAdapter implements DeponeInPort {
         var anchorRecord = buildAnchorRecord(intellectualEntityId, premisStorage.getVersionId(), premisMetadataResource);
         var txId = blockchain.persistAnchorRecord(anchorRecord);
 
-        depositionIndexingService.indexIntellectualEntity(metadataPremis, intellectualEntityId, txId,
+        depositionIndexingService.indexIntellectualEntityAsync(metadataPremis, intellectualEntityId, txId,
                 premisStorage.getVersionId(), descriptiveExtracted);
 
         userService.getOptinalCurrentUserId()
@@ -116,10 +118,16 @@ public class DeponeAdapter implements DeponeInPort {
                     var persistedFiles = representation.fileParams().stream()
                             .map(fileParam -> {
                                 var fileResource = fileParam.resource();
-                                var storage = fileStorage.persist(fileResource,
-                                        intellectualEntityId.toString());
+                                var persisted = fileStorage.persistWithDigest(
+                                        fileResource,
+                                        intellectualEntityId.toString(),
+                                        ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM);
                                 return new CommonMetadataBuilder.PersistedFileMetadataInput(
-                                        fileParam, storage);
+                                        fileParam,
+                                        persisted.storage(),
+                                        persisted.hashAlgorithm(),
+                                        persisted.digestHex(),
+                                        persisted.sizeBytes());
                             }).toList();
                     return new CommonMetadataBuilder.PersistedRepresentationMetadataInput(
                             representation.representationMetadata(),

@@ -8,6 +8,7 @@ import com.deposition.domain.port.out.ObjectIndexDocument;
 import com.deposition.domain.port.out.ObjectIndexLookupOutPort;
 import com.deposition.domain.service.acl.AclMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
@@ -71,6 +72,15 @@ public class DepositionIndexingService {
                 anchors,
                 snapshot,
                 descriptiveExtractedFields);
+    }
+
+    @Async("depositionIndexingExecutor")
+    public void indexIntellectualEntityAsync(PremisComplexType premis,
+                                             UUID intellectualEntityId,
+                                             String blockchainTxId,
+                                             String storageVersionId,
+                                             Map<String, Object> descriptiveExtractedFields) {
+        indexIntellectualEntity(premis, intellectualEntityId, blockchainTxId, storageVersionId, descriptiveExtractedFields);
     }
 
     public void updatePremisAndAnchors(UUID objectId,

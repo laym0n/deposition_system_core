@@ -72,3 +72,14 @@ statistics:
       maximum-pool-size: 2
       keep-alive: 60s
       allow-core-thread-time-out: false
+
+deposition:
+  indexing:
+    executor:
+      thread-name-prefix: deposition-indexing-
+      daemon: true
+      core-pool-size: 2
+      maximum-pool-size: 4
+      queue-capacity: 200
+      keep-alive: 60s
+      allow-core-thread-time-out: false

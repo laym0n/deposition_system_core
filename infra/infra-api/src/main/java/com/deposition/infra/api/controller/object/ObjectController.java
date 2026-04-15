@@ -16,11 +16,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import org.springframework.core.io.FileSystemResource;
-
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -95,7 +95,7 @@ public class ObjectController {
                     var file = files.get(i);
                     var metadataParam = fileMetadata == null ? null : fileMetadata.get(i);
                     var resolvedMetadata = resolveFileMetadata(metadataParam, file);
-                    return new DeponeFileParam(resolvedMetadata, convertToReusableResource(file));
+                    return new DeponeFileParam(resolvedMetadata, toReusableResource(file));
                 })
                 .toList();
 
@@ -105,12 +105,8 @@ public class ObjectController {
                 descriptiveMetadata,
                 List.of(new DeponeRepresentationParam(resolvedRepresentationMetadata, deponeFiles)));
 
-        try {
-            var deponeResult = deponeInPort.depone(deponeParams);
-            return ResponseEntity.ok(deponeResult);
-        } finally {
-            cleanupTempResources(deponeFiles);
-        }
+        var deponeResult = deponeInPort.depone(deponeParams);
+        return ResponseEntity.ok(deponeResult);
     }
 
     @PatchMapping(value = "/objects/{objectId}/metadata", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -183,78 +179,74 @@ public class ObjectController {
         return ResponseEntity.ok(result);
     }
 
-    private Resource convertToReusableResource(MultipartFile file) {
-        try {
-            File tmpDir = new File(System.getProperty("java.io.tmpdir"));
-            Files.createDirectories(tmpDir.toPath());
-
-            String suffix = sanitizeSuffix(file.getOriginalFilename());
-            File tmp = File.createTempFile("deposition-upload-", suffix, tmpDir);
-            file.transferTo(tmp);
-
-            return new TempFileResource(tmp, file.getOriginalFilename());
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to persist multipart file to temp storage: " + file.getOriginalFilename(), e);
-        }
-    }
-
-    private static void cleanupTempResources(List<DeponeFileParam> deponeFiles) {
-        if (deponeFiles == null || deponeFiles.isEmpty()) {
-            return;
+    private static Resource toReusableResource(MultipartFile file) {
+        if (file == null) {
+            throw new IllegalArgumentException("file must not be null");
         }
 
-        for (var fileParam : deponeFiles) {
-            if (fileParam == null || fileParam.resource() == null) {
-                continue;
+        var delegate = file.getResource();
+        var originalFilename = file.getOriginalFilename();
+
+        return new Resource() {
+            @Override
+            public boolean exists() {
+                return delegate.exists();
             }
 
-            var res = fileParam.resource();
-            if (res instanceof TempFileResource temp) {
-                // best-effort cleanup
-                try {
-                    Files.deleteIfExists(temp.getTempFile().toPath());
-                } catch (Exception ignored) {
-                    // ignore cleanup failures: the temp folder will be cleaned by OS eventually
-                }
+            @Override
+            public boolean isReadable() {
+                return delegate.isReadable();
             }
-        }
-    }
 
-    private static final class TempFileResource extends FileSystemResource {
-        private final File tempFile;
-        private final String originalFilename;
+            @Override
+            public boolean isOpen() {
+                return delegate.isOpen();
+            }
 
-        private TempFileResource(File tempFile, String originalFilename) {
-            super(tempFile);
-            this.tempFile = tempFile;
-            this.originalFilename = originalFilename;
-        }
+            @Override
+            public URL getURL() throws IOException {
+                return delegate.getURL();
+            }
 
-        @Override
-        public String getFilename() {
-            return originalFilename;
-        }
+            @Override
+            public URI getURI() throws IOException {
+                return delegate.getURI();
+            }
 
-        @Override
-        public long contentLength() {
-            return tempFile.length();
-        }
+            @Override
+            public File getFile() throws IOException {
+                return delegate.getFile();
+            }
 
-        private File getTempFile() {
-            return tempFile;
-        }
-    }
+            @Override
+            public long contentLength() throws IOException {
+                return delegate.contentLength();
+            }
 
-    private static String sanitizeSuffix(String originalFilename) {
-        if (originalFilename == null || originalFilename.isBlank()) {
-            return ".bin";
-        }
+            @Override
+            public long lastModified() throws IOException {
+                return delegate.lastModified();
+            }
 
-        String safe = originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
-        int dot = safe.lastIndexOf('.');
-        if (dot < 0 || dot == safe.length() - 1) {
-            return ".bin";
-        }
-        return safe.substring(dot);
+            @Override
+            public Resource createRelative(String relativePath) throws IOException {
+                return delegate.createRelative(relativePath);
+            }
+
+            @Override
+            public String getFilename() {
+                return originalFilename != null ? originalFilename : delegate.getFilename();
+            }
+
+            @Override
+            public String getDescription() {
+                return "MultipartFileResource(" + getFilename() + ")";
+            }
+
+            @Override
+            public InputStream getInputStream() throws IOException {
+                return delegate.getInputStream();
+            }
+        };
     }
 }

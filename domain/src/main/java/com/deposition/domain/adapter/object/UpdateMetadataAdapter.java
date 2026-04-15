@@ -76,7 +76,7 @@ public class UpdateMetadataAdapter implements UpdateMetadataInPort {
         var anchorRecord = buildAnchorRecord(objectId, premisStorage.getVersionId(), updatedPremisResource);
         var txId = blockchain.persistAnchorRecord(anchorRecord);
 
-        depositionIndexingService.indexIntellectualEntity(update.premis(), objectId, txId,
+        depositionIndexingService.indexIntellectualEntityAsync(update.premis(), objectId, txId,
                 premisStorage.getVersionId(), null);
 
         userService.getOptinalCurrentUserId()

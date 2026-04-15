@@ -16,6 +16,9 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.DigestInputStream;
 import java.net.URI;
 import java.net.URLConnection;
 import java.util.UUID;
@@ -81,6 +84,46 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
                     .contentLocation(buildObjectUri(bucketName, objectKey))
                     .versionId(putResponse.versionId())
                     .build();
+        } catch (IOException | SdkException exception) {
+            throw new IllegalStateException("Failed to persist resource in S3", exception);
+        }
+    }
+
+    @Override
+    public PersistedResource persistWithDigest(Resource resource, String entityId, String hashAlgorithm) {
+        if (hashAlgorithm == null || hashAlgorithm.isBlank()) {
+            throw new IllegalArgumentException("hashAlgorithm must not be blank");
+        }
+
+        try {
+            var objectKey = buildObjectKey(resource, entityId);
+            var bucketName = s3Properties.getBucketName();
+            var putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .contentType(resolveContentType(resource))
+                    .build();
+
+            MessageDigest digest;
+            try {
+                digest = MessageDigest.getInstance(hashAlgorithm);
+            } catch (NoSuchAlgorithmException e) {
+                throw new IllegalArgumentException("Unsupported digest algorithm: " + hashAlgorithm, e);
+            }
+
+            // For file-backed resources this is a metadata lookup (stat) and does not require reading the stream.
+            long size = resource.contentLength();
+
+            try (var raw = resource.getInputStream(); var in = new DigestInputStream(raw, digest)) {
+                var putResponse = s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(in, size));
+
+                var storage = Storage.builder()
+                        .contentLocation(buildObjectUri(bucketName, objectKey))
+                        .versionId(putResponse.versionId())
+                        .build();
+
+                return new PersistedResource(storage, hashAlgorithm, digest.digest(), size);
+            }
         } catch (IOException | SdkException exception) {
             throw new IllegalStateException("Failed to persist resource in S3", exception);
         }

@@ -32,7 +32,10 @@ public final class CommonMetadataBuilder {
 
     public record PersistedFileMetadataInput(
             DeponeFileParam fileParam,
-            Storage fileStorage) {
+            Storage fileStorage,
+            String hashAlgorithm,
+            String hashHex,
+            long sizeBytes) {
 
     }
 }
