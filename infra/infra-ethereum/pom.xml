@@ -22,6 +22,12 @@
             <groupId>org.web3j</groupId>
             <artifactId>core</artifactId>
             <version>5.0.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jetbrains.kotlin</groupId>
+                    <artifactId>kotlin-stdlib-common</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 </project>

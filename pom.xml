@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.2</version>
+        <version>4.0.5</version>
         <relativePath/>
     </parent>
 
@@ -30,6 +30,16 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
         <networknt-json-schema.version>1.5.8</networknt-json-schema.version>
+
+        <!-- Security / CVE remediation overrides (over Spring Boot managed versions) -->
+        <tomcat.version>11.0.21</tomcat.version>
+        <spring-security.version>7.0.4</spring-security.version>
+        <netty.version>4.2.12.Final</netty.version>
+        <jackson-bom.version>3.1.2</jackson-bom.version>
+
+        <spotbugs.maven.plugin.version>4.9.8.3</spotbugs.maven.plugin.version>
+        <findsecbugs.version>1.14.0</findsecbugs.version>
+        <dependency.check.version>12.2.1</dependency.check.version>
     </properties>
 
     <dependencies>
@@ -112,6 +122,18 @@
                 <artifactId>infra-micrometer</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <!-- CVE remediation overrides for transitive dependencies -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-core</artifactId>
+                <version>4.5.26</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>swagger-ui</artifactId>
+                <version>5.32.4</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -134,7 +156,6 @@
                         <path>
                             <groupId>org.springframework.boot</groupId>
                             <artifactId>spring-boot-configuration-processor</artifactId>
-                            <version>${spring-boot.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
@@ -176,17 +197,52 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>4.9.8.3</version>
+                <version>${spotbugs.maven.plugin.version}</version>
                 <configuration>
-                    <htmlOutput>true</htmlOutput>
+                    <effort>Max</effort>
+                    <threshold>Low</threshold>
+                    <failOnError>false</failOnError>
+                    <excludeFilterFile>${session.executionRootDirectory}/spotbugs-exclude.xml</excludeFilterFile>
                     <plugins>
                         <plugin>
                             <groupId>com.h3xstream.findsecbugs</groupId>
                             <artifactId>findsecbugs-plugin</artifactId>
-                            <version>1.13.0</version>
+                            <version>${findsecbugs.version}</version>
                         </plugin>
                     </plugins>
+                    <xmlOutput>true</xmlOutput>
+                    <xmlOutputDirectory>${project.build.directory}/site</xmlOutputDirectory>
+                    <htmlOutput>true</htmlOutput>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>${dependency.check.version}</version>
+                <configuration>
+                    <formats>HTML,XML</formats>
+                    <nvdApiKey>${NVD_API_KEY}</nvdApiKey>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>dependency-check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>dependency-check-aggregate</id>
+                        <goals>
+                            <goal>aggregate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
