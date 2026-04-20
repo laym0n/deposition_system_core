@@ -62,6 +62,7 @@ integration:
     access-key: ${integration.s3.access-key}
     secret-key: ${integration.s3.secret-key}
     bucket-name: ${integration.s3.bucket-name}
+    presign-endpoint: ${oscm.integration.s3.presign-endpoint}
 
 statistics:
   events:

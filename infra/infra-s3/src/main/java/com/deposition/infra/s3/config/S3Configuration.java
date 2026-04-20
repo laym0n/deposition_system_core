@@ -48,9 +48,9 @@ public class S3Configuration {
                 .region(Region.of(properties.getRegion()))
                 .credentialsProvider(buildCredentialsProvider(properties));
 
-        if (StringUtils.hasText(properties.getEndpoint())) {
+        if (StringUtils.hasText(properties.getPresignEndpoint())) {
             builder = builder
-                    .endpointOverride(URI.create(properties.getEndpoint()))
+                    .endpointOverride(URI.create(properties.getPresignEndpoint()))
                     .serviceConfiguration(buildS3ServiceConfiguration());
         }
 

@@ -35,6 +35,7 @@ integration:
     object-index: objects
   s3:
     endpoint: http://localhost:9000
+    presign-endpoint: http://sadasd:9000
     region: us-east-1
     access-key: local-dev
     secret-key: local-dev-secret
