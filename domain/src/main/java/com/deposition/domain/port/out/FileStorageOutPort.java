@@ -21,6 +21,18 @@ public interface FileStorageOutPort {
 
     Resource loadByContentLocation(URI contentLocation);
 
+    /**
+     * Returns object metadata needed for PREMIS fixity without downloading the object.
+     * Implementations may use underlying storage HEAD/metadata APIs.
+     */
+    FileAttributes getAttributesByContentLocation(URI contentLocation, String hashAlgorithm);
+
+    record FileAttributes(
+            String hashAlgorithm,
+            String digestHex,
+            long sizeBytes) {
+    }
+
     record PersistedResource(
             Storage storage,
             String hashAlgorithm,

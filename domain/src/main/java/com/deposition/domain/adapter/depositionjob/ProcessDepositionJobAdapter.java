@@ -79,14 +79,12 @@ public class ProcessDepositionJobAdapter implements ProcessDepositionJobInPort {
             var files = jobOutPort.listFiles(jobId);
             var persistedFiles = files.stream()
                     .map(f -> {
+                        // Do not download file to calculate hash: take it from storage metadata (HEAD).
+                        var attrs = fileStorage.getAttributesByContentLocation(
+                                f.contentLocation(),
+                                ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM);
+
                         Resource resource = fileStorage.loadByContentLocation(f.contentLocation());
-                        String hashHex = ResourceHashCalculatorUtils.calculateHash(resource, ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM);
-                        long size;
-                        try {
-                            size = resource.contentLength();
-                        } catch (Exception ex) {
-                            size = -1;
-                        }
                         var storage = com.deposition.domain.models.valueobject.Storage.builder()
                                 .contentLocation(f.contentLocation())
                                 .versionId(null)
@@ -96,9 +94,9 @@ public class ProcessDepositionJobAdapter implements ProcessDepositionJobInPort {
                         return new CommonMetadataBuilder.PersistedFileMetadataInput(
                                 deponeFileParam,
                                 storage,
-                                ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM,
-                                hashHex,
-                                size);
+                                attrs.hashAlgorithm(),
+                                attrs.digestHex(),
+                                attrs.sizeBytes());
                     })
                     .toList();
 

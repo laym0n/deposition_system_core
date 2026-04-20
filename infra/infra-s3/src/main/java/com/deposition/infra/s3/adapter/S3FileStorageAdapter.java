@@ -11,11 +11,7 @@ import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.core.ResponseInputStream;
 
 import java.io.IOException;
@@ -25,6 +21,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.DigestInputStream;
 import java.net.URI;
 import java.net.URLConnection;
+import java.util.Base64;
+import java.util.HexFormat;
 import java.util.UUID;
 
 @Component
@@ -122,6 +120,82 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
                 }
             }
         };
+    }
+
+    @Override
+    public FileAttributes getAttributesByContentLocation(URI contentLocation, String hashAlgorithm) {
+        if (contentLocation == null) {
+            throw new IllegalArgumentException("contentLocation must not be null");
+        }
+        if (hashAlgorithm == null || hashAlgorithm.isBlank()) {
+            throw new IllegalArgumentException("hashAlgorithm must not be blank");
+        }
+
+        var bucketName = s3Properties.getBucketName();
+        String objectKey = extractObjectKey(contentLocation, bucketName);
+
+        HeadObjectResponse head;
+        try {
+            var headReq = HeadObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .checksumMode(ChecksumMode.ENABLED)
+                    .build();
+            head = s3Client.headObject(headReq);
+        } catch (NoSuchKeyException ex) {
+            throw new IllegalArgumentException(
+                    "Object not found in S3: bucket=" + bucketName + ", key=" + objectKey + ", contentLocation=" + contentLocation,
+                    ex);
+        } catch (SdkException ex) {
+            throw new IllegalStateException(
+                    "Failed to load S3 object attributes: bucket=" + bucketName + ", key=" + objectKey + ", contentLocation=" + contentLocation,
+                    ex);
+        }
+
+        long sizeBytes = head.contentLength() == null ? -1 : head.contentLength();
+
+        // Prefer strong checksum if present (requires client to upload with checksum header).
+        String digestHex = resolveDigestHexFromHead(head, hashAlgorithm);
+        if (digestHex == null) {
+            throw new IllegalStateException(
+                    "S3 object does not contain checksum for algorithm=" + hashAlgorithm
+                            + ". Configure client upload to send checksum (e.g. x-amz-checksum-sha256)"
+                            + ", bucket=" + bucketName + ", key=" + objectKey);
+        }
+
+        return new FileAttributes(hashAlgorithm, digestHex, sizeBytes);
+    }
+
+    private static String resolveDigestHexFromHead(HeadObjectResponse head, String hashAlgorithm) {
+        // AWS SDK v2 exposes checksum values as Base64.
+        // https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
+        if (head == null) {
+            return null;
+        }
+
+        String algo = hashAlgorithm.trim().toUpperCase();
+
+        // S3 supports: CRC32, CRC32C, SHA1, SHA256.
+        String base64;
+        switch (algo) {
+            case "SHA-256" -> base64 = head.checksumSHA256();
+            case "SHA-1" -> base64 = head.checksumSHA1();
+            case "CRC32" -> base64 = head.checksumCRC32();
+            case "CRC32C" -> base64 = head.checksumCRC32C();
+            default -> base64 = null;
+        }
+
+        if (base64 == null || base64.isBlank()) {
+            return null;
+        }
+
+        byte[] raw;
+        try {
+            raw = Base64.getDecoder().decode(base64);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+        return HexFormat.of().formatHex(raw);
     }
 
     @Override

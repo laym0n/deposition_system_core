@@ -43,7 +43,6 @@ public class SubmitDepositionJobAdapter implements SubmitDepositionJobInPort {
         }
 
         if (job.status() == DepositionJobStatus.COMPLETED
-                || job.status() == DepositionJobStatus.FAILED
                 || job.status() == DepositionJobStatus.CANCELLED) {
             return; // idempotent
         }

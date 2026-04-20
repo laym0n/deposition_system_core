@@ -18,6 +18,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class S3PresignUploadAdapter implements PresignUploadOutPort {
 
+    /**
+     * When the client provides this header on PUT, S3 validates it and persists checksum.
+     * Then it becomes available via HEAD (HeadObjectResponse.checksumSHA256()).
+     *
+     * IMPORTANT: the value must be Base64 of raw SHA-256 bytes (not hex).
+     */
+    private static final String CHECKSUM_SHA256_HEADER = "x-amz-checksum-sha256";
+    private static final String CHECKSUM_SHA256_PLACEHOLDER = "<BASE64_SHA256_OF_PAYLOAD>";
+
     private final S3Presigner presigner;
     private final S3Properties properties;
 
@@ -45,6 +54,10 @@ public class S3PresignUploadAdapter implements PresignUploadOutPort {
             putObjectRequestBuilder = putObjectRequestBuilder.contentType(command.contentType());
             requiredHeaders.put("Content-Type", command.contentType());
         }
+
+        // We do not sign this header in the presigned URL (so the value can be calculated by the client).
+        // But we still return it as required, because Processing expects checksum in S3 HEAD.
+        requiredHeaders.put(CHECKSUM_SHA256_HEADER, CHECKSUM_SHA256_PLACEHOLDER);
 
         var putObjectRequest = putObjectRequestBuilder.build();
         var presignRequest = PutObjectPresignRequest.builder()
