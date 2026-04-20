@@ -5,17 +5,21 @@ import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.infra.s3.config.S3Properties;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.core.ResponseInputStream;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.DigestInputStream;
@@ -64,6 +68,60 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
             return objectKey;
         }
         return objectKey.substring(idx + 1);
+    }
+
+    private Resource loadObjectAsStreamingResource(String bucketName, String objectKey, String versionId, String filename) {
+        // We return a Resource that opens a NEW S3 stream on each getInputStream() call.
+        return new AbstractResource() {
+            @Override
+            public String getDescription() {
+                return "S3 object: bucket=" + bucketName + ", key=" + objectKey + ", versionId=" + versionId;
+            }
+
+            @Override
+            public String getFilename() {
+                return filename;
+            }
+
+            @Override
+            public InputStream getInputStream() {
+                try {
+                    var req = GetObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(objectKey)
+                            .versionId(versionId)
+                            .build();
+                    ResponseInputStream<GetObjectResponse> in = s3Client.getObject(req);
+                    // Note: caller is responsible for closing stream.
+                    return in;
+                } catch (NoSuchKeyException ex) {
+                    throw new IllegalArgumentException(
+                            "Object not found in S3: bucket=" + bucketName + ", key=" + objectKey,
+                            ex);
+                } catch (SdkException ex) {
+                    throw new IllegalStateException(
+                            "Failed to open S3 object stream: bucket=" + bucketName + ", key=" + objectKey,
+                            ex);
+                }
+            }
+
+            @Override
+            public long contentLength() {
+                try {
+                    var headReq = HeadObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(objectKey)
+                            .versionId(versionId)
+                            .build();
+                    var head = s3Client.headObject(headReq);
+                    return head.contentLength();
+                } catch (SdkException ex) {
+                    throw new IllegalStateException(
+                            "Failed to read S3 object metadata (contentLength): bucket=" + bucketName + ", key=" + objectKey,
+                            ex);
+                }
+            }
+        };
     }
 
     @Override
@@ -140,21 +198,11 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
             var objectKey = buildPremisObjectKey(objectId);
             var bucketName = s3Properties.getBucketName();
 
-            var request = GetObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(objectKey)
-                    .versionId(versionId)
-                    .build();
-
-            var responseBytes = s3Client.getObjectAsBytes(request);
-            var bytes = responseBytes.asByteArray();
-
-            return new ByteArrayResource(bytes) {
-                @Override
-                public String getFilename() {
-                    return "deposition-metadata.premis.xml";
-                }
-            };
+            return loadObjectAsStreamingResource(
+                    bucketName,
+                    objectKey,
+                    versionId,
+                    "deposition-metadata.premis.xml");
         } catch (NoSuchKeyException exception) {
             throw new IllegalArgumentException("PREMIS metadata not found for objectId=" + objectId, exception);
         } catch (SdkException exception) {
@@ -173,20 +221,11 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
         String objectKey = extractObjectKey(contentLocation, bucketName);
 
         try {
-            var request = GetObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(objectKey)
-                    .build();
-
-            var responseBytes = s3Client.getObjectAsBytes(request);
-            var bytes = responseBytes.asByteArray();
-
-            return new ByteArrayResource(bytes) {
-                @Override
-                public String getFilename() {
-                    return extractFilename(objectKey);
-                }
-            };
+            return loadObjectAsStreamingResource(
+                    bucketName,
+                    objectKey,
+                    null,
+                    extractFilename(objectKey));
         } catch (NoSuchKeyException exception) {
             throw new IllegalArgumentException(
                     "Object not found in S3: bucket=" + bucketName + ", key=" + objectKey

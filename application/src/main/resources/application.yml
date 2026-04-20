@@ -83,3 +83,11 @@ deposition:
       queue-capacity: 200
       keep-alive: 60s
       allow-core-thread-time-out: false
+  job:
+    executor:
+      thread-name-prefix: deposition-job-
+      daemon: true
+      core-pool-size: 1
+      maximum-pool-size: 2
+      keep-alive: 60s
+      allow-core-thread-time-out: false

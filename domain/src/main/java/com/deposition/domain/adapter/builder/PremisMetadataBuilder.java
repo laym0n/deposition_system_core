@@ -77,10 +77,17 @@ public final class PremisMetadataBuilder {
     public PremisComplexType buildPremisWithEntities(
             List<CommonMetadataBuilder.PersistedRepresentationMetadataInput> persistedRepresentations,
             IntellectualEntityMetadataParam intellectualEntityMetadata, UUID intellectualEntityId) {
+        var userId = userOutPort.getCurrentUserId();
+        return buildPremisWithEntities(persistedRepresentations, intellectualEntityMetadata, intellectualEntityId, userId);
+    }
+
+    public PremisComplexType buildPremisWithEntities(
+            List<CommonMetadataBuilder.PersistedRepresentationMetadataInput> persistedRepresentations,
+            IntellectualEntityMetadataParam intellectualEntityMetadata,
+            UUID intellectualEntityId,
+            String userId) {
         var metadataStructures = new ArrayList<CommonMetadataBuilder.MetadataStructure>();
         var representationObjectIds = new ArrayList<UUID>();
-
-        var userId = userOutPort.getCurrentUserId();
 
         for (var persistedRepresentation : persistedRepresentations) {
             var depositedFileObjectIds = new ArrayList<UUID>();
