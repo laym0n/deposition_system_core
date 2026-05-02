@@ -27,9 +27,10 @@ public class StatisticsEventReporter {
         if (businessMetrics != null && eventType != null) {
             switch (eventType) {
                 case OBJECT_DEPOSIT -> businessMetrics.incrementDepositionOperations();
-                case OBJECT_METADATA_UPDATE -> businessMetrics.incrementObjectVersionUpdates();
+                case OBJECT_VERSION_CREATE, OBJECT_METADATA_UPDATE -> businessMetrics.incrementObjectVersionUpdates();
                 case PROOF_REQUEST -> businessMetrics.incrementProofRequests();
                 case OBJECT_VIEW -> businessMetrics.incrementObjectViews();
+                case FILE_DOWNLOAD -> businessMetrics.incrementFileDownloads();
                 default -> {
                 }
             }

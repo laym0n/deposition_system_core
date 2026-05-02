@@ -6,9 +6,12 @@ import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.FileMetadata;
 import com.deposition.domain.models.PremisSnapshot;
 import com.deposition.domain.models.acl.AclPermission;
+import com.deposition.domain.models.statistics.StatisticsEventType;
 import com.deposition.domain.port.in.object.DownloadSourceFilesInPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
+import com.deposition.domain.port.out.UserOutPort;
 import com.deposition.domain.service.XmlUtils;
+import com.deposition.domain.service.StatisticsEventReporter;
 import com.deposition.domain.service.acl.AccessValidatorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
@@ -30,6 +33,8 @@ public class DownloadSourceFilesAdapter implements DownloadSourceFilesInPort {
     private final FileStorageOutPort fileStorage;
     private final AccessValidatorService accessValidatorService;
     private final PremisSnapshotConverter premisSnapshotConverter;
+    private final StatisticsEventReporter statisticsEventReporter;
+    private final UserOutPort userOutPort;
 
     private static Map<UUID, FileMetadata> indexFiles(PremisSnapshot snapshot) {
         if (snapshot == null || snapshot.getObjects() == null) {
@@ -93,6 +98,14 @@ public class DownloadSourceFilesAdapter implements DownloadSourceFilesInPort {
         }
 
         accessValidatorService.validateCurrentUserHasPermission(objectId, AclPermission.READ_SOURCE_FILE);
+
+        // Count file download once per request (zip download), not per file inside zip.
+        userOutPort.getOptinalCurrentUserId()
+                .ifPresent(userId -> statisticsEventReporter.report(
+                        StatisticsEventType.FILE_DOWNLOAD,
+                        objectId,
+                        null,
+                        userId));
 
         PremisSnapshot snapshot = loadSnapshot(objectId);
         Map<UUID, FileMetadata> filesById = indexFiles(snapshot);

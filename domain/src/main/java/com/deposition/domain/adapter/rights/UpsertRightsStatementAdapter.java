@@ -9,9 +9,12 @@ import com.deposition.domain.port.in.common.DepositionResult;
 import com.deposition.domain.port.in.rights.UpsertRightsStatementInPort;
 import com.deposition.domain.port.in.rights.UpsertRightsStatementRequest;
 import com.deposition.domain.port.out.FileStorageOutPort;
+import com.deposition.domain.port.out.UserOutPort;
 import com.deposition.domain.service.PremisPersistenceService;
+import com.deposition.domain.service.StatisticsEventReporter;
 import com.deposition.domain.service.XmlUtils;
 import com.deposition.domain.service.acl.AccessValidatorService;
+import com.deposition.domain.models.statistics.StatisticsEventType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -31,6 +34,8 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
     private final RightsStatementPremisUpdater rightsStatementPremisUpdater;
     private final AccessValidatorService accessValidatorService;
     private final PremisPersistenceService premisPersistenceService;
+    private final StatisticsEventReporter statisticsEventReporter;
+    private final UserOutPort userOutPort;
 
     private static RightsStatementMetadata toRightsStatementMetadata(UpsertRightsStatementRequest request) {
         if (request == null) {
@@ -143,7 +148,16 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
         }
         rightsStatementPremisUpdater.upsertRightsStatement(premis, objectId, rightsStatement, ensureAgents);
 
-        return premisPersistenceService.persistPremis(objectId, premis);
+        var result = premisPersistenceService.persistPremis(objectId, premis);
+
+        userOutPort.getOptinalCurrentUserId()
+                .ifPresent(userId -> statisticsEventReporter.report(
+                        StatisticsEventType.OBJECT_VERSION_CREATE,
+                        objectId,
+                        result.versionId(),
+                        userId));
+
+        return result;
     }
 
     @Override

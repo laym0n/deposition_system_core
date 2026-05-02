@@ -19,10 +19,13 @@ import com.deposition.domain.port.in.acl.UpsertObjectAclEntryInPort;
 import com.deposition.domain.port.in.acl.UpsertObjectAclEntryRequest;
 import com.deposition.domain.port.in.common.DepositionResult;
 import com.deposition.domain.port.out.FileStorageOutPort;
+import com.deposition.domain.port.out.UserOutPort;
 import com.deposition.domain.service.PremisPersistenceService;
+import com.deposition.domain.service.StatisticsEventReporter;
 import com.deposition.domain.service.XmlUtils;
 import com.deposition.domain.service.acl.AccessValidatorService;
 import com.deposition.domain.service.acl.AclMapper;
+import com.deposition.domain.models.statistics.StatisticsEventType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -50,6 +53,8 @@ public class UpsertObjectAclEntryAdapter implements UpsertObjectAclEntryInPort {
     private final RightsStatementPremisUpdater rightsStatementPremisUpdater;
     private final PremisPersistenceService premisPersistenceService;
     private final PremisSnapshotConverter premisSnapshotConverter;
+    private final StatisticsEventReporter statisticsEventReporter;
+    private final UserOutPort userOutPort;
 
     private static boolean isGrantActive(ApplicableDates termOfGrant, ZonedDateTime now) {
         if (termOfGrant == null) {
@@ -229,7 +234,22 @@ public class UpsertObjectAclEntryAdapter implements UpsertObjectAclEntryInPort {
         PremisComplexType premis = loadPremis(objectId);
 
         var rightsStatement = buildRightsStatementMetadata(premis, objectId, request.userId(), request.permissions());
-        return upsertRightsAndPersistAcl(objectId, premis, rightsStatement);
+
+        var result = upsertRightsAndPersistAcl(objectId, premis, rightsStatement);
+
+        // Track ACL change as statistics events.
+        StatisticsEventType eventType = (request.permissions() == null || request.permissions().isEmpty())
+                ? StatisticsEventType.OBJECT_ACCESS_REVOKED
+                : StatisticsEventType.OBJECT_ACCESS_GRANTED;
+
+        userOutPort.getOptinalCurrentUserId()
+                .ifPresent(userId -> statisticsEventReporter.report(
+                        eventType,
+                        objectId,
+                        result.versionId(),
+                        userId));
+
+        return result;
     }
 
     private PremisComplexType loadPremis(UUID objectId) {

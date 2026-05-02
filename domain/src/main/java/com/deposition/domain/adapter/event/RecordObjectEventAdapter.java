@@ -11,8 +11,11 @@ import com.deposition.domain.port.in.event.RecordObjectEventInPort;
 import com.deposition.domain.port.in.event.RecordObjectEventRequest;
 import com.deposition.domain.port.out.*;
 import com.deposition.domain.service.ResourceHashCalculatorUtils;
+import com.deposition.domain.service.StatisticsEventReporter;
 import com.deposition.domain.service.XmlUtils;
 import com.deposition.domain.service.acl.AccessValidatorService;
+import com.deposition.domain.port.out.UserOutPort;
+import com.deposition.domain.models.statistics.StatisticsEventType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
@@ -36,6 +39,8 @@ public class RecordObjectEventAdapter implements RecordObjectEventInPort {
     private final com.deposition.domain.dto.schema.premis.v3.converter.AgentConverter agentConverter;
     private final ObjectIndexLookupOutPort objectIndexLookupOutPort;
     private final ObjectIndexOutPort objectIndexOutPort;
+    private final StatisticsEventReporter statisticsEventReporter;
+    private final UserOutPort userOutPort;
 
     private static List<EventAgentLink> buildAgentLinks(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -106,6 +111,14 @@ public class RecordObjectEventAdapter implements RecordObjectEventInPort {
         var txId = blockchain.persistAnchorRecord(anchorRecord);
 
         updateObjectIndex(objectId, premisStorage.getVersionId(), txId);
+
+        // Adding an Event to PREMIS creates a new object version.
+        userOutPort.getOptinalCurrentUserId()
+                .ifPresent(userId -> statisticsEventReporter.report(
+                        StatisticsEventType.OBJECT_VERSION_CREATE,
+                        objectId,
+                        premisStorage.getVersionId(),
+                        userId));
 
         return new DepositionResult(objectId, txId, premisStorage.getVersionId());
     }

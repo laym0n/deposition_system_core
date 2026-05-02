@@ -16,9 +16,12 @@ import com.deposition.domain.port.in.rights.UpdateObjectVisibilityInPort;
 import com.deposition.domain.port.in.rights.UpdateObjectVisibilityRequest;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.domain.dto.schema.premis.v3.converter.PremisSnapshotConverter;
+import com.deposition.domain.port.out.UserOutPort;
 import com.deposition.domain.service.PremisPersistenceService;
+import com.deposition.domain.service.StatisticsEventReporter;
 import com.deposition.domain.service.XmlUtils;
 import com.deposition.domain.service.acl.AccessValidatorService;
+import com.deposition.domain.models.statistics.StatisticsEventType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -42,6 +45,8 @@ public class UpdateObjectVisibilityAdapter implements UpdateObjectVisibilityInPo
     private final RightsStatementPremisUpdater rightsStatementPremisUpdater;
     private final PremisPersistenceService premisPersistenceService;
     private final PremisSnapshotConverter premisSnapshotConverter;
+    private final StatisticsEventReporter statisticsEventReporter;
+    private final UserOutPort userOutPort;
 
     @Override
     public DepositionResult updateVisibility(UUID objectId, UpdateObjectVisibilityRequest request) {
@@ -79,7 +84,16 @@ public class UpdateObjectVisibilityAdapter implements UpdateObjectVisibilityInPo
                 rightsStatement,
                 List.of(ensurePublicAgent));
 
-        return premisPersistenceService.persistPremis(objectId, premis);
+        var result = premisPersistenceService.persistPremis(objectId, premis);
+
+        userOutPort.getOptinalCurrentUserId()
+                .ifPresent(userId -> statisticsEventReporter.report(
+                        StatisticsEventType.OBJECT_VERSION_CREATE,
+                        objectId,
+                        result.versionId(),
+                        userId));
+
+        return result;
     }
 
     private RightsStatementMetadata buildVisibilityRightsStatement(
