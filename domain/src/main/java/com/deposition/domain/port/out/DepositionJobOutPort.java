@@ -22,6 +22,11 @@ public interface DepositionJobOutPort {
 
     Optional<DepositionJob> findByOwnerAndIdempotencyKey(@NotBlank String ownerUserId, @NotBlank String idempotencyKey);
 
+    /**
+     * Lists jobs owned by a specific user.
+     */
+    List<DepositionJob> listByOwnerUserId(@NotBlank String ownerUserId);
+
     List<DepositionJobFile> listFiles(@NotNull UUID jobId);
 
     void upsertFiles(@NotNull UUID jobId, @NotNull List<@Valid DepositionJobFile> files);

@@ -46,6 +46,14 @@ public class JpaDepositionJobAdapter implements DepositionJobOutPort {
     }
 
     @Override
+    public List<DepositionJob> listByOwnerUserId(String ownerUserId) {
+        return jobRepository.findAllByOwnerUserIdOrderByCreatedAtDesc(ownerUserId)
+                .stream()
+                .map(JpaDepositionJobAdapter::toDomain)
+                .toList();
+    }
+
+    @Override
     public List<DepositionJobFile> listFiles(UUID jobId) {
         return fileRepository.findAllByJobId(jobId).stream().map(JpaDepositionJobAdapter::toDomain).toList();
     }

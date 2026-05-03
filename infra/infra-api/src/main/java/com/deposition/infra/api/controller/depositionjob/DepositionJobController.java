@@ -2,6 +2,7 @@ package com.deposition.infra.api.controller.depositionjob;
 
 import com.deposition.domain.port.in.depositionjob.CreateDepositionJobInPort;
 import com.deposition.domain.port.in.depositionjob.GetDepositionJobStatusInPort;
+import com.deposition.domain.port.in.depositionjob.ListMyDepositionJobsInPort;
 import com.deposition.domain.port.in.depositionjob.SubmitDepositionJobInPort;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.annotation.Nullable;
@@ -22,6 +23,7 @@ public class DepositionJobController {
     private final CreateDepositionJobInPort createDepositionJobInPort;
     private final SubmitDepositionJobInPort submitDepositionJobInPort;
     private final GetDepositionJobStatusInPort getDepositionJobStatusInPort;
+    private final ListMyDepositionJobsInPort listMyDepositionJobsInPort;
 
     @PostMapping(value = "/depone/jobs", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @SecurityRequirement(name = "bearerAuth")
@@ -58,6 +60,13 @@ public class DepositionJobController {
             @PathVariable("jobId") UUID jobId) {
         var status = getDepositionJobStatusInPort.getStatus(jobId);
         return ResponseEntity.ok(status);
+    }
+
+    @GetMapping(value = "/depone/jobs", produces = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<java.util.List<ListMyDepositionJobsInPort.DepositionJobListItem>> listMyJobs() {
+        var jobs = listMyDepositionJobsInPort.listMyJobs();
+        return ResponseEntity.ok(jobs);
     }
 
     public static class CreateJobRequest {

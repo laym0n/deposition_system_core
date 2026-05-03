@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface DepositionJobJpaRepository extends JpaRepository<DepositionJobEntity, UUID> {
 
     Optional<DepositionJobEntity> findByOwnerUserIdAndIdempotencyKey(String ownerUserId, String idempotencyKey);
+
+    java.util.List<DepositionJobEntity> findAllByOwnerUserIdOrderByCreatedAtDesc(String ownerUserId);
 }
