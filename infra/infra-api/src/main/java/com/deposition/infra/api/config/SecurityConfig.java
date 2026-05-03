@@ -6,6 +6,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsUtils;
@@ -27,7 +28,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/objects/*/cached-metadata").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oAuth2ResourceServerCustomizer)
-                .cors(Customizer.withDefaults())
+                .cors(AbstractHttpConfigurer::disable)
                 .csrf(Customizer.withDefaults());
         return http.build();
     }
