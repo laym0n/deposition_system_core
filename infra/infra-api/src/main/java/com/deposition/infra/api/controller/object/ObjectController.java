@@ -35,6 +35,7 @@ public class ObjectController {
     private final UpdateMetadataInPort updateMetadataInPort;
     private final GetPremisMetadataInPort getPremisMetadataInPort;
     private final DownloadSourceFilesInPort downloadSourceFilesInPort;
+    private final PresignSourceFilesDownloadInPort presignSourceFilesDownloadInPort;
     private final GetCachedObjectMetadataInPort getCachedObjectMetadataInPort;
     private final VerifyPremisInPort verifyPremisInPort;
     private final SearchObjectsInPort searchObjectsInPort;
@@ -137,6 +138,21 @@ public class ObjectController {
                 .contentType(MediaType.parseMediaType("application/zip"))
                 .header("Content-Disposition", "attachment; filename=\"" + zip.getFilename() + "\"")
                 .body(zip);
+    }
+
+    @GetMapping(value = "/objects/{objectId}/source-files/presigned", produces = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<List<PresignedSourceFilesDownloadResponse>> presignSourceFilesDownload(
+            @PathVariable("objectId") UUID objectId,
+            @RequestParam(name = "fileId") List<UUID> fileIds) {
+        var result = presignSourceFilesDownloadInPort.presignSourceFilesDownload(objectId, fileIds);
+        var response = result.stream()
+                .map(r -> new PresignedSourceFilesDownloadResponse(
+                        r.fileId(),
+                        r.downloadUrl(),
+                        r.expiresAt()))
+                .toList();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping(value = "/objects/{objectId}/cached-metadata", produces = MediaType.APPLICATION_JSON_VALUE)
