@@ -10,6 +10,8 @@ import com.deposition.domain.port.out.UserOutPort;
 import com.deposition.domain.service.acl.AccessValidatorService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -21,6 +23,7 @@ import java.util.UUID;
 @Component
 @Validated
 @RequiredArgsConstructor
+@Slf4j
 public class SubmitDepositionJobAdapter implements SubmitDepositionJobInPort {
 
     private final DepositionJobOutPort jobOutPort;
@@ -73,7 +76,11 @@ public class SubmitDepositionJobAdapter implements SubmitDepositionJobInPort {
 
     @Async("depositionJobExecutor")
     void processAsync(UUID jobId) {
-        processDepositionJobInPort.process(jobId);
+        try {
+            processDepositionJobInPort.process(jobId);
+        } catch (Exception e) {
+            log.error(ExceptionUtils.getMessage(e), e);
+        }
     }
 
     private void validateRelationshipsOwnedByCurrentUser(DepositionJobOutPort.DepositionJob job) {
