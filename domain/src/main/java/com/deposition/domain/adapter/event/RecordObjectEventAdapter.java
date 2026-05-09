@@ -131,6 +131,7 @@ public class RecordObjectEventAdapter implements RecordObjectEventInPort {
 
         var updated = new ObjectIndexDocument(
                 existing.objectId(),
+                existing.intellectualEntityType(),
                 existing.acl(),
                 anchors,
                 existing.visibility(),

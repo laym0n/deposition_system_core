@@ -67,6 +67,7 @@ public class OpenSearchAclAdapter implements AclOutPort {
             // Re-index the whole document to avoid losing any fields.
             var updated = new ObjectIndexDocument(
                     existing.objectId(),
+                    existing.intellectualEntityType(),
                     acl,
                     existing.anchors(),
                     existing.visibility(),

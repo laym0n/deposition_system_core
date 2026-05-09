@@ -74,8 +74,13 @@ public class DeponeAdapter implements DeponeInPort {
         var anchorRecord = buildAnchorRecord(intellectualEntityId, premisStorage.getVersionId(), premisMetadataResource);
         var txId = blockchain.persistAnchorRecord(anchorRecord);
 
-        depositionIndexingService.indexIntellectualEntityAsync(metadataPremis, intellectualEntityId, txId,
-                premisStorage.getVersionId(), descriptiveExtracted);
+        depositionIndexingService.indexIntellectualEntityAsync(
+                metadataPremis,
+                intellectualEntityId,
+                params.intellectualEntityType(),
+                txId,
+                premisStorage.getVersionId(),
+                descriptiveExtracted);
 
         userService.getOptinalCurrentUserId()
                 .ifPresent(userId -> statisticsEventReporter.report(

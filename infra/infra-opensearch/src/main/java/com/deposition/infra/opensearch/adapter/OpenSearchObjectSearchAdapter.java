@@ -2,6 +2,7 @@ package com.deposition.infra.opensearch.adapter;
 
 import com.deposition.domain.port.in.object.ObjectSearchRequest;
 import com.deposition.domain.port.in.object.SearchObjectsResult;
+import com.deposition.domain.port.out.ObjectIndexDocument;
 import com.deposition.domain.port.out.ObjectSearchOutPort;
 import com.deposition.domain.port.out.ObjectSearchQuery;
 import com.deposition.infra.opensearch.config.OpenSearchProperties;
@@ -113,7 +114,7 @@ public class OpenSearchObjectSearchAdapter implements ObjectSearchOutPort {
                     .size(request.effectiveLimit())
                     .query(finalQuery);
 
-            SearchResponse<Object> response = client.search(osRequest.build(), Object.class);
+            SearchResponse<ObjectIndexDocument> response = client.search(osRequest.build(), ObjectIndexDocument.class);
 
             var hits = response.hits() == null ? List.<SearchObjectsResult.Hit>of()
                     : response.hits().hits().stream()
@@ -127,17 +128,15 @@ public class OpenSearchObjectSearchAdapter implements ObjectSearchOutPort {
                         } catch (IllegalArgumentException ex) {
                             return null;
                         }
-
-                        String entityType = null;
-                        if (h.source() instanceof java.util.Map<?, ?> m) {
-                            Object et = m.get("entityType");
-                            entityType = et == null ? null : et.toString();
+                        var source = h.source();
+                        if (source == null) {
+                            return null;
                         }
 
-                        if (entityType == null || entityType.isBlank()) {
-                            entityType = "UNKNOWN";
-                        }
-                        return new SearchObjectsResult.Hit(id, entityType);
+                        var type = source.intellectualEntityType();
+                        var originalName = source.premis() == null ? null : source.premis().originalName();
+
+                        return new SearchObjectsResult.Hit(id, type, originalName);
                     })
                     .filter(Objects::nonNull)
                     .toList();

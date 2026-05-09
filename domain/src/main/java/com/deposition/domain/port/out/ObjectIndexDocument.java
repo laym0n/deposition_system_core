@@ -1,6 +1,7 @@
 package com.deposition.domain.port.out;
 
 import com.deposition.domain.models.acl.ObjectAcl;
+import com.deposition.domain.port.in.schema.IntellectualEntityType;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 
@@ -13,6 +14,8 @@ public record ObjectIndexDocument(
         @NotNull
         UUID objectId,
         @NotNull
+        IntellectualEntityType intellectualEntityType,
+        @NotNull
         ObjectAcl acl,
         @NotNull
         List<Anchor> anchors,
@@ -24,6 +27,11 @@ public record ObjectIndexDocument(
         Map<String, Object> descriptive) {
 
     public ObjectIndexDocument {
+        // Backward compatibility: older OpenSearch documents may not have this field.
+        if (intellectualEntityType == null) {
+            intellectualEntityType = IntellectualEntityType.DATABASE;
+        }
+
         // Backward compatibility: older OpenSearch documents may not have this field.
         if (visibility == null) {
             visibility = Visibility.PRIVATE;

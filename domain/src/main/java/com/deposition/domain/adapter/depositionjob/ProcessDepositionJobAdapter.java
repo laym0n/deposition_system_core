@@ -118,6 +118,7 @@ public class ProcessDepositionJobAdapter implements ProcessDepositionJobInPort {
             depositionIndexingService.indexIntellectualEntityAsync(
                     premis,
                     job.objectId(),
+                    cmd.intellectualEntityType(),
                     txId,
                     premisStorage.getVersionId(),
                     descriptiveExtracted);

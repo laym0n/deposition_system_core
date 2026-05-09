@@ -3,6 +3,7 @@ package com.deposition.domain.service;
 import com.deposition.domain.models.IntellectualEntityMetadata;
 import com.deposition.domain.models.PremisSnapshot;
 import com.deposition.domain.models.acl.ObjectAcl;
+import com.deposition.domain.port.in.schema.IntellectualEntityType;
 import com.deposition.domain.port.out.ObjectIndexDocument;
 import com.deposition.domain.port.out.ObjectIndexOutPort;
 import com.deposition.domain.port.out.PremisIndexFields;
@@ -20,12 +21,16 @@ public class ObjectIndexingService {
     private final ObjectIndexOutPort objectIndexOutPort;
 
     public void indexIntellectualEntity(UUID intellectualEntityId,
+                                        IntellectualEntityType intellectualEntityType,
                                         ObjectAcl acl,
                                         List<ObjectIndexDocument.Anchor> anchors,
                                         PremisSnapshot snapshot,
                                         Map<String, Object> intellectualEntityDescriptiveFields) {
         if (intellectualEntityId == null) {
             throw new IllegalArgumentException("intellectualEntityId must not be null");
+        }
+        if (intellectualEntityType == null) {
+            throw new IllegalArgumentException("intellectualEntityType must not be null");
         }
         if (acl == null) {
             throw new IllegalArgumentException("acl must not be null");
@@ -70,6 +75,7 @@ public class ObjectIndexingService {
 
         ObjectIndexDocument doc = new ObjectIndexDocument(
                 intellectualEntityId,
+                intellectualEntityType,
                 acl,
                 anchors,
                 visibility,

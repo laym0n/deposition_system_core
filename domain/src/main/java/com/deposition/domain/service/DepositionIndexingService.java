@@ -6,6 +6,7 @@ import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.acl.ObjectAcl;
 import com.deposition.domain.port.out.ObjectIndexDocument;
 import com.deposition.domain.port.out.ObjectIndexLookupOutPort;
+import com.deposition.domain.port.in.schema.IntellectualEntityType;
 import com.deposition.domain.service.acl.AclMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
@@ -54,9 +55,18 @@ public class DepositionIndexingService {
 
     public void indexIntellectualEntity(PremisComplexType premis,
                                         UUID intellectualEntityId,
+                                        IntellectualEntityType intellectualEntityType,
                                         String blockchainTxId,
                                         String storageVersionId,
                                         Map<String, Object> descriptiveExtractedFields) {
+        if (intellectualEntityType == null) {
+            // For updates (e.g., metadata update / record event) we might not have the type at call site.
+            // Try to reuse it from existing OpenSearch document.
+            intellectualEntityType = objectIndexLookupOutPort.findByObjectId(intellectualEntityId)
+                    .map(ObjectIndexDocument::intellectualEntityType)
+                    .orElseThrow(() -> new ResourceNotFoundException("Object", intellectualEntityId.toString()));
+        }
+
         var snapshot = premisSnapshotConverter.map(premis);
         var acl = AclMapper.buildDefaultAclFromSnapshot(snapshot, intellectualEntityId);
 
@@ -68,6 +78,7 @@ public class DepositionIndexingService {
 
         objectIndexingService.indexIntellectualEntity(
                 intellectualEntityId,
+                intellectualEntityType,
                 acl,
                 anchors,
                 snapshot,
@@ -77,10 +88,16 @@ public class DepositionIndexingService {
     @Async("depositionIndexingExecutor")
     public void indexIntellectualEntityAsync(PremisComplexType premis,
                                              UUID intellectualEntityId,
+                                             IntellectualEntityType intellectualEntityType,
                                              String blockchainTxId,
                                              String storageVersionId,
                                              Map<String, Object> descriptiveExtractedFields) {
-        indexIntellectualEntity(premis, intellectualEntityId, blockchainTxId, storageVersionId, descriptiveExtractedFields);
+        indexIntellectualEntity(premis,
+                intellectualEntityId,
+                intellectualEntityType,
+                blockchainTxId,
+                storageVersionId,
+                descriptiveExtractedFields);
     }
 
     public void updatePremisAndAnchors(UUID objectId,
@@ -97,6 +114,7 @@ public class DepositionIndexingService {
 
         objectIndexingService.indexIntellectualEntity(
                 objectId,
+                existing.intellectualEntityType(),
                 existing.acl(),
                 updatedAnchors,
                 snapshot,
@@ -120,6 +138,7 @@ public class DepositionIndexingService {
 
         objectIndexingService.indexIntellectualEntity(
                 objectId,
+                existing.intellectualEntityType(),
                 resolvedAcl,
                 updatedAnchors,
                 snapshot,
