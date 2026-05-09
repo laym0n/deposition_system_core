@@ -12,7 +12,7 @@ public final class DescriptiveMetadataSchemaSpecifications {
     public static Specification<DescriptiveMetadataSchemaEntity> entityTypeEquals(String entityType) {
         return (root, query, cb) -> entityType == null || entityType.isBlank()
                 ? cb.conjunction()
-                : cb.equal(root.get("entityType"), entityType);
+                : cb.equal(root.get("entityType").get("name"), entityType);
     }
 
     public static Specification<DescriptiveMetadataSchemaEntity> activeEquals(Boolean active) {

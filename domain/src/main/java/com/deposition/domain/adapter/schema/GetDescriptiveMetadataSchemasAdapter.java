@@ -1,7 +1,6 @@
 package com.deposition.domain.adapter.schema;
 
 import com.deposition.domain.port.in.schema.GetDescriptiveMetadataSchemasInPort;
-import com.deposition.domain.port.in.schema.IntellectualEntityType;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -19,13 +18,14 @@ public class GetDescriptiveMetadataSchemasAdapter implements GetDescriptiveMetad
     @Override
     public List<DescriptiveMetadataSchemaSummary> getSchemas(DescriptiveMetadataSchemaFilter filter) {
         var outFilter = new DescriptiveMetadataSchemaOutPort.DescriptiveMetadataSchemaFilter(
-                filter == null || filter.entityType() == null ? null : filter.entityType().name(),
+                filter == null ? null : filter.entityTypeName(),
                 filter == null ? null : filter.active());
 
         return schemaOutPort.findSchemas(outFilter)
                 .stream()
-                .map(s -> new DescriptiveMetadataSchemaSummary(s.id(),
-                        IntellectualEntityType.valueOf(s.entityType()),
+                .map(s -> new DescriptiveMetadataSchemaSummary(
+                        s.id(),
+                        s.entityType(),
                         s.active(),
                         s.createdAt(),
                         s.updatedAt()))

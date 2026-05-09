@@ -4,6 +4,7 @@ import com.deposition.domain.models.DescriptiveMetadataSchema;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
 import com.deposition.infra.relationaldb.entity.DescriptiveMetadataSchemaEntity;
 import com.deposition.infra.relationaldb.repository.DescriptiveMetadataSchemaJpaRepository;
+import com.deposition.infra.relationaldb.repository.IntellectualEntityTypeJpaRepository;
 import com.deposition.infra.relationaldb.repository.spec.DescriptiveMetadataSchemaSpecifications;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -20,11 +21,17 @@ import java.util.UUID;
 public class JpaDescriptiveMetadataSchemaAdapter implements DescriptiveMetadataSchemaOutPort {
 
     private final DescriptiveMetadataSchemaJpaRepository repository;
+    private final IntellectualEntityTypeJpaRepository entityTypeRepository;
 
     private static DescriptiveMetadataSchema toDomain(DescriptiveMetadataSchemaEntity entity) {
         return new DescriptiveMetadataSchema(
                 entity.getId(),
-                com.deposition.domain.port.in.schema.IntellectualEntityType.valueOf(entity.getEntityType()),
+                entity.getEntityType() == null
+                        ? null
+                        : new com.deposition.domain.models.IntellectualEntityType(
+                        entity.getEntityType().getId(),
+                        entity.getEntityType().getName(),
+                        entity.getEntityType().getDescription()),
                 entity.getSchemaJson(),
                 entity.isActive(),
                 entity.getCreatedAt(),
@@ -38,7 +45,7 @@ public class JpaDescriptiveMetadataSchemaAdapter implements DescriptiveMetadataS
             throw new IllegalArgumentException("entityType must not be blank");
         }
 
-        return repository.findFirstByEntityTypeAndActiveIsTrueOrderByUpdatedAtDesc(entityType)
+        return repository.findFirstByEntityType_NameAndActiveIsTrueOrderByUpdatedAtDesc(entityType)
                 .map(schema -> schema.getSchemaJson());
     }
 
@@ -58,7 +65,15 @@ public class JpaDescriptiveMetadataSchemaAdapter implements DescriptiveMetadataS
         var entity = repository.findById(schema.id())
                 .orElseGet(DescriptiveMetadataSchemaEntity::new);
         entity.setId(schema.id());
-        entity.setEntityType(schema.entityType().name());
+
+        if (schema.entityType() == null || schema.entityType().id() == null) {
+            throw new IllegalArgumentException("schema.entityType.id must not be null");
+        }
+
+        var entityType = entityTypeRepository.findById(schema.entityType().id())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Unknown intellectual entity type id=" + schema.entityType().id()));
+        entity.setEntityType(entityType);
         entity.setSchemaJson(schema.schemaJson());
         entity.setActive(schema.active());
 
@@ -85,7 +100,7 @@ public class JpaDescriptiveMetadataSchemaAdapter implements DescriptiveMetadataS
         return repository.findAll(spec, sort).stream()
                 .map(s -> new DescriptiveMetadataSchemaSummary(
                         s.getId(),
-                        s.getEntityType(),
+                        s.getEntityType() == null ? null : s.getEntityType().getName(),
                         s.isActive(),
                         s.getCreatedAt(),
                         s.getUpdatedAt()))

@@ -133,7 +133,7 @@ public class OpenSearchObjectSearchAdapter implements ObjectSearchOutPort {
                             return null;
                         }
 
-                        var type = source.intellectualEntityType();
+                        var type = source.intellectualEntityTypeName();
                         var originalName = source.premis() == null ? null : source.premis().originalName();
 
                         return new SearchObjectsResult.Hit(id, type, originalName);

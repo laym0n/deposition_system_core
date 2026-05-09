@@ -3,11 +3,11 @@ package com.deposition.domain.adapter.object;
 import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.port.in.object.UpsertDescriptiveMetadataInPort;
-import com.deposition.domain.port.in.schema.IntellectualEntityType;
 import com.deposition.domain.port.out.ObjectIndexDocument;
 import com.deposition.domain.port.out.ObjectIndexLookupOutPort;
 import com.deposition.domain.port.out.ObjectIndexOutPort;
 import com.deposition.domain.service.DescriptiveMetadataService;
+import com.deposition.domain.service.IntellectualEntityTypeResolver;
 import com.deposition.domain.service.acl.AccessValidatorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -25,16 +25,17 @@ public class UpsertDescriptiveMetadataAdapter implements UpsertDescriptiveMetada
     private final DescriptiveMetadataService descriptiveMetadataService;
     private final ObjectIndexLookupOutPort objectIndexLookupOutPort;
     private final ObjectIndexOutPort objectIndexOutPort;
+    private final IntellectualEntityTypeResolver intellectualEntityTypeResolver;
 
     @Override
     public Map<String, Object> upsertDescriptiveMetadata(UUID objectId,
-                                                         IntellectualEntityType entityType,
+                                                         String entityTypeName,
                                                          String descriptiveMetadataJson) {
         if (objectId == null) {
             throw new IllegalArgumentException("objectId must not be null");
         }
-        if (entityType == null) {
-            throw new IllegalArgumentException("entityType must not be null");
+        if (entityTypeName == null || entityTypeName.isBlank()) {
+            throw new IllegalArgumentException("entityTypeName must not be blank");
         }
         if (descriptiveMetadataJson == null || descriptiveMetadataJson.isBlank()) {
             throw new IllegalArgumentException("descriptiveMetadataJson must not be blank");
@@ -45,6 +46,8 @@ public class UpsertDescriptiveMetadataAdapter implements UpsertDescriptiveMetada
         var existing = objectIndexLookupOutPort.findByObjectId(objectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Object", objectId.toString()));
 
+        var entityType = intellectualEntityTypeResolver.resolveByName(entityTypeName);
+
         var extractedFields = descriptiveMetadataService.validateAndPersistIfPresent(
                 objectId,
                 entityType,
@@ -52,7 +55,7 @@ public class UpsertDescriptiveMetadataAdapter implements UpsertDescriptiveMetada
 
         ObjectIndexDocument updated = new ObjectIndexDocument(
                 existing.objectId(),
-                existing.intellectualEntityType(),
+                existing.intellectualEntityTypeName(),
                 existing.acl(),
                 existing.anchors(),
                 existing.visibility(),

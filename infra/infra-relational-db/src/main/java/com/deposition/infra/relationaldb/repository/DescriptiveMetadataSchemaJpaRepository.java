@@ -10,7 +10,7 @@ import java.util.UUID;
 public interface DescriptiveMetadataSchemaJpaRepository extends JpaRepository<DescriptiveMetadataSchemaEntity, UUID>,
         JpaSpecificationExecutor<DescriptiveMetadataSchemaEntity> {
 
-    Optional<DescriptiveMetadataSchemaEntity> findByEntityTypeAndActiveIsTrue(String entityType);
+    Optional<DescriptiveMetadataSchemaEntity> findByEntityType_NameAndActiveIsTrue(String entityTypeName);
 
-    Optional<DescriptiveMetadataSchemaEntity> findFirstByEntityTypeAndActiveIsTrueOrderByUpdatedAtDesc(String entityType);
+    Optional<DescriptiveMetadataSchemaEntity> findFirstByEntityType_NameAndActiveIsTrueOrderByUpdatedAtDesc(String entityTypeName);
 }

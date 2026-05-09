@@ -12,6 +12,7 @@ import com.deposition.domain.port.out.DepositionJobOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.domain.service.DepositionIndexingService;
 import com.deposition.domain.service.DescriptiveMetadataService;
+import com.deposition.domain.service.IntellectualEntityTypeResolver;
 import com.deposition.domain.service.ResourceHashCalculatorUtils;
 import com.deposition.domain.service.XmlUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,6 +39,7 @@ public class ProcessDepositionJobAdapter implements ProcessDepositionJobInPort {
     private final DescriptiveMetadataService descriptiveMetadataService;
     private final DepositionIndexingService depositionIndexingService;
     private final ObjectMapper objectMapper;
+    private final IntellectualEntityTypeResolver intellectualEntityTypeResolver;
 
     private static AnchorRecord buildAnchorRecord(UUID objectId, String versionId, Resource premisMetadata) {
         String algorithm = ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM;
@@ -71,9 +73,11 @@ public class ProcessDepositionJobAdapter implements ProcessDepositionJobInPort {
                     job.requestJson(),
                     CreateDepositionJobInPort.CreateDepositionJobCommand.class);
 
+            var entityType = intellectualEntityTypeResolver.resolveByName(cmd.intellectualEntityTypeName());
+
             Map<String, Object> descriptiveExtracted = descriptiveMetadataService.validateAndPersistIfPresent(
                     job.objectId(),
-                    cmd.intellectualEntityType(),
+                    entityType,
                     cmd.descriptiveMetadata());
 
             var files = jobOutPort.listFiles(jobId);
@@ -118,7 +122,7 @@ public class ProcessDepositionJobAdapter implements ProcessDepositionJobInPort {
             depositionIndexingService.indexIntellectualEntityAsync(
                     premis,
                     job.objectId(),
-                    cmd.intellectualEntityType(),
+                    entityType.name(),
                     txId,
                     premisStorage.getVersionId(),
                     descriptiveExtracted);

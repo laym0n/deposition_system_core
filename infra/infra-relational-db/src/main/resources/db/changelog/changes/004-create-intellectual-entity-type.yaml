@@ -1,0 +1,73 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-create-intellectual-entity-type
+      author: cline
+      changes:
+        - createTable:
+            tableName: intellectual_entity_type
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: text
+                  constraints:
+                    nullable: true
+
+        - addUniqueConstraint:
+            tableName: intellectual_entity_type
+            constraintName: uq_intellectual_entity_type_name
+            columnNames: name
+
+  - changeSet:
+      id: 006-descriptive-metadata-schema-entity-type-fk
+      author: cline
+      changes:
+        - addColumn:
+            tableName: descriptive_metadata_schema
+            columns:
+              - column:
+                  name: entity_type_id
+                  type: uuid
+                  constraints:
+                    nullable: true
+
+        # Migrate existing string values to FK ids
+        - sql:
+            splitStatements: false
+            sql: |
+              UPDATE descriptive_metadata_schema
+              SET entity_type_id = iet.id
+              FROM intellectual_entity_type iet
+              WHERE descriptive_metadata_schema.entity_type = iet.name;
+
+        - addNotNullConstraint:
+            tableName: descriptive_metadata_schema
+            columnName: entity_type_id
+
+        - addForeignKeyConstraint:
+            baseTableName: descriptive_metadata_schema
+            baseColumnNames: entity_type_id
+            referencedTableName: intellectual_entity_type
+            referencedColumnNames: id
+            constraintName: fk_descriptive_metadata_schema_entity_type
+
+        - dropColumn:
+            tableName: descriptive_metadata_schema
+            columnName: entity_type
+
+        - createIndex:
+            tableName: descriptive_metadata_schema
+            indexName: idx_descriptive_metadata_schema_entity_type_id
+            columns:
+              - column:
+                  name: entity_type_id

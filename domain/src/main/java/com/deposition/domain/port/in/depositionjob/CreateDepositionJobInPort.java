@@ -2,7 +2,6 @@ package com.deposition.domain.port.in.depositionjob;
 
 import com.deposition.domain.port.in.object.IntellectualEntityMetadataParam;
 import com.deposition.domain.port.in.object.RepresentationMetadataParam;
-import com.deposition.domain.port.in.schema.IntellectualEntityType;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -23,7 +22,7 @@ public interface CreateDepositionJobInPort {
             @Nullable
             String idempotencyKey,
             @NotNull
-            IntellectualEntityType intellectualEntityType,
+            String intellectualEntityTypeName,
             @Nullable
             @Valid
             IntellectualEntityMetadataParam intellectualEntityMetadata,

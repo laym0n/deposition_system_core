@@ -2,7 +2,6 @@ package com.deposition.infra.api.controller.object;
 
 import com.deposition.domain.port.in.common.DepositionResult;
 import com.deposition.domain.port.in.object.*;
-import com.deposition.domain.port.in.schema.IntellectualEntityType;
 import com.deposition.infra.api.controller.DeponeMultipartForm;
 import com.deposition.infra.api.controller.DeponeMultipartRequest;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -61,7 +60,7 @@ public class ObjectController {
     @PostMapping(value = "/depone", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<DepositionResult> depone(
-            @RequestParam(name = "intellectualEntityType") IntellectualEntityType intellectualEntityType,
+            @RequestParam(name = "intellectualEntityType") String intellectualEntityTypeName,
             @RequestPart(name = "request", required = false) DeponeMultipartRequest request,
             @RequestPart(name = "files") List<MultipartFile> files) {
 
@@ -101,7 +100,7 @@ public class ObjectController {
                 .toList();
 
         var deponeParams = new DeponeIntellectualEntityParams(
-                intellectualEntityType,
+                intellectualEntityTypeName,
                 resolvedIntellectualEntityMetadata,
                 descriptiveMetadata,
                 List.of(new DeponeRepresentationParam(resolvedRepresentationMetadata, deponeFiles)));
@@ -186,11 +185,11 @@ public class ObjectController {
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Map<String, Object>> upsertDescriptiveMetadata(
             @PathVariable("objectId") UUID objectId,
-            @RequestParam(name = "entityType") IntellectualEntityType entityType,
+            @RequestParam(name = "entityType") String entityTypeName,
             @RequestBody String descriptiveMetadataJson) {
         var result = upsertDescriptiveMetadataInPort.upsertDescriptiveMetadata(
                 objectId,
-                entityType,
+                entityTypeName,
                 descriptiveMetadataJson);
         return ResponseEntity.ok(result);
     }

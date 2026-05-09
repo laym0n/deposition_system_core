@@ -11,14 +11,14 @@ public interface GetDescriptiveMetadataSchemasInPort {
     List<DescriptiveMetadataSchemaSummary> getSchemas(@Valid DescriptiveMetadataSchemaFilter filter);
 
     record DescriptiveMetadataSchemaFilter(
-            IntellectualEntityType entityType,
+            String entityTypeName,
             Boolean active) {
 
     }
 
     record DescriptiveMetadataSchemaSummary(
             UUID id,
-            IntellectualEntityType entityType,
+            String entityTypeName,
             boolean active,
             OffsetDateTime createdAt,
             OffsetDateTime updatedAt) {

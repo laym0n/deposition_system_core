@@ -33,7 +33,7 @@ public class DepositionJobController {
 
         var cmd = new CreateDepositionJobInPort.CreateDepositionJobCommand(
                 idempotencyKey,
-                request.intellectualEntityType,
+                request.intellectualEntityTypeName,
                 request.intellectualEntityMetadata,
                 request.descriptiveMetadata,
                 request.representationMetadata,
@@ -70,7 +70,7 @@ public class DepositionJobController {
     }
 
     public static class CreateJobRequest {
-        public com.deposition.domain.port.in.schema.IntellectualEntityType intellectualEntityType;
+        public String intellectualEntityTypeName;
         public com.deposition.domain.port.in.object.IntellectualEntityMetadataParam intellectualEntityMetadata;
         public String descriptiveMetadata;
         public com.deposition.domain.port.in.object.RepresentationMetadataParam representationMetadata;

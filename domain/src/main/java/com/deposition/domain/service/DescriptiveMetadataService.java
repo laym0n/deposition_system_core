@@ -2,7 +2,7 @@ package com.deposition.domain.service;
 
 import com.deposition.domain.exception.DescriptiveMetadataValidationException;
 import com.deposition.domain.exception.ResourceNotFoundException;
-import com.deposition.domain.port.in.schema.IntellectualEntityType;
+import com.deposition.domain.models.IntellectualEntityType;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.fasterxml.jackson.core.type.TypeReference;

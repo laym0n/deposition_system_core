@@ -5,3 +5,5 @@ databaseChangeLog:
       file: db/changelog/changes/002-create-statistics-event.yaml
   - include:
       file: db/changelog/changes/003-create-deposition-job.yaml
+  - include:
+      file: db/changelog/changes/004-create-intellectual-entity-type.yaml

@@ -2,6 +2,7 @@ package com.deposition.domain.adapter.schema;
 
 import com.deposition.domain.models.DescriptiveMetadataSchema;
 import com.deposition.domain.port.in.schema.CreateDescriptiveMetadataSchemaInPort;
+import com.deposition.domain.service.IntellectualEntityTypeResolver;
 import com.deposition.domain.port.out.DescriptiveMetadataSchemaOutPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -18,15 +19,18 @@ public class CreateDescriptiveMetadataSchemaAdapter implements CreateDescriptive
 
     private final DescriptiveMetadataSchemaOutPort outPort;
     private final ObjectMapper objectMapper;
+    private final IntellectualEntityTypeResolver intellectualEntityTypeResolver;
 
     @Override
     public DescriptiveMetadataSchema create(CreateDescriptiveMetadataSchemaCommand command) {
         validateJson(command.schemaJson());
 
+        var entityType = intellectualEntityTypeResolver.resolveByName(command.entityTypeName());
+
         var now = OffsetDateTime.now();
         var schema = new DescriptiveMetadataSchema(
                 UUID.randomUUID(),
-                command.entityType(),
+                entityType,
                 command.schemaJson(),
                 true,
                 now,

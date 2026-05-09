@@ -14,6 +14,7 @@ import com.deposition.domain.port.out.BusinessMetricsOutPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
 import com.deposition.domain.port.out.UserOutPort;
 import com.deposition.domain.service.*;
+import com.deposition.domain.service.IntellectualEntityTypeResolver;
 import com.deposition.domain.service.acl.AccessValidatorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -37,6 +38,7 @@ public class DeponeAdapter implements DeponeInPort {
     private final StatisticsEventReporter statisticsEventReporter;
     private final UserOutPort userService;
     private final BusinessMetricsOutPort businessMetrics;
+    private final IntellectualEntityTypeResolver intellectualEntityTypeResolver;
 
     private static AnchorRecord buildAnchorRecord(UUID objectId, String versionId, Resource premisMetadata) {
         String algorithm = ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM;
@@ -56,9 +58,11 @@ public class DeponeAdapter implements DeponeInPort {
 
         var intellectualEntityId = UUID.randomUUID();
 
+        var entityType = intellectualEntityTypeResolver.resolveByName(params.intellectualEntityTypeName());
+
         var descriptiveExtracted = descriptiveMetadataService.validateAndPersistIfPresent(
                 intellectualEntityId,
-                params.intellectualEntityType(),
+                entityType,
                 params.descriptiveMetadata());
 
         var persistedRepresentations = persistRepresentations(params.representations(), intellectualEntityId);
@@ -77,7 +81,7 @@ public class DeponeAdapter implements DeponeInPort {
         depositionIndexingService.indexIntellectualEntityAsync(
                 metadataPremis,
                 intellectualEntityId,
-                params.intellectualEntityType(),
+                entityType.name(),
                 txId,
                 premisStorage.getVersionId(),
                 descriptiveExtracted);

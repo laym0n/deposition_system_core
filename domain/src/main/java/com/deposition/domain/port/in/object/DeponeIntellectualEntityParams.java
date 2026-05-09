@@ -1,6 +1,4 @@
 package com.deposition.domain.port.in.object;
-
-import com.deposition.domain.port.in.schema.IntellectualEntityType;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -10,7 +8,7 @@ import java.util.List;
 
 public record DeponeIntellectualEntityParams(
         @NotNull
-        IntellectualEntityType intellectualEntityType,
+        String intellectualEntityTypeName,
         @Nullable
         @Valid
         IntellectualEntityMetadataParam intellectualEntityMetadata,

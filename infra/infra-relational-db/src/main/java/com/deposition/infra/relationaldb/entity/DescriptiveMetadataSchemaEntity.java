@@ -3,6 +3,8 @@ package com.deposition.infra.relationaldb.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,8 +26,9 @@ public class DescriptiveMetadataSchemaEntity {
     @Column(name = "id", nullable = false)
     private UUID id;
 
-    @Column(name = "entity_type", nullable = false)
-    private String entityType;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "entity_type_id", nullable = false)
+    private IntellectualEntityTypeEntity entityType;
 
     @Column(name = "schema_json", nullable = false)
     private String schemaJson;

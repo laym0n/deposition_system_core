@@ -27,10 +27,9 @@ public class DescriptiveMetadataSchemaController {
     @GetMapping(value = "/descriptive-metadata/schemas", produces = MediaType.APPLICATION_JSON_VALUE)
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<List<DescriptiveMetadataSchemaSummaryDto>> getSchemas(
-            @RequestParam(name = "entityType", required = false) IntellectualEntityType entityType,
+            @RequestParam(name = "entityType", required = false) String entityTypeName,
             @RequestParam(name = "active", required = false) Boolean active) {
-        var effectiveEntityType = entityType;
-        var filter = new GetDescriptiveMetadataSchemasInPort.DescriptiveMetadataSchemaFilter(effectiveEntityType, active);
+        var filter = new GetDescriptiveMetadataSchemasInPort.DescriptiveMetadataSchemaFilter(entityTypeName, active);
         var schemas = getDescriptiveMetadataSchemasInPort.getSchemas(filter);
         return ResponseEntity.ok(schemas.stream().map(DescriptiveMetadataSchemaSummaryDto::from).toList());
     }
@@ -49,7 +48,7 @@ public class DescriptiveMetadataSchemaController {
     public ResponseEntity<DescriptiveMetadataSchemaDto> createSchema(@RequestBody CreateSchemaRequest request) {
         var created = createDescriptiveMetadataSchemaInPort.create(
                 new CreateDescriptiveMetadataSchemaInPort.CreateDescriptiveMetadataSchemaCommand(
-                        request.entityType(),
+                        request.entityTypeName(),
                         request.schemaJson()));
         return ResponseEntity.status(HttpStatus.CREATED).body(DescriptiveMetadataSchemaDto.from(created));
     }
@@ -68,7 +67,7 @@ public class DescriptiveMetadataSchemaController {
 
     public record DescriptiveMetadataSchemaSummaryDto(
             UUID id,
-            IntellectualEntityType entityType,
+            String entityTypeName,
             boolean active,
             java.time.OffsetDateTime createdAt,
             java.time.OffsetDateTime updatedAt) {
@@ -77,7 +76,7 @@ public class DescriptiveMetadataSchemaController {
                 GetDescriptiveMetadataSchemasInPort.DescriptiveMetadataSchemaSummary s) {
             return new DescriptiveMetadataSchemaSummaryDto(
                     s.id(),
-                    s.entityType(),
+                    s.entityTypeName(),
                     s.active(),
                     s.createdAt(),
                     s.updatedAt());
@@ -85,7 +84,7 @@ public class DescriptiveMetadataSchemaController {
     }
 
     public record CreateSchemaRequest(
-            @NotNull IntellectualEntityType entityType,
+            @NotNull String entityTypeName,
             @NotNull String schemaJson) {
 
     }
@@ -96,7 +95,7 @@ public class DescriptiveMetadataSchemaController {
 
     public record DescriptiveMetadataSchemaDto(
             UUID id,
-            IntellectualEntityType entityType,
+            String entityTypeName,
             String schemaJson,
             boolean active,
             java.time.OffsetDateTime createdAt,
@@ -105,7 +104,7 @@ public class DescriptiveMetadataSchemaController {
         public static DescriptiveMetadataSchemaDto from(DescriptiveMetadataSchema s) {
             return new DescriptiveMetadataSchemaDto(
                     s.id(),
-                    s.entityType(),
+                    s.entityType() == null ? null : s.entityType().name(),
                     s.schemaJson(),
                     s.active(),
                     s.createdAt(),
