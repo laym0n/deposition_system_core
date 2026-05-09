@@ -10,6 +10,7 @@ import com.deposition.domain.port.in.object.GetCachedObjectMetadataInPort;
 import com.deposition.domain.port.out.ObjectIndexLookupOutPort;
 import com.deposition.domain.port.out.UserOutPort;
 import com.deposition.domain.service.StatisticsEventReporter;
+import com.deposition.domain.service.IntellectualEntityTypeResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -26,6 +27,7 @@ public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataIn
     private final ObjectIndexLookupOutPort objectIndexLookupOutPort;
     private final UserOutPort userOutPort;
     private final StatisticsEventReporter statisticsEventReporter;
+    private final IntellectualEntityTypeResolver intellectualEntityTypeResolver;
 
     private static List<AclEntry> filterAclEntriesForUser(
             List<AclEntry> entries,
@@ -57,6 +59,8 @@ public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataIn
                 doc.premis().identifiers(),
                 doc.premis().relationships());
 
+        var entityType = intellectualEntityTypeResolver.resolveByName(doc.intellectualEntityTypeName());
+
         var optionalCurrentUserId = userOutPort.getOptinalCurrentUserId();
         ObjectAcl userAcl = null;
         if (optionalCurrentUserId.isPresent()) {
@@ -68,6 +72,7 @@ public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataIn
 
         return new CachedObjectMetadataResponse(
                 doc.objectId(),
+                entityType,
                 premisMetadata,
                 doc.descriptive(),
                 userAcl);

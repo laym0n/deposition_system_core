@@ -1,5 +1,6 @@
 package com.deposition.domain.port.in.object;
 
+import com.deposition.domain.models.IntellectualEntityType;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
@@ -14,7 +15,7 @@ public record SearchObjectsResult(
             @NotNull
             UUID objectId,
             @NotNull
-            String intellectualEntityTypeName,
+            IntellectualEntityType intellectualEntityType,
             String originalName) {
 
     }

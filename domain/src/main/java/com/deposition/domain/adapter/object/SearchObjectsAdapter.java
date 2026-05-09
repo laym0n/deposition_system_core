@@ -9,6 +9,7 @@ import com.deposition.domain.port.out.ObjectSearchOutPort;
 import com.deposition.domain.port.out.ObjectSearchFilters;
 import com.deposition.domain.port.out.ObjectSearchQuery;
 import com.deposition.domain.port.out.UserOutPort;
+import com.deposition.domain.service.IntellectualEntityTypeResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -22,6 +23,7 @@ public class SearchObjectsAdapter implements SearchObjectsInPort {
 
     private final ObjectSearchOutPort searchOutPort;
     private final UserOutPort userOutPort;
+    private final IntellectualEntityTypeResolver intellectualEntityTypeResolver;
 
     @Override
     public SearchObjectsResult search(ObjectSearchRequest request) {
@@ -37,7 +39,17 @@ public class SearchObjectsAdapter implements SearchObjectsInPort {
                 Set.of(ObjectSearchFilters.Visibility.PUBLIC));
 
         var query = new ObjectSearchQuery(request, filters);
-        return searchOutPort.search(query);
+        var result = searchOutPort.search(query);
+
+        // Enrich OpenSearch hits with full IntellectualEntityType (id/name/description).
+        var enrichedHits = result.hits().stream()
+                .map(h -> new SearchObjectsResult.Hit(
+                        h.objectId(),
+                        intellectualEntityTypeResolver.resolveByName(h.intellectualEntityType().name()),
+                        h.originalName()))
+                .toList();
+
+        return new SearchObjectsResult(result.total(), enrichedHits);
     }
 
 }

@@ -2,6 +2,7 @@ package com.deposition.infra.opensearch.adapter;
 
 import com.deposition.domain.port.in.object.ObjectSearchRequest;
 import com.deposition.domain.port.in.object.SearchObjectsResult;
+import com.deposition.domain.models.IntellectualEntityType;
 import com.deposition.domain.port.out.ObjectIndexDocument;
 import com.deposition.domain.port.out.ObjectSearchOutPort;
 import com.deposition.domain.port.out.ObjectSearchQuery;
@@ -133,7 +134,9 @@ public class OpenSearchObjectSearchAdapter implements ObjectSearchOutPort {
                             return null;
                         }
 
-                        var type = source.intellectualEntityTypeName();
+                        // Keep OpenSearch document minimal: store only type name.
+                        // Full IntellectualEntityType (id/name/description) is resolved on the domain layer.
+                        var type = new IntellectualEntityType(null, source.intellectualEntityTypeName(), null);
                         var originalName = source.premis() == null ? null : source.premis().originalName();
 
                         return new SearchObjectsResult.Hit(id, type, originalName);

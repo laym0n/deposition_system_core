@@ -1,6 +1,7 @@
 package com.deposition.domain.port.in.object;
 
 import com.deposition.domain.models.acl.ObjectAcl;
+import com.deposition.domain.models.IntellectualEntityType;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 
@@ -10,6 +11,8 @@ import java.util.UUID;
 public record CachedObjectMetadataResponse(
         @NotNull
         UUID objectId,
+        @NotNull
+        IntellectualEntityType intellectualEntityType,
         @NotNull
         PremisMetadata premisMetadata,
         @Nullable
