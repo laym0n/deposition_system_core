@@ -1,5 +1,7 @@
 package com.deposition.infra.relationaldb.adapter;
 
+import com.deposition.domain.models.depositionjob.DepositionJob;
+import com.deposition.domain.models.depositionjob.DepositionJobFile;
 import com.deposition.domain.port.in.depositionjob.DepositionJobStatus;
 import com.deposition.domain.port.out.DepositionJobOutPort;
 import com.deposition.infra.relationaldb.entity.DepositionJobEntity;
@@ -103,6 +105,7 @@ public class JpaDepositionJobAdapter implements DepositionJobOutPort {
         return DepositionJobFileEntity.builder()
                 .fileId(f.fileId())
                 .jobId(f.jobId())
+                .representationIndex(f.representationIndex())
                 .originalName(f.originalName())
                 .contentType(f.contentType())
                 .sizeBytesExpected(f.sizeBytesExpected())
@@ -115,6 +118,7 @@ public class JpaDepositionJobAdapter implements DepositionJobOutPort {
         return new DepositionJobFile(
                 entity.getFileId(),
                 entity.getJobId(),
+                entity.getRepresentationIndex(),
                 entity.getOriginalName(),
                 entity.getContentType(),
                 entity.getSizeBytesExpected(),

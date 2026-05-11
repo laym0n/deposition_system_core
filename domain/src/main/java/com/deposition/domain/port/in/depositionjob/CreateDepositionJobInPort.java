@@ -28,6 +28,15 @@ public interface CreateDepositionJobInPort {
             IntellectualEntityMetadataParam intellectualEntityMetadata,
             @Nullable
             String descriptiveMetadata,
+            @NotEmpty
+            List<@Valid DepositionJobRepresentationUploadParam> representations) {
+    }
+
+    /**
+     * One representation within a deposition job.
+     * Each representation can have its own metadata and multiple files.
+     */
+    record DepositionJobRepresentationUploadParam(
             @Nullable
             @Valid
             RepresentationMetadataParam representationMetadata,

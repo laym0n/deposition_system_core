@@ -3,6 +3,7 @@ package com.deposition.domain.adapter.depositionjob;
 import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.port.in.depositionjob.DepositionJobStatus;
+import com.deposition.domain.models.depositionjob.DepositionJob;
 import com.deposition.domain.port.in.depositionjob.ProcessDepositionJobInPort;
 import com.deposition.domain.port.in.depositionjob.SubmitDepositionJobInPort;
 import com.deposition.domain.port.out.DepositionJobOutPort;
@@ -55,7 +56,8 @@ public class SubmitDepositionJobAdapter implements SubmitDepositionJobInPort {
         validateRelationshipsOwnedByCurrentUser(job);
 
         var now = OffsetDateTime.now(ZoneOffset.UTC);
-        var updated = new DepositionJobOutPort.DepositionJob(
+
+        var updated = new DepositionJob(
                 job.jobId(),
                 job.objectId(),
                 job.ownerUserId(),
@@ -83,7 +85,7 @@ public class SubmitDepositionJobAdapter implements SubmitDepositionJobInPort {
         }
     }
 
-    private void validateRelationshipsOwnedByCurrentUser(DepositionJobOutPort.DepositionJob job) {
+    private void validateRelationshipsOwnedByCurrentUser(DepositionJob job) {
         try {
             var cmd = objectMapper.readValue(
                     job.requestJson(),

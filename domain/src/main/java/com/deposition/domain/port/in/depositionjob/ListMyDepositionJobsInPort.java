@@ -17,6 +17,10 @@ public interface ListMyDepositionJobsInPort {
     record DepositionJobListItem(
             @NotNull UUID jobId,
             @NotNull UUID objectId,
+            /** UI card title / object name. */
+            String objectName,
+            /** Intellectual entity type of the deposited object. */
+            String intellectualEntityTypeName,
             @NotNull DepositionJobStatus status,
             @NotNull OffsetDateTime createdAt,
             @NotNull OffsetDateTime updatedAt

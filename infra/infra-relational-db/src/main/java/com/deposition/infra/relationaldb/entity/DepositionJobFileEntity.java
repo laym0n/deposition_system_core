@@ -24,6 +24,9 @@ public class DepositionJobFileEntity {
     @Column(name = "job_id", nullable = false)
     private UUID jobId;
 
+    @Column(name = "representation_index", nullable = false)
+    private Integer representationIndex;
+
     @Column(name = "original_name", nullable = false)
     private String originalName;
 

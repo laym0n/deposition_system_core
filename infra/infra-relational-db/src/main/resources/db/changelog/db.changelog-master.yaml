@@ -7,3 +7,5 @@ databaseChangeLog:
       file: db/changelog/changes/003-create-deposition-job.yaml
   - include:
       file: db/changelog/changes/004-create-intellectual-entity-type.yaml
+  - include:
+      file: db/changelog/changes/005-add-representation-index-to-deposition-job-file.yaml

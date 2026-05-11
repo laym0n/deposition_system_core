@@ -2,6 +2,8 @@ package com.deposition.domain.adapter.depositionjob;
 
 import com.deposition.domain.port.in.depositionjob.CreateDepositionJobInPort;
 import com.deposition.domain.port.in.depositionjob.DepositionJobStatus;
+import com.deposition.domain.models.depositionjob.DepositionJob;
+import com.deposition.domain.models.depositionjob.DepositionJobFile;
 import com.deposition.domain.port.out.DepositionJobOutPort;
 import com.deposition.domain.port.out.PresignUploadOutPort;
 import com.deposition.domain.port.out.UserOutPort;
@@ -77,7 +79,7 @@ public class CreateDepositionJobAdapter implements CreateDepositionJobInPort {
             throw new IllegalArgumentException("Failed to serialize deposition job request", ex);
         }
 
-        var job = new DepositionJobOutPort.DepositionJob(
+        var job = new DepositionJob(
                 jobId,
                 objectId,
                 ownerUserId,
@@ -93,27 +95,32 @@ public class CreateDepositionJobAdapter implements CreateDepositionJobInPort {
         jobOutPort.create(job);
 
         // Generate pre-signed uploads and persist file records.
-        List<DepositionJobOutPort.DepositionJobFile> files = command.files().stream()
-                .map(f -> {
-                    UUID fileId = UUID.randomUUID();
-                    String objectKey = "object/" + objectId + "/" + f.originalName();
+        List<DepositionJobFile> files = java.util.stream.IntStream
+                .range(0, command.representations().size())
+                .boxed()
+                .flatMap(repIdx -> command.representations().get(repIdx).files().stream()
+                        .map(f -> {
+                            UUID fileId = UUID.randomUUID();
+                            // Include representation index to avoid collisions across representations.
+                            String objectKey = "object/" + objectId + "/rep-" + repIdx + "/" + f.originalName();
 
-                    var presigned = presignUploadOutPort.presignPutObject(
-                            new PresignUploadOutPort.PresignPutObjectCommand(
-                                    objectKey,
+                            var presigned = presignUploadOutPort.presignPutObject(
+                                    new PresignUploadOutPort.PresignPutObjectCommand(
+                                            objectKey,
+                                            f.contentType(),
+                                            DEFAULT_PRESIGN_TTL));
+
+                            return new DepositionJobFile(
+                                    fileId,
+                                    jobId,
+                                    repIdx,
+                                    f.originalName(),
                                     f.contentType(),
-                                    DEFAULT_PRESIGN_TTL));
-
-                    return new DepositionJobOutPort.DepositionJobFile(
-                            fileId,
-                            jobId,
-                            f.originalName(),
-                            f.contentType(),
-                            f.sizeBytes(),
-                            objectKey,
-                            presigned.contentLocation()
-                    );
-                })
+                                    f.sizeBytes(),
+                                    objectKey,
+                                    presigned.contentLocation()
+                            );
+                        }))
                 .toList();
         jobOutPort.upsertFiles(jobId, files);
 

@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-add-representation-index-to-deposition-job-file
+      author: cline
+      changes:
+        # Backward-compatible: existing rows will default to 0.
+        - addColumn:
+            tableName: deposition_job_file
+            columns:
+              - column:
+                  name: representation_index
+                  type: int
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+
+        - createIndex:
+            tableName: deposition_job_file
+            indexName: idx_deposition_job_file_job_rep
+            columns:
+              - column:
+                  name: job_id
+              - column:
+                  name: representation_index

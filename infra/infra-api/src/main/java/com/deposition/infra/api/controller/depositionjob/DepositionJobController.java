@@ -7,6 +7,8 @@ import com.deposition.domain.port.in.depositionjob.SubmitDepositionJobInPort;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,8 +38,7 @@ public class DepositionJobController {
                 request.intellectualEntityTypeName,
                 request.intellectualEntityMetadata,
                 request.descriptiveMetadata,
-                request.representationMetadata,
-                request.files);
+                request.representations);
 
         var result = createDepositionJobInPort.create(cmd);
         return ResponseEntity
@@ -70,10 +71,13 @@ public class DepositionJobController {
     }
 
     public static class CreateJobRequest {
+        @NotNull
         public String intellectualEntityTypeName;
         public com.deposition.domain.port.in.object.IntellectualEntityMetadataParam intellectualEntityMetadata;
         public String descriptiveMetadata;
-        public com.deposition.domain.port.in.object.RepresentationMetadataParam representationMetadata;
-        public java.util.List<CreateDepositionJobInPort.DepositionJobFileUploadParam> files;
+
+        @NotEmpty
+        @Valid
+        public java.util.List<CreateDepositionJobInPort.DepositionJobRepresentationUploadParam> representations;
     }
 }

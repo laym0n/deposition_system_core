@@ -6,6 +6,7 @@ import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.AnchorRecord;
 import com.deposition.domain.port.in.depositionjob.DepositionJobStatus;
 import com.deposition.domain.port.in.depositionjob.ProcessDepositionJobInPort;
+import com.deposition.domain.models.depositionjob.DepositionJob;
 import com.deposition.domain.port.in.depositionjob.CreateDepositionJobInPort;
 import com.deposition.domain.port.out.BlockchainOutPort;
 import com.deposition.domain.port.out.DepositionJobOutPort;
@@ -81,6 +82,8 @@ public class ProcessDepositionJobAdapter implements ProcessDepositionJobInPort {
                     cmd.descriptiveMetadata());
 
             var files = jobOutPort.listFiles(jobId);
+
+            // Convert stored job files to DeponeFileParam inputs, keeping the original order from DB.
             var persistedFiles = files.stream()
                     .map(f -> {
                         // Do not download file to calculate hash: take it from storage metadata (HEAD).
@@ -104,11 +107,24 @@ public class ProcessDepositionJobAdapter implements ProcessDepositionJobInPort {
                     })
                     .toList();
 
-            var repMeta = cmd.representationMetadata();
-            var persistedRep = new CommonMetadataBuilder.PersistedRepresentationMetadataInput(repMeta, persistedFiles);
+            // Group files by representation index and build PREMIS representations accordingly.
+            var persistedReps = java.util.stream.IntStream
+                    .range(0, cmd.representations().size())
+                    .mapToObj(repIdx -> {
+                        var repFiles = java.util.stream.IntStream
+                                .range(0, files.size())
+                                .filter(i -> java.util.Objects.equals(files.get(i).representationIndex(), repIdx))
+                                .mapToObj(persistedFiles::get)
+                                .toList();
+
+                        return new CommonMetadataBuilder.PersistedRepresentationMetadataInput(
+                                cmd.representations().get(repIdx).representationMetadata(),
+                                repFiles);
+                    })
+                    .toList();
 
             var premis = premisMetadataBuilder.buildPremisWithEntities(
-                    List.of(persistedRep),
+                    persistedReps,
                     cmd.intellectualEntityMetadata(),
                     job.objectId(),
                     job.ownerUserId());
@@ -127,7 +143,7 @@ public class ProcessDepositionJobAdapter implements ProcessDepositionJobInPort {
                     premisStorage.getVersionId(),
                     descriptiveExtracted);
 
-            var completed = new DepositionJobOutPort.DepositionJob(
+            var completed = new DepositionJob(
                     job.jobId(),
                     job.objectId(),
                     job.ownerUserId(),
@@ -140,8 +156,9 @@ public class ProcessDepositionJobAdapter implements ProcessDepositionJobInPort {
                     premisStorage.getVersionId(),
                     null);
             jobOutPort.update(completed);
+
         } catch (Exception ex) {
-            var failed = new DepositionJobOutPort.DepositionJob(
+            var failed = new DepositionJob(
                     job.jobId(),
                     job.objectId(),
                     job.ownerUserId(),
@@ -150,10 +167,12 @@ public class ProcessDepositionJobAdapter implements ProcessDepositionJobInPort {
                     job.idempotencyKey(),
                     job.createdAt(),
                     now,
-                    job.resultTxId(),
-                    job.resultVersionId(),
+                    null,
+                    null,
                     ex.getMessage());
             jobOutPort.update(failed);
+
+            throw new IllegalStateException("Failed to process deposition jobId=" + jobId, ex);
         }
     }
 }
