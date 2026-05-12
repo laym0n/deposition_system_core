@@ -45,7 +45,11 @@ public class SearchObjectsAdapter implements SearchObjectsInPort {
         var enrichedHits = result.hits().stream()
                 .map(h -> new SearchObjectsResult.Hit(
                         h.objectId(),
-                        intellectualEntityTypeResolver.resolveByName(h.intellectualEntityType().name()),
+                        h.intellectualEntityType() == null
+                                || h.intellectualEntityType().name() == null
+                                || h.intellectualEntityType().name().isBlank()
+                                ? null
+                                : intellectualEntityTypeResolver.resolveByName(h.intellectualEntityType().name()),
                         h.originalName()))
                 .toList();
 
