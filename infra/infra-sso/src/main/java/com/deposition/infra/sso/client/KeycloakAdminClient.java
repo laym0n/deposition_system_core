@@ -3,6 +3,7 @@ package com.deposition.infra.sso.client;
 import com.deposition.infra.sso.config.KeycloakAdminProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class KeycloakAdminClient {
 
+    @Qualifier("keycloakRestClient")
     private final RestClient restClient;
     private final KeycloakAdminProperties props;
 

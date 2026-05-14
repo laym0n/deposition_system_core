@@ -1,5 +1,6 @@
 package com.deposition.infra.sso.config;
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -8,13 +9,21 @@ import org.springframework.security.config.annotation.web.configurers.oauth2.ser
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 @Configuration
+@EnableConfigurationProperties(KeycloakAdminProperties.class)
 public class SSOConfiguration {
+
+    @Bean("keycloakRestClient")
+    public RestClient keycloakRestClient() {
+        // Intentionally not using RestClient.Builder bean to avoid requiring auto-config.
+        return RestClient.builder().build();
+    }
 
     @Bean
     public Customizer<OAuth2ResourceServerConfigurer<HttpSecurity>> oAuth2ResourceServerConfigurer() {
