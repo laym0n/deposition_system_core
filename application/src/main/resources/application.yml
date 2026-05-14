@@ -66,12 +66,12 @@ integration:
 
   keycloak:
     # Base URL of Keycloak (without trailing slash). Example: http://localhost:8085
-    base-url: ${integration.keycloak.base-url:}
+    base-url: ${oscm.integration.keycloak.base-url:}
     # Realm name. Example: deposition
-    realm: ${integration.keycloak.realm:}
+    realm: ${oscm.integration.keycloak.realm:}
     # Admin client credentials for querying Keycloak Admin REST API.
-    admin-client-id: ${integration.keycloak.admin-client-id:}
-    admin-client-secret: ${integration.keycloak.admin-client-secret:}
+    admin-client-id: ${oscm.integration.keycloak.admin-client-id:}
+    admin-client-secret: ${oscm.integration.keycloak.admin-client-secret:}
 
 statistics:
   events:
