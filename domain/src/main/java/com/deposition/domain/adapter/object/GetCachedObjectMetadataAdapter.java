@@ -2,6 +2,7 @@ package com.deposition.domain.adapter.object;
 
 import com.deposition.domain.exception.ResourceNotFoundException;
 import com.deposition.domain.models.acl.AclEntry;
+import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.acl.ObjectAcl;
 import com.deposition.domain.models.statistics.StatisticsEventType;
 import com.deposition.domain.port.in.object.CachedObjectMetadataResponse;
@@ -41,6 +42,13 @@ public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataIn
                 .toList();
     }
 
+    private static List<AclEntry> safeEntries(ObjectAcl acl) {
+        if (acl == null || acl.getEntries() == null) {
+            return List.of();
+        }
+        return acl.getEntries();
+    }
+
     @Override
     public CachedObjectMetadataResponse getCachedMetadata(UUID objectId) {
         var doc = objectIndexLookupOutPort.findByObjectId(objectId)
@@ -64,9 +72,18 @@ public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataIn
         var optionalCurrentUserId = userOutPort.getOptinalCurrentUserId();
         ObjectAcl userAcl = null;
         if (optionalCurrentUserId.isPresent()) {
+            var currentUserId = optionalCurrentUserId.get();
+
+            // If current user has WRITE permission, return full ACL (rights for all users).
+            // Otherwise, keep backward compatible behavior: return only current user's entries.
+            var hasWrite = doc.acl() != null && doc.acl().hasPermissionForUser(currentUserId, AclPermission.WRITE);
+            var entriesToReturn = hasWrite
+                    ? safeEntries(doc.acl())
+                    : filterAclEntriesForUser(safeEntries(doc.acl()), currentUserId);
+
             userAcl = ObjectAcl.builder()
                     .objectId(doc.objectId())
-                    .entries(filterAclEntriesForUser(doc.acl().getEntries(), optionalCurrentUserId.get()))
+                    .entries(entriesToReturn)
                     .build();
         }
 
