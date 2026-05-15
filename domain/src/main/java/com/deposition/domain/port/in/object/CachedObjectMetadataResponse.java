@@ -1,7 +1,7 @@
 package com.deposition.domain.port.in.object;
 
-import com.deposition.domain.models.acl.ObjectAcl;
 import com.deposition.domain.models.IntellectualEntityType;
+import com.deposition.domain.models.acl.ObjectAcl;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 
@@ -13,6 +13,8 @@ public record CachedObjectMetadataResponse(
         UUID objectId,
         @NotNull
         IntellectualEntityType intellectualEntityType,
+        @Nullable
+        com.deposition.domain.port.out.ObjectIndexDocument.Visibility visibility,
         @NotNull
         PremisMetadata premisMetadata,
         @Nullable

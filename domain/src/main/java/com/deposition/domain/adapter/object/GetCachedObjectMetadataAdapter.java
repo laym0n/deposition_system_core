@@ -71,6 +71,7 @@ public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataIn
 
         var optionalCurrentUserId = userOutPort.getOptinalCurrentUserId();
         ObjectAcl userAcl = null;
+        com.deposition.domain.port.out.ObjectIndexDocument.Visibility visibilityToReturn = null;
         if (optionalCurrentUserId.isPresent()) {
             var currentUserId = optionalCurrentUserId.get();
 
@@ -81,6 +82,10 @@ public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataIn
                     ? safeEntries(doc.acl())
                     : filterAclEntriesForUser(safeEntries(doc.acl()), currentUserId);
 
+            if (hasWrite) {
+                visibilityToReturn = doc.visibility();
+            }
+
             userAcl = ObjectAcl.builder()
                     .objectId(doc.objectId())
                     .entries(entriesToReturn)
@@ -90,6 +95,7 @@ public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataIn
         return new CachedObjectMetadataResponse(
                 doc.objectId(),
                 entityType,
+                visibilityToReturn,
                 premisMetadata,
                 doc.descriptive(),
                 userAcl);
