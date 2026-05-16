@@ -102,7 +102,7 @@ public class CreateDepositionJobAdapter implements CreateDepositionJobInPort {
                         .map(f -> {
                             UUID fileId = UUID.randomUUID();
                             // Include representation index to avoid collisions across representations.
-                            String objectKey = "object/" + objectId + "/rep-" + repIdx + "/" + f.originalName();
+                            String objectKey = "object/" + objectId + "/" + f.originalName();
 
                             var presigned = presignUploadOutPort.presignPutObject(
                                     new PresignUploadOutPort.PresignPutObjectCommand(
