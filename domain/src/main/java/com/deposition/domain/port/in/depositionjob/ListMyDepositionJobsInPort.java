@@ -12,7 +12,29 @@ import java.util.UUID;
 public interface ListMyDepositionJobsInPort {
 
     @NotNull
-    List<DepositionJobListItem> listMyJobs();
+    DepositionJobPage listMyJobs(@NotNull ListMyJobsQuery query);
+
+    record ListMyJobsQuery(
+            int page,
+            int size
+    ) {
+        public ListMyJobsQuery {
+            if (page < 0) {
+                throw new IllegalArgumentException("page must be >= 0");
+            }
+            if (size <= 0) {
+                throw new IllegalArgumentException("size must be > 0");
+            }
+        }
+    }
+
+    record DepositionJobPage(
+            @NotNull List<@NotNull DepositionJobListItem> items,
+            int page,
+            int size,
+            long totalItems
+    ) {
+    }
 
     record DepositionJobListItem(
             @NotNull UUID jobId,

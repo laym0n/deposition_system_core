@@ -4,11 +4,15 @@ import com.deposition.domain.port.in.depositionjob.CreateDepositionJobInPort;
 import com.deposition.domain.port.in.depositionjob.GetDepositionJobStatusInPort;
 import com.deposition.domain.port.in.depositionjob.ListMyDepositionJobsInPort;
 import com.deposition.domain.port.in.depositionjob.SubmitDepositionJobInPort;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -65,9 +69,15 @@ public class DepositionJobController {
 
     @GetMapping(value = "/depone/jobs", produces = MediaType.APPLICATION_JSON_VALUE)
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<java.util.List<ListMyDepositionJobsInPort.DepositionJobListItem>> listMyJobs() {
-        var jobs = listMyDepositionJobsInPort.listMyJobs();
-        return ResponseEntity.ok(jobs);
+    @Operation(summary = "List deposition jobs of current user (paginated)")
+    public ResponseEntity<ListMyDepositionJobsInPort.DepositionJobPage> listMyJobs(
+            @Parameter(description = "0-based page index", example = "0")
+            @RequestParam(name = "page", defaultValue = "0") @Min(0) int page,
+            @Parameter(description = "page size", example = "20")
+            @RequestParam(name = "size", defaultValue = "20") @Min(1) @Max(200) int size
+    ) {
+        var result = listMyDepositionJobsInPort.listMyJobs(new ListMyDepositionJobsInPort.ListMyJobsQuery(page, size));
+        return ResponseEntity.ok(result);
     }
 
     public static class CreateJobRequest {

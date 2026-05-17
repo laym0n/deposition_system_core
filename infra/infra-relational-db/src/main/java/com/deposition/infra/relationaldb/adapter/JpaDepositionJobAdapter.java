@@ -9,6 +9,7 @@ import com.deposition.infra.relationaldb.entity.DepositionJobFileEntity;
 import com.deposition.infra.relationaldb.repository.DepositionJobFileJpaRepository;
 import com.deposition.infra.relationaldb.repository.DepositionJobJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -48,11 +49,11 @@ public class JpaDepositionJobAdapter implements DepositionJobOutPort {
     }
 
     @Override
-    public List<DepositionJob> listByOwnerUserId(String ownerUserId) {
-        return jobRepository.findAllByOwnerUserIdOrderByCreatedAtDesc(ownerUserId)
-                .stream()
-                .map(JpaDepositionJobAdapter::toDomain)
-                .toList();
+    public DepositionJobPage listByOwnerUserId(String ownerUserId, int page, int size) {
+        var pageable = PageRequest.of(page, size);
+        var result = jobRepository.findAllByOwnerUserIdOrderByCreatedAtDesc(ownerUserId, pageable);
+        var items = result.getContent().stream().map(JpaDepositionJobAdapter::toDomain).toList();
+        return new DepositionJobPage(items, result.getTotalElements());
     }
 
     @Override

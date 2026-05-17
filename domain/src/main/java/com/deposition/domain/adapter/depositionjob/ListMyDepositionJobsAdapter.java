@@ -18,9 +18,12 @@ public class ListMyDepositionJobsAdapter implements ListMyDepositionJobsInPort {
     private final UserOutPort userOutPort;
 
     @Override
-    public java.util.List<DepositionJobListItem> listMyJobs() {
+    public DepositionJobPage listMyJobs(ListMyJobsQuery query) {
         String currentUserId = userOutPort.getCurrentUserId();
-        return jobOutPort.listByOwnerUserId(currentUserId)
+
+        var page = jobOutPort.listByOwnerUserId(currentUserId, query.page(), query.size());
+
+        var items = page.items()
                 .stream()
                 .map(j -> new DepositionJobListItem(
                         j.jobId(),
@@ -36,5 +39,7 @@ public class ListMyDepositionJobsAdapter implements ListMyDepositionJobsInPort {
                         j.updatedAt()
                 ))
                 .toList();
+
+        return new DepositionJobPage(items, query.page(), query.size(), page.totalItems());
     }
 }

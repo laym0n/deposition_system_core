@@ -23,7 +23,13 @@ public interface DepositionJobOutPort {
     /**
      * Lists jobs owned by a specific user.
      */
-    List<DepositionJob> listByOwnerUserId(@NotBlank String ownerUserId);
+    DepositionJobPage listByOwnerUserId(@NotBlank String ownerUserId, int page, int size);
+
+    record DepositionJobPage(
+            @NotNull List<@NotNull DepositionJob> items,
+            long totalItems
+    ) {
+    }
 
     List<DepositionJobFile> listFiles(@NotNull UUID jobId);
 
