@@ -44,9 +44,6 @@ public class PremisPersistenceService {
         return new DepositionResult(objectId, txId, premisStorage.getVersionId());
     }
 
-    /**
-     * Persists PREMIS and re-indexes object with provided ACL.
-     */
     public DepositionResult persistPremis(UUID objectId,
                                           PremisComplexType premis,
                                           ObjectAcl acl) {

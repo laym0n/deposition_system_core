@@ -69,7 +69,6 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
     }
 
     private Resource loadObjectAsStreamingResource(String bucketName, String objectKey, String versionId, String filename) {
-        // We return a Resource that opens a NEW S3 stream on each getInputStream() call.
         return new AbstractResource() {
             @Override
             public String getDescription() {
@@ -90,7 +89,6 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
                             .versionId(versionId)
                             .build();
                     ResponseInputStream<GetObjectResponse> in = s3Client.getObject(req);
-                    // Note: caller is responsible for closing stream.
                     return in;
                 } catch (NoSuchKeyException ex) {
                     throw new IllegalArgumentException(
@@ -154,7 +152,6 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
 
         long sizeBytes = head.contentLength() == null ? -1 : head.contentLength();
 
-        // Prefer strong checksum if present (requires client to upload with checksum header).
         String digestHex = resolveDigestHexFromHead(head, hashAlgorithm);
         if (digestHex == null) {
             throw new IllegalStateException(
@@ -167,15 +164,12 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
     }
 
     private static String resolveDigestHexFromHead(HeadObjectResponse head, String hashAlgorithm) {
-        // AWS SDK v2 exposes checksum values as Base64.
-        // https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
         if (head == null) {
             return null;
         }
 
         String algo = hashAlgorithm.trim().toUpperCase();
 
-        // S3 supports: CRC32, CRC32C, SHA1, SHA256.
         String base64;
         switch (algo) {
             case "SHA-256" -> base64 = head.checksumSHA256();
@@ -243,7 +237,6 @@ public class S3FileStorageAdapter implements FileStorageOutPort {
                 throw new IllegalArgumentException("Unsupported digest algorithm: " + hashAlgorithm, e);
             }
 
-            // For file-backed resources this is a metadata lookup (stat) and does not require reading the stream.
             long size = resource.contentLength();
 
             try (var raw = resource.getInputStream(); var in = new DigestInputStream(raw, digest)) {

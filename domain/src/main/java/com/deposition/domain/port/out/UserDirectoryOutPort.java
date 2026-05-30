@@ -5,9 +5,6 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
-/**
- * External user directory (e.g. Keycloak).
- */
 public interface UserDirectoryOutPort {
 
     List<UserSummary> search(@NotNull @Valid UserSearchQuery query);

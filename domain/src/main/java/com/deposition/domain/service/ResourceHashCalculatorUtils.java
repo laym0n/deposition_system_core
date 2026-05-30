@@ -29,8 +29,7 @@ public final class ResourceHashCalculatorUtils {
         try (InputStream inputStream = resource.getInputStream()) {
             var digest = MessageDigest.getInstance(algorithm);
 
-            // Stream data in chunks to avoid loading large files into memory.
-            byte[] buffer = new byte[8 * 1024 * 1024]; // 8MB
+            byte[] buffer = new byte[8 * 1024 * 1024];
             int read;
             while ((read = inputStream.read(buffer)) >= 0) {
                 if (read == 0) {

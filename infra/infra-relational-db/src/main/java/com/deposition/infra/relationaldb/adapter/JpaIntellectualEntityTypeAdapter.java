@@ -70,7 +70,6 @@ public class JpaIntellectualEntityTypeAdapter implements IntellectualEntityTypeO
             throw new IllegalArgumentException("type.name must not be blank");
         }
 
-        // Save with merge semantics (create or update)
         var e = repository.findById(type.id()).orElseGet(IntellectualEntityTypeEntity::new);
         e.setId(type.id());
         e.setName(type.name());

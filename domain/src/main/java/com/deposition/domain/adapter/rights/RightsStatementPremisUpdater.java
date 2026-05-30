@@ -70,7 +70,6 @@ public final class RightsStatementPremisUpdater {
         if (identifiers == null || identifiers.isEmpty()) {
             return List.of();
         }
-        // Keep duplicates out, ignore blank values.
         return identifiers.stream()
                 .filter(Objects::nonNull)
                 .filter(i -> i.getType() != null)
@@ -96,13 +95,11 @@ public final class RightsStatementPremisUpdater {
             }
             try {
                 var mappedType = AgentIdentifierType.valueOf(type.toUpperCase());
-                // ignore technical SYSTEM identifier which is derived from xmlID
                 if (mappedType == AgentIdentifierType.SYSTEM) {
                     continue;
                 }
                 result.add(new AgentIdentifier(mappedType, value));
             } catch (RuntimeException ex) {
-                // unknown types: treat as OTHER, but still include in matching
                 result.add(new AgentIdentifier(AgentIdentifierType.OTHER, value));
             }
         }
@@ -130,7 +127,6 @@ public final class RightsStatementPremisUpdater {
             return false;
         }
 
-        // full match: same set, order doesn't matter
         return new LinkedHashSet<>(desiredIdentifiers).equals(new LinkedHashSet<>(existingIdentifiers));
     }
 
@@ -143,7 +139,6 @@ public final class RightsStatementPremisUpdater {
         if (normalized.isEmpty()) {
             return null;
         }
-        // Use all identifiers, to be stable regardless of their order.
         var seed = normalized.stream()
                 .sorted(AGENT_IDENTIFIER_COMPARATOR)
                 .map(i -> i.getType().name() + ":" + i.getValue())
@@ -270,7 +265,6 @@ public final class RightsStatementPremisUpdater {
                 ? premisRightsStatementConverter.map(existing)
                 : RightsStatementMetadata.builder().build();
 
-        // overwrite from desired
         model.setId(desired.getId());
         model.setRightsBasis(desired.getRightsBasis());
         model.setCopyrightInformation(desired.getCopyrightInformation());
@@ -285,7 +279,6 @@ public final class RightsStatementPremisUpdater {
         rs.getLinkingObjectIdentifier().clear();
         rs.getLinkingObjectIdentifier().add(buildLinkingObjectIdentifier(objectId));
 
-        // linkingAgentIdentifier comes from domain model.
         rs.getLinkingAgentIdentifier().clear();
         if (desired.getLinkingAgentIdentifiers() != null) {
             for (RightsStatementAgentLink link : desired.getLinkingAgentIdentifiers()) {

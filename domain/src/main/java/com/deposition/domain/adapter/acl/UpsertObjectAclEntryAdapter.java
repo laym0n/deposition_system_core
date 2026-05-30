@@ -38,11 +38,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-
-/**
- * Updates ACL entry for a specific user and records the change in PREMIS as a
- * RightsStatement.
- */
 @Component
 @Validated
 @RequiredArgsConstructor
@@ -99,10 +94,8 @@ public class UpsertObjectAclEntryAdapter implements UpsertObjectAclEntryInPort {
             throw new IllegalArgumentException("targetUserId must not be blank");
         }
 
-        // Deterministic id: we update the same rightsStatement over time, preserving rightsGranted history.
         String rightsStatementId = "acl_" + objectId + "_" + targetUserId;
 
-        // Load existing rightsGranted for this ACL statement (if any).
         var snapshot = premisSnapshotConverter.map(premis);
         List<RightsGranted> existingRightsGranted = snapshot.getRightsStatements().stream()
                 .filter(rs -> rs != null && rightsStatementId.equals(rs.getId()))
@@ -147,7 +140,6 @@ public class UpsertObjectAclEntryAdapter implements UpsertObjectAclEntryInPort {
             }
         }
 
-        // Add missing active grants.
         for (String act : desiredActs) {
             if (act == null || act.isBlank()) {
                 continue;
@@ -166,7 +158,6 @@ public class UpsertObjectAclEntryAdapter implements UpsertObjectAclEntryInPort {
         model.setRightsBasis(RightsBasis.OTHER.name());
         model.setRightsGranted(merged);
 
-        // Link by SYSTEM userId for ACL use-case.
         model.setLinkingAgentIdentifiers(List.of(RightsStatementAgentLink.builder()
                 .agentIdentifier(new AgentIdentifier(AgentIdentifierType.SYSTEM, targetUserId))
                 .roles(new LinkedHashSet<>(List.of("GRANTEE")))
@@ -183,7 +174,6 @@ public class UpsertObjectAclEntryAdapter implements UpsertObjectAclEntryInPort {
             throw new IllegalArgumentException("targetUserId must not be blank (from rightsStatement.linkingAgentIdentifiers)");
         }
 
-        // Ensure agent by current user id (system) for ACL use-case.
         var ensureAgent = AgentMetadata.builder()
                 .id(targetUserId)
                 .name(targetUserId)
@@ -228,7 +218,6 @@ public class UpsertObjectAclEntryAdapter implements UpsertObjectAclEntryInPort {
             throw new IllegalArgumentException("userId must not be blank");
         }
 
-        // Only object SUPER_ADMIN can change object ACL.
         accessValidatorService.validateCurrentUserIsSuperAdmin(objectId);
 
         PremisComplexType premis = loadPremis(objectId);
@@ -237,7 +226,6 @@ public class UpsertObjectAclEntryAdapter implements UpsertObjectAclEntryInPort {
 
         var result = upsertRightsAndPersistAcl(objectId, premis, rightsStatement);
 
-        // Track ACL change as statistics events.
         StatisticsEventType eventType = (request.permissions() == null || request.permissions().isEmpty())
                 ? StatisticsEventType.OBJECT_ACCESS_REVOKED
                 : StatisticsEventType.OBJECT_ACCESS_GRANTED;

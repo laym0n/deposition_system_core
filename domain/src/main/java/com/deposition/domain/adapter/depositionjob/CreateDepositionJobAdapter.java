@@ -38,14 +38,12 @@ public class CreateDepositionJobAdapter implements CreateDepositionJobInPort {
 
         String ownerUserId = userOutPort.getCurrentUserId();
 
-        // Idempotency: if client repeats the request with the same key, return the existing job.
         if (command.idempotencyKey() != null && !command.idempotencyKey().isBlank()) {
             var existing = jobOutPort.findByOwnerAndIdempotencyKey(ownerUserId, command.idempotencyKey());
             if (existing.isPresent()) {
                 var job = existing.get();
                 var files = jobOutPort.listFiles(job.jobId());
 
-                // We don't store the presigned URL in DB; so we re-presign for the same object keys.
                 var uploads = files.stream()
                         .map(f -> {
                             var presigned = presignUploadOutPort.presignPutObject(
@@ -71,7 +69,6 @@ public class CreateDepositionJobAdapter implements CreateDepositionJobInPort {
         UUID objectId = UUID.randomUUID();
         var now = OffsetDateTime.now(ZoneOffset.UTC);
 
-        // Persist request as JSON for later processing.
         String requestJson;
         try {
             requestJson = objectMapper.writeValueAsString(command);
@@ -94,14 +91,12 @@ public class CreateDepositionJobAdapter implements CreateDepositionJobInPort {
         );
         jobOutPort.create(job);
 
-        // Generate pre-signed uploads and persist file records.
         List<DepositionJobFile> files = java.util.stream.IntStream
                 .range(0, command.representations().size())
                 .boxed()
                 .flatMap(repIdx -> command.representations().get(repIdx).files().stream()
                         .map(f -> {
                             UUID fileId = UUID.randomUUID();
-                            // Include representation index to avoid collisions across representations.
                             String objectKey = "object/" + objectId + "/" + f.originalName();
 
                             var presigned = presignUploadOutPort.presignPutObject(

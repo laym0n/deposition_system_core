@@ -7,11 +7,6 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 
-/**
- * Generates presigned download URL for a stored file.
- *
- * <p>We sign by objectKey (storage-specific), but keep returning the stable contentLocation used across the system.
- */
 public interface PresignDownloadOutPort {
 
     PresignedDownload presignGetObject(@NotNull @Valid PresignGetObjectCommand command);

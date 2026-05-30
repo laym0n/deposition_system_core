@@ -74,7 +74,7 @@ final class FileMetadataBuilder {
                                 .build())))
                 .build();
 
-        fileParamConverter.update(fileMetadata, fileParam.fileMetadata()); // TODO сделать правильное обновление storage (добавление к создаваемому в системе)
+        fileParamConverter.update(fileMetadata, fileParam.fileMetadata());
         return fileMetadataConverter.map(fileMetadata);
     }
 }

@@ -18,7 +18,6 @@ public interface CreateDepositionJobInPort {
     CreateDepositionJobResult create(@NotNull @Valid CreateDepositionJobCommand command);
 
     record CreateDepositionJobCommand(
-            /** Optional idempotency key. Usually comes from Idempotency-Key header. */
             @Nullable
             String idempotencyKey,
             @NotNull
@@ -32,10 +31,6 @@ public interface CreateDepositionJobInPort {
             List<@Valid DepositionJobRepresentationUploadParam> representations) {
     }
 
-    /**
-     * One representation within a deposition job.
-     * Each representation can have its own metadata and multiple files.
-     */
     record DepositionJobRepresentationUploadParam(
             @Nullable
             @Valid

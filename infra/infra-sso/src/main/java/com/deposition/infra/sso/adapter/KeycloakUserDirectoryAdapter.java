@@ -18,7 +18,6 @@ public class KeycloakUserDirectoryAdapter implements UserDirectoryOutPort {
     @Override
     public List<UserSummary> search(UserSearchQuery query) {
         if (!StringUtils.hasText(query.searchQuery())) {
-            // Safety: do not allow dumping the whole user list.
             return Collections.emptyList();
         }
 

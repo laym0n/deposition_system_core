@@ -29,7 +29,6 @@ public class AsyncDepositionJobConfig {
             return t;
         };
 
-        // Similar to AsyncStatisticsConfig: cached pool with bounds.
         var executor = (ThreadPoolExecutor) Executors.newCachedThreadPool(threadFactory);
         executor.setMaximumPoolSize(props.maximumPoolSize());
         executor.setCorePoolSize(props.corePoolSize());

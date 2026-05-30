@@ -36,9 +36,6 @@ public abstract class PremisRightsStatementConverter {
     @Mapping(target = "linkingAgentIdentifiers", source = "linkingAgentIdentifier")
     public abstract RightsStatementMetadata map(RightsStatementComplexType complex);
 
-    /**
-     * Maps PREMIS <rights> container to a flat list of rights statements.
-     */
     public List<RightsStatementMetadata> map(RightsComplexType rights) {
         if (rights == null || rights.getRightsStatementOrRightsExtension() == null) {
             return List.of();

@@ -9,9 +9,6 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
-/**
- * Request to add/update a rights statement in PREMIS metadata.
- */
 public record UpsertRightsStatementRequest(
         @Nullable
         String rightsStatementId,
@@ -22,9 +19,6 @@ public record UpsertRightsStatementRequest(
         @Nullable
         List<AgentGrant> agents) {
 
-    /**
-     * Mirrors fields of PREMIS rightsStatement.
-     */
     public record RightsStatementPayload(
             @Nullable
             CopyrightInformation copyrightInformation,

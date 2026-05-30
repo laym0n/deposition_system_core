@@ -22,9 +22,6 @@ public record CachedObjectMetadataResponse(
         @Nullable
         ObjectAcl acl) {
 
-    /**
-     * PREMIS-like metadata fields cached in the `objects` OpenSearch index.
-     */
     public record PremisMetadata(
             @Nullable
             String originalName,

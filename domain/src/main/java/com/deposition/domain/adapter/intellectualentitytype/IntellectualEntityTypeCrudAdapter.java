@@ -48,7 +48,6 @@ public class IntellectualEntityTypeCrudAdapter implements IntellectualEntityType
             throw new IllegalArgumentException("command must not be null");
         }
 
-        // Ensure entity exists
         outPort.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("IntellectualEntityType", id.toString()));
 

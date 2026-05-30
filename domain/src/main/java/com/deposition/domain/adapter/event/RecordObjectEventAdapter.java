@@ -112,7 +112,6 @@ public class RecordObjectEventAdapter implements RecordObjectEventInPort {
 
         updateObjectIndex(objectId, premisStorage.getVersionId(), txId);
 
-        // Adding an Event to PREMIS creates a new object version.
         userOutPort.getOptinalCurrentUserId()
                 .ifPresent(userId -> statisticsEventReporter.report(
                         StatisticsEventType.OBJECT_VERSION_CREATE,

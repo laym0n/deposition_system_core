@@ -75,8 +75,6 @@ public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataIn
         if (optionalCurrentUserId.isPresent()) {
             var currentUserId = optionalCurrentUserId.get();
 
-            // If current user has WRITE permission, return full ACL (rights for all users).
-            // Otherwise, keep backward compatible behavior: return only current user's entries.
             var hasWrite = doc.acl() != null && doc.acl().hasPermissionForUser(currentUserId, AclPermission.WRITE);
             var entriesToReturn = hasWrite
                     ? safeEntries(doc.acl())

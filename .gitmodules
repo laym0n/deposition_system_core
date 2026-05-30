@@ -1,0 +1,8 @@
+[submodule "deposition_system_ui"]
+	path = deposition_system_ui
+	url = https://github.com/laym0n/deposition_system_ui.git
+	branch = main
+[submodule "deposition_system_dev_ops"]
+	path = deposition_system_dev_ops
+	url = https://github.com/laym0n/deposition_system_dev_ops.git
+	branch = main

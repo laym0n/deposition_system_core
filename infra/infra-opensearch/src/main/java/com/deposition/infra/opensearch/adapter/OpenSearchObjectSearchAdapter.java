@@ -134,8 +134,6 @@ public class OpenSearchObjectSearchAdapter implements ObjectSearchOutPort {
                             return null;
                         }
 
-                        // Keep OpenSearch document minimal: store only type name.
-                        // Full IntellectualEntityType (id/name/description) is resolved on the domain layer.
                         var type = new IntellectualEntityType(null, source.intellectualEntityTypeName(), null);
                         var originalName = source.premis() == null ? null : source.premis().originalName();
 

@@ -21,7 +21,6 @@ public class SSOConfiguration {
 
     @Bean("keycloakRestClient")
     public RestClient keycloakRestClient() {
-        // Intentionally not using RestClient.Builder bean to avoid requiring auto-config.
         return RestClient.builder().build();
     }
 

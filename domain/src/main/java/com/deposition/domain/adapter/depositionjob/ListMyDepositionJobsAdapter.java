@@ -39,7 +39,6 @@ public class ListMyDepositionJobsAdapter implements ListMyDepositionJobsInPort {
         try {
             return objectMapper.readValue(requestJson, CreateDepositionJobInPort.CreateDepositionJobCommand.class);
         } catch (Exception e) {
-            // Best-effort fallback: listing should not fail if historical requestJson is malformed.
             return null;
         }
     }
@@ -53,7 +52,6 @@ public class ListMyDepositionJobsAdapter implements ListMyDepositionJobsInPort {
         var items = page.items()
                 .stream()
                 .map(j -> {
-                    // Prefer OpenSearch cached metadata; fall back to job.requestJson (if index is stale).
                     var doc = objectIndexLookupOutPort.findByObjectId(j.objectId()).orElse(null);
                     var cmd = tryParseRequestJson(j.requestJson());
 

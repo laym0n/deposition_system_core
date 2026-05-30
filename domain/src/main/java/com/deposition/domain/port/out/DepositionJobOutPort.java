@@ -20,9 +20,6 @@ public interface DepositionJobOutPort {
 
     Optional<DepositionJob> findByOwnerAndIdempotencyKey(@NotBlank String ownerUserId, @NotBlank String idempotencyKey);
 
-    /**
-     * Lists jobs owned by a specific user.
-     */
     DepositionJobPage listByOwnerUserId(@NotBlank String ownerUserId, int page, int size);
 
     record DepositionJobPage(

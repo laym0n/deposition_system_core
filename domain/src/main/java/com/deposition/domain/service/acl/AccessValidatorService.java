@@ -24,7 +24,6 @@ public final class AccessValidatorService {
 
         var acl = aclOutPort.getByObjectId(objectId);
 
-        // Object-scoped SUPER_ADMIN bypasses permissions.
         if (acl.isSuperAdmin(currentUserId)) {
             return;
         }
@@ -34,9 +33,6 @@ public final class AccessValidatorService {
         }
     }
 
-    /**
-     * Validates that current user is SUPER_ADMIN for given object.
-     */
     public void validateCurrentUserIsSuperAdmin(UUID objectId) {
         var currentUserId = userOutPort.getCurrentUserId();
         if (currentUserId == null) {

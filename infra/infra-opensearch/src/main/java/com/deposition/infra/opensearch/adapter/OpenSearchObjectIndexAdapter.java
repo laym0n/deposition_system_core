@@ -75,7 +75,6 @@ public class OpenSearchObjectIndexAdapter implements ObjectIndexOutPort {
     @Override
     public void index(ObjectIndexDocument document) {
         try {
-            // Merge anchors history (multiple {versionId, txId}) into a single document.
             ObjectIndexDocument merged = mergeWithExisting(document);
 
             client.index(i -> i
@@ -102,7 +101,6 @@ public class OpenSearchObjectIndexAdapter implements ObjectIndexOutPort {
                 existing = response.source();
             }
         } catch (Exception ex) {
-            // Treat lookup failures as "document does not exist" (index will still proceed).
             existing = null;
         }
 

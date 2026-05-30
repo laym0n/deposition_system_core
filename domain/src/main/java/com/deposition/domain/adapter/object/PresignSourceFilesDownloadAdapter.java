@@ -72,7 +72,6 @@ public class PresignSourceFilesDownloadAdapter implements PresignSourceFilesDown
 
         accessValidatorService.validateCurrentUserHasPermission(objectId, AclPermission.READ_SOURCE_FILE);
 
-        // Count file download intent once per request.
         userOutPort.getOptinalCurrentUserId()
                 .ifPresent(userId -> statisticsEventReporter.report(
                         StatisticsEventType.FILE_DOWNLOAD,

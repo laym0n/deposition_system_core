@@ -29,7 +29,6 @@ public class GetDepositionJobStatusAdapter implements GetDepositionJobStatusInPo
         var job = jobOutPort.findById(jobId)
                 .orElseThrow(() -> new ResourceNotFoundException("DepositionJob", jobId.toString()));
         if (!currentUserId.equals(job.ownerUserId())) {
-            // Avoid information leak.
             throw new ResourceNotFoundException("DepositionJob", jobId.toString());
         }
 

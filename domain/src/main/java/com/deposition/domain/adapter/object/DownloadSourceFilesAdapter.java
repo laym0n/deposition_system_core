@@ -73,7 +73,6 @@ public class DownloadSourceFilesAdapter implements DownloadSourceFilesInPort {
             base = fileId.toString();
         }
 
-        // Make unique to avoid ZipException: duplicate entry.
         String normalized = base.replace('\\', '/');
         Integer idx = usedNames.get(normalized);
         if (idx == null) {
@@ -99,7 +98,6 @@ public class DownloadSourceFilesAdapter implements DownloadSourceFilesInPort {
 
         accessValidatorService.validateCurrentUserHasPermission(objectId, AclPermission.READ_SOURCE_FILE);
 
-        // Count file download once per request (zip download), not per file inside zip.
         userOutPort.getOptinalCurrentUserId()
                 .ifPresent(userId -> statisticsEventReporter.report(
                         StatisticsEventType.FILE_DOWNLOAD,

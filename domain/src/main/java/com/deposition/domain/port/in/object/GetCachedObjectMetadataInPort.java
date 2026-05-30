@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
 /**
- * Returns object metadata from OpenSearch cache.
+ * Входной порт: GetCachedObjectMetadataInPort.
  */
 public interface GetCachedObjectMetadataInPort {
 

@@ -45,7 +45,6 @@ public class ObjectController {
             return new FileMetadataParam(file.getOriginalFilename());
         }
 
-        // If the client did not provide an originalName, fallback to multipart filename.
         if (fileMetadataParam.originalName() == null) {
             return new FileMetadataParam(file.getOriginalFilename());
         }

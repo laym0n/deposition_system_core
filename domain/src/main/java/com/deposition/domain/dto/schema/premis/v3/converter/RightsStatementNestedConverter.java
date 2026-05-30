@@ -15,12 +15,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Helper converter for nested structures of PREMIS rightsStatement.
- * <p>
- * Separated to keep {@link RightsStatementConverter} readable and to reuse in
- * PREMIS -> model converter.
- */
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR, uses = CommonConverter.class)
 public abstract class RightsStatementNestedConverter {
 
@@ -31,9 +25,6 @@ public abstract class RightsStatementNestedConverter {
     @Autowired
     protected PremisCommonConverter premisCommonConverter;
 
-    /* =========================
-     * Model -> PREMIS (JAXB)
-     * ========================= */
     @Mapping(target = "copyrightStatus", source = "copyrightStatus")
     @Mapping(target = "copyrightJurisdiction", source = "copyrightJurisdiction", qualifiedByName = "toCountryCode")
     @Mapping(target = "copyrightStatusDeterminationDate", source = "copyrightStatusDeterminationDate", qualifiedByName = "localDateToString")
@@ -46,7 +37,6 @@ public abstract class RightsStatementNestedConverter {
         if (in == null || in.isEmpty()) {
             return null;
         }
-        // PREMIS schema allows only one copyrightInformation.
         return map(in.getFirst());
     }
 
@@ -68,7 +58,6 @@ public abstract class RightsStatementNestedConverter {
         if (in == null || in.isEmpty()) {
             return null;
         }
-        // PREMIS schema allows only one licenseInformation.
         return map(in.getFirst());
     }
 
@@ -152,9 +141,6 @@ public abstract class RightsStatementNestedConverter {
     @Mapping(target = "rightsGrantedNote", source = "rightsGrantedNote")
     public abstract RightsGrantedComplexType map(RightsGranted in);
 
-    /* =========================
-     * PREMIS (JAXB) -> Model
-     * ========================= */
     @Mapping(target = "type", expression = "java(premisCommonConverter.unwrapStringPlusAuthority(in.getCopyrightDocumentationIdentifierType()))")
     @Mapping(target = "value", source = "copyrightDocumentationIdentifierValue")
     @Mapping(target = "role", expression = "java(premisCommonConverter.unwrapStringPlusAuthority(in.getCopyrightDocumentationRole()))")
@@ -208,7 +194,6 @@ public abstract class RightsStatementNestedConverter {
                 if (value instanceof LicenseDocumentationIdentifierComplexType doc) {
                     docs.add(mapLicenseDoc(doc));
                 } else if (value instanceof String s) {
-                    // Could be licenseTerms or licenseNote, differentiated by element name.
                     String localName = element.getName() == null ? null : element.getName().getLocalPart();
                     if ("licenseTerms".equals(localName)) {
                         terms = s;
@@ -268,9 +253,6 @@ public abstract class RightsStatementNestedConverter {
                 .build();
     }
 
-    /* =========================
-     * Common helpers
-     * ========================= */
     @Named("toCountryCode")
     protected CountryCode toCountryCode(String code) {
         if (code == null || code.isBlank()) {
@@ -299,7 +281,6 @@ public abstract class RightsStatementNestedConverter {
             return null;
         }
         var out = new StartAndEndDateComplexType();
-        // PREMIS schema has required startDate but their code earlier allowed empty string.
         out.setStartDate(dates.getStartDate() == null ? "" : dates.getStartDate().toString());
         if (dates.getEndDate() != null) {
             out.setEndDate(dates.getEndDate().toString());
@@ -318,14 +299,12 @@ public abstract class RightsStatementNestedConverter {
                 start = ZonedDateTime.parse(in.getStartDate());
             }
         } catch (RuntimeException ex) {
-            // ignore parse errors
         }
         try {
             if (in.getEndDate() != null && !in.getEndDate().isBlank()) {
                 end = ZonedDateTime.parse(in.getEndDate());
             }
         } catch (RuntimeException ex) {
-            // ignore parse errors
         }
         if (start == null && end == null) {
             return null;

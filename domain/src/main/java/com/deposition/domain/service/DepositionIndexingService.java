@@ -59,8 +59,6 @@ public class DepositionIndexingService {
                                         String storageVersionId,
                                         Map<String, Object> descriptiveExtractedFields) {
         if (intellectualEntityTypeName == null || intellectualEntityTypeName.isBlank()) {
-            // For updates (e.g., metadata update / record event) we might not have the type at call site.
-            // Try to reuse it from existing OpenSearch document.
             intellectualEntityTypeName = objectIndexLookupOutPort.findByObjectId(intellectualEntityId)
                     .map(ObjectIndexDocument::intellectualEntityTypeName)
                     .orElseThrow(() -> new ResourceNotFoundException("Object", intellectualEntityId.toString()));

@@ -69,7 +69,6 @@ public class ProcessDepositionJobAdapter implements ProcessDepositionJobInPort {
         var now = OffsetDateTime.now(ZoneOffset.UTC);
 
         try {
-            // Reconstruct request (only the fields needed for building PREMIS).
             CreateDepositionJobInPort.CreateDepositionJobCommand cmd = objectMapper.readValue(
                     job.requestJson(),
                     CreateDepositionJobInPort.CreateDepositionJobCommand.class);
@@ -83,10 +82,8 @@ public class ProcessDepositionJobAdapter implements ProcessDepositionJobInPort {
 
             var files = jobOutPort.listFiles(jobId);
 
-            // Convert stored job files to DeponeFileParam inputs, keeping the original order from DB.
             var persistedFiles = files.stream()
                     .map(f -> {
-                        // Do not download file to calculate hash: take it from storage metadata (HEAD).
                         var attrs = fileStorage.getAttributesByContentLocation(
                                 f.contentLocation(),
                                 ResourceHashCalculatorUtils.DEFAULT_HASH_ALGORITHM);
@@ -107,7 +104,6 @@ public class ProcessDepositionJobAdapter implements ProcessDepositionJobInPort {
                     })
                     .toList();
 
-            // Group files by representation index and build PREMIS representations accordingly.
             var persistedReps = java.util.stream.IntStream
                     .range(0, cmd.representations().size())
                     .mapToObj(repIdx -> {

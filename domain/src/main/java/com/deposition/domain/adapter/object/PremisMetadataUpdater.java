@@ -64,7 +64,6 @@ final class PremisMetadataUpdater {
                 return extractLocalIdFromIdentifiers(file.getObjectIdentifier());
             }
         } catch (RuntimeException ex) {
-            // ignore and return null
         }
         return null;
     }
@@ -319,7 +318,6 @@ final class PremisMetadataUpdater {
             return;
         }
 
-        // Reuse the same strategy as PremisMetadataBuilder: represent current user as an agent.
         var agent = com.deposition.domain.models.AgentMetadata.builder()
                 .id(agentId)
                 .name(agentId)

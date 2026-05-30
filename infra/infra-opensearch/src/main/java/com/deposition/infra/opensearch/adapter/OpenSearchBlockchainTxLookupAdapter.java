@@ -15,10 +15,6 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Resolves blockchain txId for a specific stored PREMIS version using
- * OpenSearch.
- */
 @Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "integration.opensearch", name = "enabled", havingValue = "true")
@@ -80,7 +76,6 @@ public class OpenSearchBlockchainTxLookupAdapter implements BlockchainTxLookupOu
 
         var bool = new BoolQuery.Builder();
 
-        // Document id == objectId.
         bool.filter(f -> f.ids(i -> i.values(objectId.toString())));
 
         if (storageVersionId != null) {
@@ -108,7 +103,6 @@ public class OpenSearchBlockchainTxLookupAdapter implements BlockchainTxLookupOu
             }
 
             if (storageVersionId == null) {
-                // No version filter -> keep backward compatibility: return first found txId.
                 return extractAnyTxId(m);
             }
 

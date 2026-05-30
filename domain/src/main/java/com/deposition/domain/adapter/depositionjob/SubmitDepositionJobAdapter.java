@@ -48,11 +48,9 @@ public class SubmitDepositionJobAdapter implements SubmitDepositionJobInPort {
 
         if (job.status() == DepositionJobStatus.COMPLETED
                 || job.status() == DepositionJobStatus.CANCELLED) {
-            return; // idempotent
+            return;
         }
 
-        // Validate that user can reference related objects (WRITE permission).
-        // This must happen in request thread (security context is available here).
         validateRelationshipsOwnedByCurrentUser(job);
 
         var now = OffsetDateTime.now(ZoneOffset.UTC);
@@ -72,7 +70,6 @@ public class SubmitDepositionJobAdapter implements SubmitDepositionJobInPort {
         );
         jobOutPort.update(updated);
 
-        // Fire-and-forget processing. Status can be polled via GET /depone/jobs/{jobId}.
         processAsync(jobId);
     }
 

@@ -35,7 +35,6 @@ public class ObjectIndexingService {
             throw new IllegalArgumentException("acl must not be null");
         }
 
-        // Ensure caller-provided ACL is associated with the indexed object.
         if (acl.getObjectId() == null || !intellectualEntityId.equals(acl.getObjectId())) {
             acl = ObjectAcl.builder()
                     .objectId(intellectualEntityId)

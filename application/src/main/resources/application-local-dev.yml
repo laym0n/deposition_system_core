@@ -44,7 +44,5 @@ integration:
   keycloak:
     base-url: http://localhost:8085
     realm: deposition
-    # Create a confidential client in realm `deposition` with `service accounts` enabled.
-    # Then put its credentials here (or override via env vars).
     admin-client-id: deposition-admin-cli
     admin-client-secret: change-me

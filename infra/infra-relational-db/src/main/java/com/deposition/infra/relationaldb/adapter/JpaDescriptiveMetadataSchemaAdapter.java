@@ -77,8 +77,6 @@ public class JpaDescriptiveMetadataSchemaAdapter implements DescriptiveMetadataS
         entity.setSchemaJson(schema.schemaJson());
         entity.setActive(schema.active());
 
-        // Hibernate will fill these, but keep them aligned when we update domain from DB.
-        // For new entities, createdAt/updatedAt will be set by @CreationTimestamp/@UpdateTimestamp.
         var saved = repository.save(entity);
         return toDomain(saved);
     }

@@ -36,7 +36,6 @@ public class KeycloakAdminClient {
     }
 
     private String obtainAdminToken() {
-        // Keycloak token endpoint supports client_credentials for confidential clients.
         var form = new LinkedMultiValueMap<String, String>();
         form.add("grant_type", "client_credentials");
         form.add("client_id", props.adminClientId());

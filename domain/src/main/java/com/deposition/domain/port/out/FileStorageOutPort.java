@@ -9,6 +9,9 @@ import java.util.HexFormat;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Выходной порт: FileStorageOutPort.
+ */
 public interface FileStorageOutPort {
 
     Storage persist(Resource resource, String entityId);
@@ -21,10 +24,6 @@ public interface FileStorageOutPort {
 
     Resource loadByContentLocation(URI contentLocation);
 
-    /**
-     * Returns object metadata needed for PREMIS fixity without downloading the object.
-     * Implementations may use underlying storage HEAD/metadata APIs.
-     */
     FileAttributes getAttributesByContentLocation(URI contentLocation, String hashAlgorithm);
 
     record FileAttributes(

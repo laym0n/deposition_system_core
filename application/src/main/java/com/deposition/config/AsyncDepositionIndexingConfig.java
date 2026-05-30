@@ -24,7 +24,6 @@ public class AsyncDepositionIndexingConfig {
         executor.setKeepAliveSeconds((int) props.keepAlive().toSeconds());
         executor.setAllowCoreThreadTimeOut(props.allowCoreThreadTimeOut());
 
-        // Backpressure: when saturated, run in caller thread to slow down /depone instead of dropping tasks.
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
 
         executor.initialize();

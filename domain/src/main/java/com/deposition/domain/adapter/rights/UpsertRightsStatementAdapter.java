@@ -65,7 +65,6 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
             }
         }
 
-        // linkingAgentIdentifiers: build from full set of identifiers for each agent grant
         if (request.agents() != null) {
             var links = new ArrayList<RightsStatementAgentLink>();
             for (var grant : request.agents()) {
@@ -76,7 +75,6 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
                     if (id == null || id.getType() == null || id.getValue() == null || id.getValue().isBlank()) {
                         continue;
                     }
-                    // ignore SYSTEM in external payload (reserved for internal agents)
                     if (id.getType() == AgentIdentifierType.SYSTEM) {
                         continue;
                     }
@@ -167,7 +165,6 @@ public class UpsertRightsStatementAdapter implements UpsertRightsStatementInPort
             throw new IllegalArgumentException("request must not be null");
         }
 
-        // Ensure request is consistent with path param.
         var normalizedRequest = new UpsertRightsStatementRequest(
                 rightsStatementId,
                 request.rightsBasis(),

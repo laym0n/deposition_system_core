@@ -18,8 +18,6 @@ public class LocalDevTestContainersConfiguration {
                 .withUsername("deposition")
                 .withPassword("deposition");
 
-        // Make port deterministic so pgAdmin (running in docker-compose) can connect.
-        // Equivalent of "-p 55432:5432".
         container.setPortBindings(java.util.List.of(LOCAL_DEV_PG_PORT + ":5432"));
 
         return container;

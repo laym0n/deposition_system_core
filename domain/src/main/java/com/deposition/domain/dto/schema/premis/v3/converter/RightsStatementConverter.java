@@ -26,9 +26,6 @@ public abstract class RightsStatementConverter {
     @Mapping(target = "linkingAgentIdentifier", source = "linkingAgentIdentifiers")
     public abstract RightsStatementComplexType map(RightsStatementMetadata metadata);
 
-    /**
-     * Wraps a rights statement into PREMIS <rights> container.
-     */
     public RightsComplexType wrap(RightsStatementMetadata metadata) {
         var rights = new RightsComplexType();
         rights.setVersion("3.0");

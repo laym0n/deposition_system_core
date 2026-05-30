@@ -41,7 +41,6 @@ public class SearchObjectsAdapter implements SearchObjectsInPort {
         var query = new ObjectSearchQuery(request, filters);
         var result = searchOutPort.search(query);
 
-        // Enrich OpenSearch hits with full IntellectualEntityType (id/name/description).
         var enrichedHits = result.hits().stream()
                 .map(h -> new SearchObjectsResult.Hit(
                         h.objectId(),

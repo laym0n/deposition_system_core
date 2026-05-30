@@ -65,14 +65,12 @@ public final class AclMapper {
                                 continue;
                             }
 
-                            // Skip inactive grants (revoked / expired) based on termOfGrant.
                             if (!isGrantActive(g.getTermOfGrant(), ZonedDateTime.now(ZoneOffset.UTC))) {
                                 continue;
                             }
                             try {
                                 permissions.add(AclPermission.valueOf(g.getAct()));
                             } catch (RuntimeException ex) {
-                                // ignore unknown acts
                             }
                         }
                     }
@@ -85,7 +83,6 @@ public final class AclMapper {
                             : AclPrincipal.builder().type(AclPrincipalType.USER).id(userId).build();
 
                     if (!hasPerms) {
-                        // Treat empty permissions as revocation.
                         if (role == AclRole.SUPER_ADMIN) {
                             byUserId.put(userId, AclEntry.builder()
                                     .principal(principal)

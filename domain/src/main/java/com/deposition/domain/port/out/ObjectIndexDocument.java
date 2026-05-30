@@ -26,7 +26,6 @@ public record ObjectIndexDocument(
         Map<String, Object> descriptive) {
 
     public ObjectIndexDocument {
-        // Backward compatibility: older OpenSearch documents may not have this field.
         if (visibility == null) {
             visibility = Visibility.PRIVATE;
         }
@@ -36,9 +35,6 @@ public record ObjectIndexDocument(
         }
     }
 
-    /**
-     * Anchoring info for a particular stored PREMIS version.
-     */
     public record Anchor(
             @NotNull
             String storageVersionId,

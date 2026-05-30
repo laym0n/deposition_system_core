@@ -65,11 +65,8 @@ integration:
     presign-endpoint: ${oscm.integration.s3.presign-endpoint}
 
   keycloak:
-    # Base URL of Keycloak (without trailing slash). Example: http://localhost:8085
     base-url: ${oscm.integration.keycloak.base-url:}
-    # Realm name. Example: deposition
     realm: ${oscm.integration.keycloak.realm:}
-    # Admin client credentials for querying Keycloak Admin REST API.
     admin-client-id: ${oscm.integration.keycloak.admin-client-id:}
     admin-client-secret: ${oscm.integration.keycloak.admin-client-secret:}
 
