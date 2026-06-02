@@ -27,9 +27,7 @@ public class SecurityConfig {
                             .requestMatchers("/actuator/**", "/swagger-ui/**", "/v3/api-docs/**",
                                     "/swagger-ui.html")
                             .permitAll()
-                            .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-                            .requestMatchers(HttpMethod.GET, "/descriptive-metadata/schemas/**").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/objects/*/cached-metadata").permitAll();
+                            .requestMatchers(CorsUtils::isPreFlightRequest).permitAll();
 
                     endpointAccessProperties.getRules().forEach(rule -> {
                         var access = rule.accessType();

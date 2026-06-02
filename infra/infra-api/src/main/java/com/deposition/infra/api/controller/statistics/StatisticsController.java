@@ -24,7 +24,6 @@ public class StatisticsController {
     private final GetStatisticsEventsInPort getStatisticsEventsInPort;
 
     @GetMapping(value = "/statistics/events", produces = MediaType.APPLICATION_JSON_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<List<StatisticsEventResponse>> getEvents(
             @RequestParam(name = "objectId") UUID objectId,
             @RequestParam(name = "from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime from,

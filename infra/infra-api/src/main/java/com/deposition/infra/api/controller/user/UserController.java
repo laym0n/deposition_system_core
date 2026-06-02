@@ -2,7 +2,6 @@ package com.deposition.infra.api.controller.user;
 
 import com.deposition.domain.port.in.user.SearchUsersInPort;
 import com.deposition.domain.port.in.user.SearchUsersRequest;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +20,6 @@ public class UserController {
     private final SearchUsersInPort searchUsersInPort;
 
     @GetMapping(value = "/users/search", produces = MediaType.APPLICATION_JSON_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<List<UserSummaryResponse>> searchUsers(
             @RequestParam(name = "searchQuery", required = false) String searchQuery,
             @RequestParam(name = "offset", defaultValue = "0") int offset,

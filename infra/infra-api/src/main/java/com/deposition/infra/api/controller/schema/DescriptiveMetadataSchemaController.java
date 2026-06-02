@@ -2,7 +2,6 @@ package com.deposition.infra.api.controller.schema;
 
 import com.deposition.domain.models.DescriptiveMetadataSchema;
 import com.deposition.domain.port.in.schema.*;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,7 +24,6 @@ public class DescriptiveMetadataSchemaController {
     private final UpdateDescriptiveMetadataSchemaActiveInPort updateDescriptiveMetadataSchemaActiveInPort;
 
     @GetMapping(value = "/descriptive-metadata/schemas", produces = MediaType.APPLICATION_JSON_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<List<DescriptiveMetadataSchemaSummaryDto>> getSchemas(
             @RequestParam(name = "entityType", required = false) String entityTypeName,
             @RequestParam(name = "active", required = false) Boolean active) {
@@ -35,7 +33,6 @@ public class DescriptiveMetadataSchemaController {
     }
 
     @GetMapping(value = "/descriptive-metadata/schemas/{schemaId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Map<String, Object>> getSchemaById(
             @PathVariable("schemaId") UUID schemaId) {
         var schema = getDescriptiveMetadataSchemaByIdInPort.getSchema(schemaId);
@@ -44,7 +41,6 @@ public class DescriptiveMetadataSchemaController {
 
     @PostMapping(value = "/descriptive-metadata/schema", consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<DescriptiveMetadataSchemaDto> createSchema(@RequestBody CreateSchemaRequest request) {
         var created = createDescriptiveMetadataSchemaInPort.create(
                 new CreateDescriptiveMetadataSchemaInPort.CreateDescriptiveMetadataSchemaCommand(
@@ -55,7 +51,6 @@ public class DescriptiveMetadataSchemaController {
 
     @PutMapping(value = "/descriptive-metadata/schema/{schemaId}/active", consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<DescriptiveMetadataSchemaDto> updateActive(
             @PathVariable("schemaId") UUID schemaId,
             @RequestBody UpdateActiveRequest request) {

@@ -6,7 +6,6 @@ import com.deposition.domain.port.in.depositionjob.ListMyDepositionJobsInPort;
 import com.deposition.domain.port.in.depositionjob.SubmitDepositionJobInPort;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -32,7 +31,6 @@ public class DepositionJobController {
     private final ListMyDepositionJobsInPort listMyDepositionJobsInPort;
 
     @PostMapping(value = "/depone/jobs", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<CreateDepositionJobInPort.CreateDepositionJobResult> createJob(
             @RequestHeader(name = "Idempotency-Key", required = false) @Nullable String idempotencyKey,
             @RequestBody @Valid CreateJobRequest request) {
@@ -51,7 +49,6 @@ public class DepositionJobController {
     }
 
     @PostMapping(value = "/depone/jobs/{jobId}/submit")
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> submit(@PathVariable("jobId") UUID jobId) {
         submitDepositionJobInPort.submit(jobId);
         return ResponseEntity.accepted()
@@ -60,7 +57,6 @@ public class DepositionJobController {
     }
 
     @GetMapping(value = "/depone/jobs/{jobId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<GetDepositionJobStatusInPort.DepositionJobStatusResponse> status(
             @PathVariable("jobId") UUID jobId) {
         var status = getDepositionJobStatusInPort.getStatus(jobId);
@@ -68,7 +64,6 @@ public class DepositionJobController {
     }
 
     @GetMapping(value = "/depone/jobs", produces = MediaType.APPLICATION_JSON_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "List deposition jobs of current user (paginated)")
     public ResponseEntity<ListMyDepositionJobsInPort.DepositionJobPage> listMyJobs(
             @Parameter(description = "0-based page index", example = "0")

@@ -7,7 +7,6 @@ import com.deposition.infra.api.controller.DeponeMultipartRequest;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -57,7 +56,6 @@ public class ObjectController {
             @Encoding(name = "files", contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     }))
     @PostMapping(value = "/depone", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<DepositionResult> depone(
             @RequestParam(name = "intellectualEntityType") String intellectualEntityTypeName,
             @RequestPart(name = "request", required = false) DeponeMultipartRequest request,
@@ -109,7 +107,6 @@ public class ObjectController {
     }
 
     @PatchMapping(value = "/objects/{objectId}/metadata", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<DepositionResult> updateMetadata(
             @PathVariable("objectId") UUID objectId,
             @RequestBody UpdateMetadataParams params) {
@@ -118,7 +115,6 @@ public class ObjectController {
     }
 
     @GetMapping(value = "/objects/{objectId}/metadata", produces = MediaType.APPLICATION_XML_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Resource> getPremisMetadata(
             @PathVariable("objectId") UUID objectId,
             @RequestParam(name = "versionId", required = false) String versionId) {
@@ -127,7 +123,6 @@ public class ObjectController {
     }
 
     @GetMapping(value = "/objects/{objectId}/source-files", produces = "application/zip")
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Resource> downloadSourceFiles(
             @PathVariable("objectId") UUID objectId,
             @RequestParam(name = "fileId") List<UUID> fileIds) {
@@ -139,7 +134,6 @@ public class ObjectController {
     }
 
     @GetMapping(value = "/objects/{objectId}/source-files/presigned", produces = MediaType.APPLICATION_JSON_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<List<PresignedSourceFilesDownloadResponse>> presignSourceFilesDownload(
             @PathVariable("objectId") UUID objectId,
             @RequestParam(name = "fileId") List<UUID> fileIds) {
@@ -154,7 +148,6 @@ public class ObjectController {
     }
 
     @GetMapping(value = "/objects/{objectId}/cached-metadata", produces = MediaType.APPLICATION_JSON_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<CachedObjectMetadataResponse> getCachedMetadata(
             @PathVariable("objectId") UUID objectId) {
         var result = getCachedObjectMetadataInPort.getCachedMetadata(objectId);
@@ -162,7 +155,6 @@ public class ObjectController {
     }
 
     @GetMapping(value = "/objects/{objectId}/verify", produces = MediaType.APPLICATION_JSON_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<VerifyPremisResult> verifyPremis(
             @PathVariable("objectId") UUID objectId,
             @RequestParam(name = "versionId", required = false) String versionId) {
@@ -171,7 +163,6 @@ public class ObjectController {
     }
 
     @PostMapping(value = "/objects/search", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<SearchObjectsResult> searchObjects(
             @RequestBody @jakarta.validation.Valid ObjectSearchRequest request) {
         var result = searchObjectsInPort.search(request);
@@ -181,7 +172,6 @@ public class ObjectController {
     @PutMapping(value = "/objects/{objectId}/descriptive-metadata",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Map<String, Object>> upsertDescriptiveMetadata(
             @PathVariable("objectId") UUID objectId,
             @RequestParam(name = "entityType") String entityTypeName,

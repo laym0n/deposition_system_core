@@ -82,13 +82,7 @@ statistics:
 
 deposition:
   security:
-    rules:
-      - method: GET
-        path: /intellectual-entity-types
-        access: anonymous
-      - method: POST
-        path: /objects/search
-        access: anonymous
+    rules: []
   indexing:
     executor:
       thread-name-prefix: deposition-indexing-
