@@ -81,6 +81,14 @@ statistics:
       allow-core-thread-time-out: false
 
 deposition:
+  security:
+    rules:
+      - method: GET
+        path: /intellectual-entity-types
+        access: anonymous
+      - method: POST
+        path: /objects/search
+        access: anonymous
   indexing:
     executor:
       thread-name-prefix: deposition-indexing-
