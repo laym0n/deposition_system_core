@@ -22,30 +22,34 @@ public class SecurityConfig {
                                            EndpointAccessProperties endpointAccessProperties,
                                            Customizer<OAuth2ResourceServerConfigurer<HttpSecurity>> oAuth2ResourceServerCustomizer) {
         http
-                .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/actuator/**", "/swagger-ui/**", "/v3/api-docs/**",
-                                "/swagger-ui.html")
-                        .permitAll()
-                        .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/descriptive-metadata/schemas/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/objects/*/cached-metadata").permitAll()
-                        .with(authorize -> endpointAccessProperties.getRules().forEach(rule -> {
-                            var access = rule.accessType();
-                            if (rule.getPath() == null || rule.getPath().isBlank()) {
-                                throw new IllegalArgumentException("Endpoint access rule path must not be blank");
-                            }
+                .authorizeHttpRequests(authz -> {
+                    authz
+                            .requestMatchers("/actuator/**", "/swagger-ui/**", "/v3/api-docs/**",
+                                    "/swagger-ui.html")
+                            .permitAll()
+                            .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+                            .requestMatchers(HttpMethod.GET, "/descriptive-metadata/schemas/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/objects/*/cached-metadata").permitAll();
 
-                            var matcher = rule.getMethod() == null
-                                    ? authorize.requestMatchers(rule.getPath())
-                                    : authorize.requestMatchers(rule.getMethod(), rule.getPath());
+                    endpointAccessProperties.getRules().forEach(rule -> {
+                        var access = rule.accessType();
+                        if (rule.getPath() == null || rule.getPath().isBlank()) {
+                            throw new IllegalArgumentException("Endpoint access rule path must not be blank");
+                        }
 
-                            switch (access) {
-                                case AUTHENTICATED -> matcher.authenticated();
-                                case ANONYMOUS -> matcher.permitAll();
-                                case ROLE -> matcher.hasRole(rule.roleName());
-                            }
-                        }))
-                        .anyRequest().authenticated())
+                        var matcher = rule.getMethod() == null
+                                ? authz.requestMatchers(rule.getPath())
+                                : authz.requestMatchers(rule.getMethod(), rule.getPath());
+
+                        switch (access) {
+                            case AUTHENTICATED -> matcher.authenticated();
+                            case ANONYMOUS -> matcher.permitAll();
+                            case ROLE -> matcher.hasRole(rule.roleName());
+                        }
+                    });
+
+                    authz.anyRequest().authenticated();
+                })
                 .oauth2ResourceServer(oAuth2ResourceServerCustomizer)
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(Customizer.withDefaults());
