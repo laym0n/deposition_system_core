@@ -12,6 +12,7 @@ import com.deposition.domain.port.out.ObjectIndexLookupOutPort;
 import com.deposition.domain.port.out.UserOutPort;
 import com.deposition.domain.service.StatisticsEventReporter;
 import com.deposition.domain.service.IntellectualEntityTypeResolver;
+import com.deposition.domain.service.acl.AccessValidatorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -29,6 +30,7 @@ public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataIn
     private final UserOutPort userOutPort;
     private final StatisticsEventReporter statisticsEventReporter;
     private final IntellectualEntityTypeResolver intellectualEntityTypeResolver;
+    private final AccessValidatorService accessValidatorService;
 
     private static List<AclEntry> filterAclEntriesForUser(
             List<AclEntry> entries,
@@ -51,6 +53,7 @@ public class GetCachedObjectMetadataAdapter implements GetCachedObjectMetadataIn
 
     @Override
     public CachedObjectMetadataResponse getCachedMetadata(UUID objectId) {
+        accessValidatorService.validateCurrentUserCanRead(objectId);
         var doc = objectIndexLookupOutPort.findByObjectId(objectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Object", objectId.toString()));
 
