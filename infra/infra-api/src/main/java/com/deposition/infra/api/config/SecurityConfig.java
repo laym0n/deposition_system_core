@@ -50,7 +50,7 @@ public class SecurityConfig {
                 })
                 .oauth2ResourceServer(oAuth2ResourceServerCustomizer)
                 .cors(AbstractHttpConfigurer::disable)
-                .csrf(Customizer.withDefaults());
+                .csrf(AbstractHttpConfigurer::disable);
         return http.build();
     }
 }
