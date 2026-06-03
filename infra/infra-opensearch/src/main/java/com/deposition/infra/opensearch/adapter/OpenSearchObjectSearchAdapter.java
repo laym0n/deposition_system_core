@@ -56,6 +56,7 @@ public class OpenSearchObjectSearchAdapter implements ObjectSearchOutPort {
         var bool = new BoolQuery.Builder();
 
         String principalId = filters.principalId();
+        boolean hasPrincipalId = principalId != null && !principalId.isBlank();
 
         var access = new BoolQuery.Builder();
         boolean hasAccessRule = false;
@@ -70,7 +71,7 @@ public class OpenSearchObjectSearchAdapter implements ObjectSearchOutPort {
                             .toList()))));
         }
 
-        if (filters.anyAclPermissions() != null && !filters.anyAclPermissions().isEmpty()) {
+        if (hasPrincipalId && filters.anyAclPermissions() != null && !filters.anyAclPermissions().isEmpty()) {
             for (var p : filters.anyAclPermissions()) {
                 if (p == null) {
                     continue;
@@ -84,7 +85,7 @@ public class OpenSearchObjectSearchAdapter implements ObjectSearchOutPort {
             }
         }
 
-        if (filters.anyAclRoles() != null && !filters.anyAclRoles().isEmpty()) {
+        if (hasPrincipalId && filters.anyAclRoles() != null && !filters.anyAclRoles().isEmpty()) {
             for (var r : filters.anyAclRoles()) {
                 if (r == null) {
                     continue;

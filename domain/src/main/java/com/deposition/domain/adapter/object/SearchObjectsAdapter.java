@@ -27,12 +27,15 @@ public class SearchObjectsAdapter implements SearchObjectsInPort {
 
     @Override
     public SearchObjectsResult search(ObjectSearchRequest request) {
-        var userId = userOutPort.getCurrentUserId();
-        if (userId == null) {
-            throw new IllegalArgumentException("Unauthenticated request: cannot search objects");
-        }
+        var userId = userOutPort.getOptinalCurrentUserId().orElse(null);
 
-        var filters = new ObjectSearchFilters(
+        var filters = userId == null
+                ? new ObjectSearchFilters(
+                null,
+                Set.of(),
+                Set.of(),
+                Set.of(ObjectSearchFilters.Visibility.PUBLIC))
+                : new ObjectSearchFilters(
                 userId,
                 Set.of(AclPermission.READ),
                 Set.of(AclRole.SUPER_ADMIN),
