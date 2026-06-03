@@ -1,7 +1,6 @@
 package com.deposition.domain.adapter.object;
 
 import com.deposition.domain.exception.ResourceNotFoundException;
-import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.statistics.StatisticsEventType;
 import com.deposition.domain.port.in.object.GetPremisMetadataInPort;
 import com.deposition.domain.port.out.FileStorageOutPort;
@@ -28,7 +27,7 @@ public class GetPremisMetadataAdapter implements GetPremisMetadataInPort {
 
     @Override
     public Resource getPremisMetadata(UUID objectId, @Nullable String versionId) {
-        accessValidatorService.validateCurrentUserHasPermission(objectId, AclPermission.READ);
+        accessValidatorService.validateCurrentUserCanRead(objectId);
 
         try {
             var premis = fileStorage.loadPremisMetadataByObjectId(objectId, versionId);

@@ -1,6 +1,5 @@
 package com.deposition.domain.adapter.statistics;
 
-import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.port.in.statistics.GetStatisticsEventsInPort;
 import com.deposition.domain.port.out.StatisticsEventOutPort;
 import com.deposition.domain.service.acl.AccessValidatorService;
@@ -36,7 +35,7 @@ public class GetStatisticsEventsAdapter implements GetStatisticsEventsInPort {
             throw new IllegalArgumentException("from must be before or equal to to");
         }
 
-        accessValidatorService.validateCurrentUserHasPermission(request.objectId(), AclPermission.READ);
+        accessValidatorService.validateCurrentUserCanRead(request.objectId());
 
         var events = statisticsEventOutPort.findByObjectIdAndTimestampBetween(
                 request.objectId(),

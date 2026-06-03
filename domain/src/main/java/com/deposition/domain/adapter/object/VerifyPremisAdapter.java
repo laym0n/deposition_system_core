@@ -1,7 +1,6 @@
 package com.deposition.domain.adapter.object;
 
 import com.deposition.domain.exception.ResourceNotFoundException;
-import com.deposition.domain.models.acl.AclPermission;
 import com.deposition.domain.models.statistics.StatisticsEventType;
 import com.deposition.domain.port.in.object.VerifyPremisInPort;
 import com.deposition.domain.port.in.object.VerifyPremisResult;
@@ -38,7 +37,7 @@ public class VerifyPremisAdapter implements VerifyPremisInPort {
             throw new IllegalArgumentException("objectId must not be null");
         }
 
-        accessValidatorService.validateCurrentUserHasPermission(objectId, AclPermission.READ);
+        accessValidatorService.validateCurrentUserCanRead(objectId);
 
         Resource premisXml;
         try {
